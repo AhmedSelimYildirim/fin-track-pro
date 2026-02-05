@@ -4,17 +4,15 @@ import (
 	"log"
 
 	"github.com/AhmedSelimYildirim/fin-track-pro/internal/handlers"
+	"github.com/AhmedSelimYildirim/fin-track-pro/internal/repository" // Burayı ekledik
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
+	// Veritabanını başlat
+	repository.ConnectDB()
 
-	app := fiber.New(fiber.Config{
-		AppName: "FinTrack Pro v1.0",
-	})
-
+	app := fiber.New()
 	handlers.SetupRoutes(app)
-
-	log.Println("Sunucu 3000 portunda başlatılıyor...")
 	log.Fatal(app.Listen(":3000"))
 }
