@@ -15,9 +15,10 @@ type User struct {
 
 type Asset struct {
 	gorm.Model
-	UserID    uint    `gorm:"not null"`
-	Type      string  `gorm:"not null"`
-	Amount    float64 `gorm:"not null"`
-	CostPrice float64
-	Date      time.Time
+	UserID uint      `json:"user_id"`
+	Type   string    `json:"type"`   // GOLD, USD, BTC, SILVER, ETH vb.
+	Amount float64   `json:"amount"` // Elindeki miktar (örneğin 10.5 gram)
+	Cost   float64   `json:"cost"`   // Alış fiyatı (Kar/Zarar hesabı için)
+	Note   string    `json:"note"`   // "Bugün maaşla aldım" gibi notlar
+	Date   time.Time `json:"date"`   // Takvim bazlı takip için tarih
 }
