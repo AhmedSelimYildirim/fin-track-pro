@@ -23,7 +23,7 @@ type Asset struct {
 
 	ID           int64      `bun:",pk,autoincrement" json:"id"`
 	UserID       int64      `bun:"user_id,notnull" json:"user_id"`
-	Type         string     `bun:"type,notnull" json:"type"` // USD, GOLD, BTC
+	Type         string     `bun:"type,notnull" json:"type"`
 	Amount       float64    `bun:"amount,notnull" json:"amount"`
 	Cost         float64    `bun:"cost,notnull" json:"cost"`
 	Note         string     `bun:"note" json:"note"`
@@ -45,7 +45,10 @@ type Reminder struct {
 	IsSent     bool      `bun:"is_sent,default:false" json:"is_sent"`
 	CreatedAt  time.Time `bun:"created_at,default:current_timestamp" json:"created_at"`
 }
+
 type Calendar struct {
+	bun.BaseModel `bun:"table:calendars,alias:c"`
+
 	ID           int64     `json:"id" bun:",pk,autoincrement"`
 	UserID       int64     `json:"user_id" bun:",notnull"`
 	EventName    string    `json:"event_name" bun:",notnull"`

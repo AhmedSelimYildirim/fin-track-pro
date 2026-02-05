@@ -1,10 +1,11 @@
-package handlers
+package router
 
 import (
 	"fin-track-pro/internal/config"
+	"fin-track-pro/internal/handlers"
 	"fin-track-pro/internal/middleware"
-	repository2 "fin-track-pro/internal/repository"
-	service2 "fin-track-pro/internal/service"
+	"fin-track-pro/internal/repository"
+	"fin-track-pro/internal/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -14,19 +15,22 @@ func SetupRoutes(app *fiber.App) {
 	app.Use(logger.New())
 	cfg := config.LoadConfig()
 
-	userRepo := repository2.NewUserRepository(repository2.DB)
-	assetRepo := repository2.NewAssetRepository(repository2.DB)
-	calendarRepo := repository2.NewCalendarRepository(repository2.DB)
+	userRepo := repository.NewUserRepository(repository.DB)
+	assetRepo := repository.NewAssetRepository(repository.DB)
+	calendarRepo := repository.NewCalendarRepository(repository.DB)
+	marketRepo := repository.NewMarketRepository(repository.DB)
 
-	userService := service2.NewUserService(userRepo, cfg.JWTSecret)
-	marketService := service2.NewMarketService(cfg, repository2.RedisClient)
-	assetService := service2.NewAssetService(assetRepo, marketService)
-	calendarService := service2.NewCalendarService(calendarRepo)
+	userService := service.NewUserService(userRepo, cfg.JWTSecret)
+	marketService := service.NewMarketService(cfg, repository.RedisClient)
+	assetService := service.NewAssetService(assetRepo, marketService)
+	calendarService := service.NewCalendarService(calendarRepo)
 
-	userHandler := NewUserHandler(userService)
-	marketHandler := NewMarketHandler(marketService)
-	assetHandler := NewAssetHandler(assetService, marketService)
-	calendarHandler := NewCalendarHandler(calendarService)
+	userHandler := handlers.NewUserHandler(userService)
+	marketHandler := handlers.NewMarketHandler(marketService)
+	assetHandler := handlers.NewAssetHandler(assetService, marketService)
+	calendarHandler := handlers.NewCalendarHandler(calendarService)
+
+	_ = marketRepo
 
 	api := app.Group("/api")
 	api.Get("/ping", func(c *fiber.Ctx) error {

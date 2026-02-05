@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fin-track-pro/internal/core/models"
-	"fin-track-pro/internal/handlers"
-	repository2 "fin-track-pro/internal/repository"
+	"fin-track-pro/internal/repository"
+	"fin-track-pro/internal/router"
 	"log"
 	"os"
 	"os/signal"
@@ -17,8 +17,8 @@ import (
 )
 
 func main() {
-	repository2.ConnectDB()
-	repository2.ConnectRedis()
+	repository.ConnectDB()
+	repository.ConnectRedis()
 
 	ctx := context.Background()
 
@@ -26,10 +26,11 @@ func main() {
 		(*models.User)(nil),
 		(*models.Asset)(nil),
 		(*models.Calendar)(nil),
+		(*models.Reminder)(nil),
 	}
 
 	for _, model := range modelsToCreate {
-		_, err := repository2.DB.NewCreateTable().
+		_, err := repository.DB.NewCreateTable().
 			Model(model).
 			IfNotExists().
 			Exec(ctx)
@@ -44,7 +45,7 @@ func main() {
 		ServerHeader: "Fiber",
 	})
 
-	handlers.SetupRoutes(app)
+	router.SetupRoutes(app)
 
 	go func() {
 		log.Println("Hatırlatıcı Worker servisi başlatıldı...")
