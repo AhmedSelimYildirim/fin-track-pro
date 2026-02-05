@@ -72,13 +72,15 @@ func (s *AssetService) GetPortfolioSummary(userID uint) (*dto.PortfolioResponse,
 	if err != nil {
 		return nil, errors.New("kurlar alinamadi")
 	}
+
 	goldPrice, _ := s.marketService.GetMetalPrice("GOLD")
 	silverPrice, _ := s.marketService.GetMetalPrice("SILVER")
 	btcPrice, _ := s.marketService.GetCryptoPrice("bitcoin")
 	ethPrice, _ := s.marketService.GetCryptoPrice("ethereum")
 
-	var details []dto.AssetDetail
+	groupedAssets := make(map[string]*dto.AssetDetail)
 	var total float64
+
 	for _, a := range assets {
 		var currentPrice float64
 		switch a.Type {
@@ -95,15 +97,28 @@ func (s *AssetService) GetPortfolioSummary(userID uint) (*dto.PortfolioResponse,
 		case "ETH":
 			currentPrice = ethPrice
 		}
+
 		valueInTL := a.Amount * currentPrice
 		total += valueInTL
-		details = append(details, dto.AssetDetail{
-			Type:         a.Type,
-			Amount:       a.Amount,
-			CurrentPrice: currentPrice,
-			ValueInTL:    valueInTL,
-		})
+
+		if item, exists := groupedAssets[a.Type]; exists {
+			item.Amount += a.Amount
+			item.ValueInTL += valueInTL
+		} else {
+			groupedAssets[a.Type] = &dto.AssetDetail{
+				Type:         a.Type,
+				Amount:       a.Amount,
+				CurrentPrice: currentPrice,
+				ValueInTL:    valueInTL,
+			}
+		}
 	}
+
+	var details []dto.AssetDetail
+	for _, detail := range groupedAssets {
+		details = append(details, *detail)
+	}
+
 	return &dto.PortfolioResponse{Assets: details, TotalValue: total}, nil
 }
 
@@ -152,7 +167,6 @@ func (s *AssetService) GenerateReceipt(asset *models.Asset) ([]byte, error) {
 	pdf.Ln(20)
 	pdf.SetFont("Arial", "I", 10)
 	pdf.Cell(0, 10, "Bu belge Ahmed Selim YILDIRIM tarafindan uretilmistir.")
-
 	var buf bytes.Buffer
 	err := pdf.Output(&buf)
 	if err != nil {

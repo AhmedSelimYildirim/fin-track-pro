@@ -46,7 +46,11 @@ func SetupRoutes(app *fiber.App) {
 
 	protected := api.Group("/", middleware.Protected(cfg.JWTSecret))
 
-	assets := protected.Group("assets")
+	u := protected.Group("/user")
+	u.Put("/update", userHandler.Update)
+	u.Delete("/delete", userHandler.Delete)
+
+	assets := protected.Group("/assets")
 	assets.Post("/", assetHandler.CreateAsset)
 	assets.Get("/", assetHandler.GetAssets)
 	assets.Get("/summary", assetHandler.GetSummary)
@@ -55,6 +59,6 @@ func SetupRoutes(app *fiber.App) {
 	assets.Put("/:id", assetHandler.UpdateAsset)
 	assets.Delete("/:id", assetHandler.DeleteAsset)
 
-	calendar := protected.Group("calendar")
+	calendar := protected.Group("/calendar")
 	calendar.Post("/remind", calendarHandler.AddEvent)
 }

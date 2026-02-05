@@ -37,3 +37,13 @@ func (r *UserRepository) GetByID(id uint) (*models.User, error) {
 	}
 	return &user, nil
 }
+
+func (r *UserRepository) Update(user *models.User) error {
+	_, err := r.db.NewUpdate().Model(user).WherePK().Exec(context.Background())
+	return err
+}
+
+func (r *UserRepository) Delete(id uint) error {
+	_, err := r.db.NewDelete().Model((*models.User)(nil)).Where("id = ?", id).Exec(context.Background())
+	return err
+}

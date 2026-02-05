@@ -20,11 +20,9 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "geçersiz format"})
 	}
-
 	if err := h.userService.Register(req.Username, req.Email, req.Password); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "kayıt başarısız"})
 	}
-
 	return c.Status(201).JSON(fiber.Map{"message": "Kayıt başarılı Ahmed Selim! 🚀"})
 }
 
@@ -33,11 +31,29 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "geçersiz format"})
 	}
-
 	token, err := h.userService.Login(req.Email, req.Password)
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"error": err.Error()})
 	}
-
 	return c.JSON(fiber.Map{"token": token})
+}
+
+func (h *UserHandler) Update(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(float64)
+	var req dto.RegisterRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "geçersiz veri"})
+	}
+	if err := h.userService.Update(uint(userID), req.Username, req.Email); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "güncelleme başarısız"})
+	}
+	return c.JSON(fiber.Map{"message": "Profil güncellendi Ahmed Selim!"})
+}
+
+func (h *UserHandler) Delete(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(float64)
+	if err := h.userService.Delete(uint(userID)); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "silme işlemi başarısız"})
+	}
+	return c.JSON(fiber.Map{"message": "Hesabın başarıyla silindi. Hoşçakal Ahmed Selim!"})
 }
