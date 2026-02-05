@@ -19,7 +19,7 @@ func ConnectDB() {
 	cfg := config.LoadConfig()
 
 	if cfg.DBUser == "" {
-		log.Fatal("❌ Hata: .env dosyasi okunamadi veya DB_USER bos! Calisma dizinini (Working Directory) kontrol et Ahmed Selim.")
+		log.Fatal("❌ Hata: .env dosyasi okunamadi veya DB_USER bos! Calisma dizinini (Working Directory) kontrol et .")
 	}
 
 	pgconn := pgdriver.NewConnector(
@@ -45,5 +45,5 @@ func ConnectDB() {
 		log.Fatal("❌ Asset tablosu olusturulamadi: ", err)
 	}
 
-	fmt.Println("✅ Bun motoru tikir tikir calisiyor Ahmed Selim! 🚀")
+	fmt.Println("✅ Bun motoru tikir tikir calisiyor ! 🚀")
 }

@@ -25,7 +25,7 @@ func main() {
 	modelsToCreate := []interface{}{
 		(*models.User)(nil),
 		(*models.Asset)(nil),
-		(*models.Calendar)(nil),
+		(*models.Transaction)(nil),
 		(*models.Reminder)(nil),
 	}
 
@@ -38,7 +38,7 @@ func main() {
 			log.Fatalf("Tablo olusturma hatasi: %v", err)
 		}
 	}
-	log.Println("Veritabanı şeması Ahmed Selim için hazırlandı.")
+	log.Println("Veritabanı şeması  için hazırlandı.")
 
 	app := fiber.New(fiber.Config{
 		AppName:      "FinTrack Pro v1.0",
@@ -67,5 +67,5 @@ func main() {
 	log.Println("Sunucu kapatılıyor...")
 
 	_ = app.Shutdown()
-	log.Println("FinTrack Pro durduruldu. Görüşürüz Ahmed Selim!")
+	log.Println("FinTrack Pro durduruldu. Görüşürüz !")
 }

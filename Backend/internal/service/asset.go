@@ -9,7 +9,6 @@ import (
 	"fmt"
 
 	"github.com/jung-kurt/gofpdf"
-	"github.com/xuri/excelize/v2"
 )
 
 type AssetService struct {
@@ -21,46 +20,56 @@ func NewAssetService(repo *repository.AssetRepository, market *MarketService) *A
 	return &AssetService{repo: repo, marketService: market}
 }
 
-func (s *AssetService) AddAsset(asset *models.Asset) error {
-	return s.repo.Create(asset)
-}
-
-func (s *AssetService) UpdateAssetAmount(userID uint, assetID int64, newAmount float64) error {
-	asset, err := s.repo.GetByID(assetID)
+func (s *AssetService) ManageBalance(userID uint, assetType string, amount float64, action string) error {
+	asset, err := s.repo.GetByType(int64(userID), assetType)
 	if err != nil {
-		return err
+		asset = &models.Asset{UserID: int64(userID), Type: assetType, Amount: 0}
+		if err := s.repo.Create(asset); err != nil {
+			return err
+		}
 	}
-	if uint(asset.UserID) != userID {
-		return errors.New("yetkisiz erisim")
+
+	currentPrice := s.getCurrentPrice(assetType)
+
+	if action == "add" {
+		asset.Amount += amount
+	} else if action == "subtract" {
+		if asset.Amount < amount {
+			return errors.New("yetersiz bakiye ")
+		}
+		asset.Amount -= amount
+	} else {
+		return errors.New("gecersiz islem")
 	}
-	asset.Amount = newAmount
-	return s.repo.Update(asset)
+
+	tx := &models.Transaction{
+		UserID:    int64(userID),
+		Type:      action,
+		AssetType: assetType,
+		Amount:    amount,
+		Price:     currentPrice,
+	}
+
+	return s.repo.UpdateWithLog(asset, tx)
 }
 
-func (s *AssetService) RemoveAsset(userID uint, assetID int64) error {
-	asset, err := s.repo.GetByID(assetID)
-	if err != nil {
-		return err
+func (s *AssetService) getCurrentPrice(assetType string) float64 {
+	rates, _ := s.marketService.GetCurrencyRates()
+	switch assetType {
+	case "USD":
+		return rates["USD"]
+	case "GOLD":
+		p, _ := s.marketService.GetMetalPrice("GOLD")
+		return p
+	case "SILVER":
+		p, _ := s.marketService.GetMetalPrice("SILVER")
+		return p
+	case "BTC":
+		p, _ := s.marketService.GetCryptoPrice("bitcoin")
+		return p
+	default:
+		return 1.0
 	}
-	if uint(asset.UserID) != userID {
-		return errors.New("yetkisiz erisim")
-	}
-	return s.repo.Delete(assetID)
-}
-
-func (s *AssetService) GetUserAssets(userID uint) ([]models.Asset, error) {
-	return s.repo.GetByUserID(userID)
-}
-
-func (s *AssetService) GetAssetByID(userID uint, assetID int64) (*models.Asset, error) {
-	asset, err := s.repo.GetByID(assetID)
-	if err != nil {
-		return nil, err
-	}
-	if uint(asset.UserID) != userID {
-		return nil, errors.New("yetkisiz erisim")
-	}
-	return asset, nil
 }
 
 func (s *AssetService) GetPortfolioSummary(userID uint) (*dto.PortfolioResponse, error) {
@@ -68,108 +77,50 @@ func (s *AssetService) GetPortfolioSummary(userID uint) (*dto.PortfolioResponse,
 	if err != nil {
 		return nil, err
 	}
-	rates, err := s.marketService.GetCurrencyRates()
-	if err != nil {
-		return nil, errors.New("kurlar alinamadi")
-	}
-
-	goldPrice, _ := s.marketService.GetMetalPrice("GOLD")
-	silverPrice, _ := s.marketService.GetMetalPrice("SILVER")
-	btcPrice, _ := s.marketService.GetCryptoPrice("bitcoin")
-	ethPrice, _ := s.marketService.GetCryptoPrice("ethereum")
-
-	groupedAssets := make(map[string]*dto.AssetDetail)
-	var total float64
-
-	for _, a := range assets {
-		var currentPrice float64
-		switch a.Type {
-		case "USD":
-			currentPrice = rates["USD"]
-		case "EUR":
-			currentPrice = rates["EUR"]
-		case "GOLD":
-			currentPrice = goldPrice
-		case "SILVER":
-			currentPrice = silverPrice
-		case "BTC":
-			currentPrice = btcPrice
-		case "ETH":
-			currentPrice = ethPrice
-		}
-
-		valueInTL := a.Amount * currentPrice
-		total += valueInTL
-
-		if item, exists := groupedAssets[a.Type]; exists {
-			item.Amount += a.Amount
-			item.ValueInTL += valueInTL
-		} else {
-			groupedAssets[a.Type] = &dto.AssetDetail{
-				Type:         a.Type,
-				Amount:       a.Amount,
-				CurrentPrice: currentPrice,
-				ValueInTL:    valueInTL,
-			}
-		}
-	}
-
 	var details []dto.AssetDetail
-	for _, detail := range groupedAssets {
-		details = append(details, *detail)
+	var total float64
+	for _, a := range assets {
+		price := s.getCurrentPrice(a.Type)
+		val := a.Amount * price
+		total += val
+		details = append(details, dto.AssetDetail{
+			Type: a.Type, Amount: a.Amount, CurrentPrice: price, ValueInTL: val,
+		})
 	}
-
 	return &dto.PortfolioResponse{Assets: details, TotalValue: total}, nil
 }
 
-func (s *AssetService) ExportToExcel(userID uint) ([]byte, error) {
-	assets, err := s.repo.GetByUserID(userID)
-	if err != nil {
-		return nil, err
-	}
-	f := excelize.NewFile()
-	sheet := "Portfoy"
-	f.SetSheetName("Sheet1", sheet)
-	f.SetCellValue(sheet, "A1", "Varlik Tipi")
-	f.SetCellValue(sheet, "B1", "Miktar")
-	f.SetCellValue(sheet, "C1", "Alim Tarihi")
-	f.SetCellValue(sheet, "D1", "Not")
-	for i, a := range assets {
-		row := i + 2
-		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), a.Type)
-		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), a.Amount)
-		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), a.PurchaseDate.Format("02.01.2006"))
-		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), a.Note)
-	}
-	buffer, err := f.WriteToBuffer()
-	if err != nil {
-		return nil, err
-	}
-	return buffer.Bytes(), nil
+func (s *AssetService) GetUserTransactions(userID uint) ([]models.Transaction, error) {
+	return s.repo.GetTransactionsByUserID(userID)
 }
 
-func (s *AssetService) GenerateReceipt(asset *models.Asset) ([]byte, error) {
+func (s *AssetService) GetTransactionByID(userID uint, txID int64) (*models.Transaction, error) {
+	return s.repo.GetTransactionByID(txID, int64(userID))
+}
+
+func (s *AssetService) GenerateTransactionReceipt(tx *models.Transaction) ([]byte, error) {
 	pdf := gofpdf.New("P", "mm", "A5", "")
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 16)
 	pdf.Cell(0, 10, "FINTRACK PRO - ISLEM DEKONTU")
 	pdf.Ln(12)
 	pdf.SetFont("Arial", "", 12)
-	pdf.Cell(0, 10, fmt.Sprintf("Islem ID: %d", asset.ID))
+	pdf.Cell(0, 10, fmt.Sprintf("Islem No: %d", tx.ID))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("Varlik Tipi: %s", asset.Type))
+	pdf.Cell(0, 10, fmt.Sprintf("Varlik: %s", tx.AssetType))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("Miktar: %.2f", asset.Amount))
+	pdf.Cell(0, 10, fmt.Sprintf("Islem Tipi: %s", tx.Type))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("Tarih: %s", asset.PurchaseDate.Format("02.01.2006")))
+	pdf.Cell(0, 10, fmt.Sprintf("Miktar: %.4f", tx.Amount))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("Not: %s", asset.Note))
+	pdf.Cell(0, 10, fmt.Sprintf("Birim Fiyat: %.2f TL", tx.Price))
+	pdf.Ln(8)
+	pdf.Cell(0, 10, fmt.Sprintf("Tarih: %s", tx.CreatedAt.Format("02.01.2006 15:04")))
 	pdf.Ln(20)
 	pdf.SetFont("Arial", "I", 10)
-	pdf.Cell(0, 10, "Bu belge Ahmed Selim YILDIRIM tarafindan uretilmistir.")
+	pdf.Cell(0, 10, "Bu belge  YILDIRIM tarafindan uretilmistir.")
 	var buf bytes.Buffer
-	err := pdf.Output(&buf)
-	if err != nil {
+	if err := pdf.Output(&buf); err != nil {
 		return nil, err
 	}
 	return buf.Bytes(), nil

@@ -34,7 +34,7 @@ func SetupRoutes(app *fiber.App) {
 
 	api := app.Group("/api")
 	api.Get("/ping", func(c *fiber.Ctx) error {
-		return c.Status(200).JSON(fiber.Map{"message": "Sistem hazır Ahmed Selim! 🚀"})
+		return c.Status(200).JSON(fiber.Map{"message": "Sistem hazır ! 🚀"})
 	})
 
 	user := api.Group("/user")
@@ -51,14 +51,12 @@ func SetupRoutes(app *fiber.App) {
 	u.Delete("/delete", userHandler.Delete)
 
 	assets := protected.Group("/assets")
-	assets.Post("/", assetHandler.CreateAsset)
-	assets.Get("/", assetHandler.GetAssets)
+	assets.Post("/update", assetHandler.UpdateBalance)
 	assets.Get("/summary", assetHandler.GetSummary)
-	assets.Get("/export", assetHandler.ExportExcel)
+	assets.Get("/transactions", assetHandler.GetTransactions)
 	assets.Get("/receipt/:id", assetHandler.GetReceipt)
-	assets.Put("/:id", assetHandler.UpdateAsset)
-	assets.Delete("/:id", assetHandler.DeleteAsset)
 
 	calendar := protected.Group("/calendar")
 	calendar.Post("/remind", calendarHandler.AddEvent)
+	calendar.Get("/list", calendarHandler.ListReminders)
 }

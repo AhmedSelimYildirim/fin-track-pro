@@ -24,3 +24,7 @@ func (s *CalendarService) CreateReminder(userID int64, title string, remindAt ti
 	}
 	return s.calendarRepo.SaveReminder(context.Background(), reminder)
 }
+
+func (s *CalendarService) GetUserReminders(userID int64) ([]models.Reminder, error) {
+	return s.calendarRepo.GetRemindersByUserID(context.Background(), userID)
+}

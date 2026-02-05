@@ -18,7 +18,7 @@ func NewUserService(repo *repository.UserRepository, secret string) *UserService
 
 func (s *UserService) Register(username, email, password string) error {
 	if !utils.IsValidEmail(email) {
-		return errors.New("gecersiz e-posta formati Ahmed Selim")
+		return errors.New("gecersiz e-posta formati")
 	}
 
 	hashedPassword, _ := utils.HashPassword(password)
@@ -43,7 +43,7 @@ func (s *UserService) Login(email, password string) (string, error) {
 
 func (s *UserService) Update(userID uint, username, email string) error {
 	if !utils.IsValidEmail(email) {
-		return errors.New("gecersiz e-posta formati Ahmed Selim")
+		return errors.New("gecersiz e-posta formati ")
 	}
 
 	user, err := s.repo.GetByID(userID)
