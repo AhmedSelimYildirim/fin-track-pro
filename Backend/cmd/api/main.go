@@ -2,16 +2,16 @@ package main
 
 import (
 	"context"
+	_ "fin-track-pro/docs"
 	"fin-track-pro/internal/core/models"
 	"fin-track-pro/internal/repository"
 	"fin-track-pro/internal/router"
+	"fin-track-pro/internal/service"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	_ "fin-track-pro/docs"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -19,7 +19,6 @@ import (
 func main() {
 	repository.ConnectDB()
 	repository.ConnectRedis()
-
 	ctx := context.Background()
 
 	modelsToCreate := []interface{}{
@@ -38,7 +37,9 @@ func main() {
 			log.Fatalf("Tablo olusturma hatasi: %v", err)
 		}
 	}
-	log.Println("Veritabanı şeması  için hazırlandı.")
+
+	calendarRepo := repository.NewCalendarRepository(repository.DB)
+	calendarService := service.NewCalendarService(calendarRepo)
 
 	app := fiber.New(fiber.Config{
 		AppName:      "FinTrack Pro v1.0",
@@ -48,24 +49,28 @@ func main() {
 	router.SetupRoutes(app)
 
 	go func() {
-		log.Println("Hatırlatıcı Worker servisi başlatıldı...")
+		log.Println("Hatırlatıcı Worker servisi aktif edildi...")
 		for {
+			calendarService.ProcessPendingReminders()
 			time.Sleep(1 * time.Minute)
 		}
 	}()
 
 	go func() {
-		if err := app.Listen(":3000"); err != nil {
+		port := os.Getenv("PORT")
+		if port == "" {
+			port = "3000"
+		}
+		if err := app.Listen(":" + port); err != nil {
 			log.Panic(err)
 		}
 	}()
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-
 	<-c
-	log.Println("Sunucu kapatılıyor...")
 
+	log.Println("Sunucu kapatılıyor...")
 	_ = app.Shutdown()
 	log.Println("FinTrack Pro durduruldu. Görüşürüz !")
 }
