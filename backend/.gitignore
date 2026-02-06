@@ -1,0 +1,6 @@
+# Binaries
+backend/cmd/api/main
+backend/internal/infrastructure/config/config.yaml # Şifrelerin olduğu dosya!
+.env
+*.exe
+vendor/

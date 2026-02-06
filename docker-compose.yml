@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app:
     build:
-      context: ./Backend
+      context: backend
       dockerfile: Dockerfile
     container_name: fintrack_app
     ports:
