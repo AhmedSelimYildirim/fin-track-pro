@@ -7,6 +7,7 @@ import (
 	"fin-track-pro/internal/core/models"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/uptrace/bun"
 	"github.com/uptrace/bun/dialect/pgdialect"
@@ -19,7 +20,12 @@ func ConnectDB() {
 	cfg := config.LoadConfig()
 
 	if cfg.DBUser == "" {
-		log.Fatal("❌ Hata: .env dosyasi okunamadi veya DB_USER bos! Calisma dizinini (Working Directory) kontrol et .")
+		log.Fatal("❌ Hata: .env dosyasi okunamadi veya DB_USER bos!")
+	}
+
+	isInsecure := true
+	if os.Getenv("RENDER") == "true" || os.Getenv("DB_SSLMODE") == "require" {
+		isInsecure = false
 	}
 
 	pgconn := pgdriver.NewConnector(
@@ -27,7 +33,7 @@ func ConnectDB() {
 		pgdriver.WithUser(cfg.DBUser),
 		pgdriver.WithPassword(cfg.DBPassword),
 		pgdriver.WithDatabase(cfg.DBName),
-		pgdriver.WithInsecure(true),
+		pgdriver.WithInsecure(isInsecure),
 	)
 
 	sqldb := sql.OpenDB(pgconn)
@@ -45,5 +51,5 @@ func ConnectDB() {
 		log.Fatal("❌ Asset tablosu olusturulamadi: ", err)
 	}
 
-	fmt.Println("✅ Bun motoru tikir tikir calisiyor ! 🚀")
+	fmt.Println("✅ Bun motoru tikir tikir calisiyor! 🚀")
 }
