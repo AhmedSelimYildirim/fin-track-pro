@@ -6,11 +6,12 @@ import (
 	"fin-track-pro/internal/core/models"
 	"fin-track-pro/internal/repository"
 	"fin-track-pro/internal/router"
-	"github.com/gofiber/fiber/v2"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func main() {

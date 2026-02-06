@@ -39,21 +39,41 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) Update(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(float64)
+	val := c.Locals("user_id")
+	var userID uint
+	switch v := val.(type) {
+	case float64:
+		userID = uint(v)
+	case uint:
+		userID = v
+	default:
+		return c.Status(401).JSON(fiber.Map{"error": "yetkisiz erisim"})
+	}
+
 	var req dto.RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "geçersiz veri"})
+		return c.Status(400).JSON(fiber.Map{"error": "gecersiz veri"})
 	}
-	if err := h.userService.Update(uint(userID), req.Username, req.Email); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "güncelleme başarısız"})
+	if err := h.userService.Update(userID, req.Username, req.Email); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "guncelleme basarisiz"})
 	}
-	return c.JSON(fiber.Map{"message": "Profil güncellendi !"})
+	return c.JSON(fiber.Map{"message": "Profil guncellendi !"})
 }
 
 func (h *UserHandler) Delete(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(float64)
-	if err := h.userService.Delete(uint(userID)); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "silme işlemi başarısız"})
+	val := c.Locals("user_id")
+	var userID uint
+	switch v := val.(type) {
+	case float64:
+		userID = uint(v)
+	case uint:
+		userID = v
+	default:
+		return c.Status(401).JSON(fiber.Map{"error": "yetkisiz erisim"})
 	}
-	return c.JSON(fiber.Map{"message": "Hesabın başarıyla silindi. Hoşçakal !"})
+
+	if err := h.userService.Delete(userID); err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "silme islemi basarisiz"})
+	}
+	return c.JSON(fiber.Map{"message": "Hesabin basariyla silindi. Hoscakal !"})
 }
