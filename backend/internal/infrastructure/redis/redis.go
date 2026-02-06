@@ -26,10 +26,18 @@ func ConnectRedis() {
 		})
 	}
 
-	_, err := Client.Ping(context.Background()).Result()
+	ctx := context.Background()
+	_, err := Client.Ping(ctx).Result()
 	if err != nil {
-		fmt.Println("Redis baglantisi kurulamadi")
+		fmt.Println("Redis baglantisi kurulamadi:", err)
 	} else {
-		fmt.Println("Redis baglantisi aktif")
+		fmt.Println("Redis baglantisi aktif 🟢")
+
+		err := Client.FlushAll(ctx).Err()
+		if err != nil {
+			fmt.Println("Redis sifirlanirken hata olustu:", err)
+		} else {
+			fmt.Println("Redis verileri basariyla SIFIRLANDI! 🗑️")
+		}
 	}
 }
