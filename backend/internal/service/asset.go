@@ -39,7 +39,6 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 
 	unitPrice := req.Price
 	if unitPrice == 0 {
-		// Geçmiş tarihli işlemlerde otomatik kur çekme
 		if req.TransactionDate != nil && req.TransactionDate.Before(time.Now().AddDate(0, 0, -1)) {
 			if req.Type == "USD" || req.Type == "EUR" {
 				unitPrice, _ = s.marketService.GetHistoricalRate(txDate, req.Type, "TRY")
@@ -63,6 +62,8 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 			asset.TotalCost -= req.Amount * avgCost
 		}
 		asset.Amount -= req.Amount
+	} else {
+		return errors.New("gecersiz islem")
 	}
 
 	tx := &model.Transaction{
@@ -176,7 +177,30 @@ func (s *AssetService) GetTransactionByID(userID uint, txID int64) (*model.Trans
 	return s.repo.GetTransactionByID(txID, int64(userID))
 }
 
-func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction) ([]byte, error) {
+func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCurrency string) ([]byte, error) {
+	rates, _ := s.marketService.GetCurrencyRates()
+	usdToTry := rates["USD"]
+
+	var parity float64
+	switch baseCurrency {
+	case "TRY":
+		parity = 1.0
+	case "USD":
+		parity = 1.0 / usdToTry
+	case "EUR":
+		parity = 1.0 / (rates["EUR"] * usdToTry)
+	case "BTC":
+		btcPrice, _ := s.marketService.GetCryptoPrice("bitcoin")
+		parity = 1.0 / btcPrice
+	case "GOLD":
+		goldPrice, _ := s.marketService.GetMetalPrice("GOLD")
+		parity = 1.0 / goldPrice
+	default:
+		parity = 1.0
+	}
+
+	convertedPrice := tx.Price * parity
+
 	pdf := gofpdf.New("P", "mm", "A5", "")
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 16)
@@ -195,7 +219,7 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction) ([]byte
 	pdf.Ln(8)
 	pdf.Cell(0, 10, fmt.Sprintf("Miktar: %.4f", tx.Amount))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("Birim Fiyat: %.2f", tx.Price))
+	pdf.Cell(0, 10, fmt.Sprintf("Birim Fiyat: %.2f %s", convertedPrice, baseCurrency))
 	pdf.Ln(8)
 	pdf.Cell(0, 10, fmt.Sprintf("Islem Tarihi: %s", tx.TransactionDate.Format("02.01.2006")))
 	pdf.Ln(20)

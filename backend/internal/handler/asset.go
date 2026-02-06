@@ -4,8 +4,9 @@ import (
 	"fin-track-pro/internal/dto"
 	"fin-track-pro/internal/service"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type AssetHandler struct {
@@ -50,11 +51,13 @@ func (h *AssetHandler) GetTransactions(c *fiber.Ctx) error {
 func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 	id, _ := strconv.ParseInt(c.Params("id"), 10, 64)
 	userID := c.Locals("user_id").(uint)
+	currency := c.Get("X-Currency", c.Query("currency", "TRY"))
+
 	tx, err := h.service.GetTransactionByID(userID, id)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Islem bulunamadi"})
 	}
-	pdfBytes, err := h.service.GenerateTransactionReceipt(tx)
+	pdfBytes, err := h.service.GenerateTransactionReceipt(tx, currency)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Dekont uretilemedi"})
 	}
