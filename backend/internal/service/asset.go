@@ -29,12 +29,7 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 
 	asset, err := s.repo.GetAsset(int64(userID), req.Type, ayar)
 	if err != nil {
-		asset = &model.Asset{
-			UserID: int64(userID),
-			Type:   req.Type,
-			Amount: 0,
-			Ayar:   ayar,
-		}
+		asset = &model.Asset{UserID: int64(userID), Type: req.Type, Amount: 0, Ayar: ayar}
 	}
 
 	txDate := time.Now()
@@ -44,6 +39,7 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 
 	unitPrice := req.Price
 	if unitPrice == 0 {
+		// Geçmiş tarihli işlemlerde otomatik kur çekme
 		if req.TransactionDate != nil && req.TransactionDate.Before(time.Now().AddDate(0, 0, -1)) {
 			if req.Type == "USD" || req.Type == "EUR" {
 				unitPrice, _ = s.marketService.GetHistoricalRate(txDate, req.Type, "TRY")
@@ -63,22 +59,15 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 			return errors.New("yetersiz bakiye")
 		}
 		if asset.Amount > 0 {
-			averageCost := asset.TotalCost / asset.Amount
-			asset.TotalCost -= req.Amount * averageCost
+			avgCost := asset.TotalCost / asset.Amount
+			asset.TotalCost -= req.Amount * avgCost
 		}
 		asset.Amount -= req.Amount
-	} else {
-		return errors.New("gecersiz islem")
 	}
 
 	tx := &model.Transaction{
-		UserID:          int64(userID),
-		Type:            req.Action,
-		AssetType:       req.Type,
-		Amount:          req.Amount,
-		Price:           unitPrice,
-		Ayar:            ayar,
-		TransactionDate: txDate,
+		UserID: int64(userID), Type: req.Action, AssetType: req.Type,
+		Amount: req.Amount, Price: unitPrice, Ayar: ayar, TransactionDate: txDate,
 	}
 
 	return s.repo.UpdateWithLog(asset, tx)

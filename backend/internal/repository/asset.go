@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fin-track-pro/internal/model"
-
 	"github.com/uptrace/bun"
 )
 
@@ -67,15 +66,16 @@ func (r *AssetRepository) GetTransactionByID(txID int64, userID int64) (*model.T
 func (r *AssetRepository) UpdateWithLog(asset *model.Asset, tx *model.Transaction) error {
 	ctx := context.Background()
 	return r.db.RunInTx(ctx, nil, func(ctx context.Context, bunTx bun.Tx) error {
-		if asset.ID == 0 {
-			if _, err := bunTx.NewInsert().Model(asset).Exec(ctx); err != nil {
-				return err
-			}
-		} else {
-			if _, err := bunTx.NewUpdate().Model(asset).WherePK().Exec(ctx); err != nil {
-				return err
-			}
+		_, err := bunTx.NewInsert().
+			Model(asset).
+			On("CONFLICT (user_id, type, ayar) DO UPDATE").
+			Set("amount = EXCLUDED.amount").
+			Set("total_cost = EXCLUDED.total_cost").
+			Exec(ctx)
+		if err != nil {
+			return err
 		}
+
 		if _, err := bunTx.NewInsert().Model(tx).Exec(ctx); err != nil {
 			return err
 		}

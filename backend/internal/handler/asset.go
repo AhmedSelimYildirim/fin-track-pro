@@ -4,9 +4,8 @@ import (
 	"fin-track-pro/internal/dto"
 	"fin-track-pro/internal/service"
 	"fmt"
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
+	"strconv"
 )
 
 type AssetHandler struct {
@@ -31,7 +30,7 @@ func (h *AssetHandler) UpdateBalance(c *fiber.Ctx) error {
 
 func (h *AssetHandler) GetSummary(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
-	currency := c.Query("currency", "TRY")
+	currency := c.Get("X-Currency", c.Query("currency", "TRY"))
 	summary, err := h.service.GetPortfolioSummary(userID, currency)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
