@@ -2,8 +2,6 @@ package handlers
 
 import (
 	"fin-track-pro/internal/service"
-	"time"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -18,24 +16,23 @@ func NewCalendarHandler(s *service.CalendarService) *CalendarHandler {
 func (h *CalendarHandler) AddEvent(c *fiber.Ctx) error {
 	userID := int64(c.Locals("user_id").(uint))
 	var req struct {
-		Title      string    `json:"title"`
-		TargetDate time.Time `json:"target_date"`
+		Title string `json:"title"`
 	}
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "gecersiz format"})
 	}
-	err := h.calendarService.CreateReminder(userID, req.Title, req.TargetDate)
+	err := h.calendarService.CreateReminder(userID, req.Title)
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Hatırlatıcı kaydedilemedi"})
+		return c.Status(500).JSON(fiber.Map{"error": "Not kaydedilemedi"})
 	}
-	return c.JSON(fiber.Map{"message": "Hatırlatıcı başarıyla oluşturuldu !"})
+	return c.JSON(fiber.Map{"message": "Not başarıyla kaydedildi !"})
 }
 
 func (h *CalendarHandler) ListReminders(c *fiber.Ctx) error {
 	userID := int64(c.Locals("user_id").(uint))
-	reminders, err := h.calendarService.GetUserReminders(userID)
+	notes, err := h.calendarService.GetUserReminders(userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(reminders)
+	return c.JSON(notes)
 }

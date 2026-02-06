@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"fin-track-pro/internal/core/models"
-	"time"
-
 	"github.com/uptrace/bun"
 )
 
@@ -26,25 +24,7 @@ func (r *CalendarRepository) GetRemindersByUserID(ctx context.Context, userID in
 	err := r.db.NewSelect().
 		Model(&reminders).
 		Where("user_id = ?", userID).
-		Order("target_date ASC").
+		Order("id DESC").
 		Scan(ctx)
 	return reminders, err
-}
-
-func (r *CalendarRepository) GetPendingReminders(ctx context.Context) ([]models.Reminder, error) {
-	var reminders []models.Reminder
-	err := r.db.NewSelect().
-		Model(&reminders).
-		Where("target_date <= ? AND is_sent = ?", time.Now(), false).
-		Scan(ctx)
-	return reminders, err
-}
-
-func (r *CalendarRepository) MarkAsSent(ctx context.Context, id int64) error {
-	_, err := r.db.NewUpdate().
-		Model((*models.Reminder)(nil)).
-		Set("is_sent = ?", true).
-		Where("id = ?", id).
-		Exec(ctx)
-	return err
 }

@@ -6,14 +6,11 @@ import (
 	"fin-track-pro/internal/core/models"
 	"fin-track-pro/internal/repository"
 	"fin-track-pro/internal/router"
-	"fin-track-pro/internal/service"
+	"github.com/gofiber/fiber/v2"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
-
-	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
@@ -38,23 +35,12 @@ func main() {
 		}
 	}
 
-	calendarRepo := repository.NewCalendarRepository(repository.DB)
-	calendarService := service.NewCalendarService(calendarRepo)
-
 	app := fiber.New(fiber.Config{
 		AppName:      "FinTrack Pro v1.0",
 		ServerHeader: "Fiber",
 	})
 
 	router.SetupRoutes(app)
-
-	go func() {
-		log.Println("Hatırlatıcı Worker servisi aktif edildi...")
-		for {
-			calendarService.ProcessPendingReminders()
-			time.Sleep(1 * time.Minute)
-		}
-	}()
 
 	go func() {
 		port := os.Getenv("PORT")
