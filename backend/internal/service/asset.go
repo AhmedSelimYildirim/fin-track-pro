@@ -32,7 +32,11 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 		asset = &model.Asset{UserID: int64(userID), Type: req.Type, Amount: 0, Ayar: ayar}
 	}
 
-	unitPrice := s.getCurrentPriceInTRY(req.Type)
+	rawPrice := s.getCurrentPriceInTRY(req.Type)
+	unitPrice := rawPrice
+	if req.Type == "GOLD" && ayar < 24 {
+		unitPrice = rawPrice * (float64(ayar) / 24.0)
+	}
 
 	if req.Action == "add" {
 		asset.Amount += req.Amount
@@ -60,13 +64,11 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 
 func (s *AssetService) getCurrentPriceInTRY(assetType string) float64 {
 	rates, _ := s.marketService.GetCurrencyRates()
-	usdToTry := rates["USD"]
-
 	switch assetType {
 	case "USD":
-		return usdToTry
+		return rates["USD"]
 	case "EUR":
-		return rates["EUR"] * usdToTry
+		return rates["EUR"]
 	case "GOLD":
 		p, _ := s.marketService.GetMetalPrice("GOLD")
 		return p
@@ -104,15 +106,13 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 
 	for _, a := range assets {
 		assetRawPriceInTRY := s.getCurrentPriceInTRY(a.Type)
-
 		adjustedPriceInTRY := assetRawPriceInTRY
 		if a.Type == "GOLD" {
 			adjustedPriceInTRY = assetRawPriceInTRY * (float64(a.Ayar) / 24.0)
 		}
 
-		currentPriceInBase := adjustedPriceInTRY / baseCurrencyPriceInTRY
-
-		valInBase := a.Amount * currentPriceInBase
+		exchangeRate := adjustedPriceInTRY / baseCurrencyPriceInTRY
+		valInBase := a.Amount * exchangeRate
 		costInBase := a.TotalCost / baseCurrencyPriceInTRY
 		profitLoss := valInBase - costInBase
 
@@ -133,7 +133,7 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 			Type:            a.Type,
 			Amount:          a.Amount,
 			Ayar:            displayAyar,
-			CurrentPrice:    currentPriceInBase,
+			CurrentPrice:    exchangeRate,
 			ValueInBase:     valInBase,
 			ProfitLoss:      profitLoss,
 			ProfitLossRatio: profitLossRatio,
@@ -164,7 +164,6 @@ func (s *AssetService) GetTransactionByID(userID uint, txID int64) (*model.Trans
 
 func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCurrency string, targetAyar int) ([]byte, error) {
 	baseCurrencyPriceInTRY := s.getCurrentPriceInTRY(baseCurrency)
-
 	baseLabel := baseCurrency
 	if baseCurrency == "GOLD" && targetAyar > 0 && targetAyar < 24 {
 		baseCurrencyPriceInTRY = baseCurrencyPriceInTRY * (float64(targetAyar) / 24.0)
@@ -177,7 +176,6 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 
 	convertedPrice := tx.Price / baseCurrencyPriceInTRY
 	totalTransactionValue := tx.Amount * convertedPrice
-
 	userName, _ := s.repo.GetUserName(tx.UserID)
 
 	txTypeTr := "Ekleme"
@@ -246,7 +244,6 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 		if a.CurrentPrice < 0.01 {
 			priceFormat = "%.8f"
 		}
-
 		pdf.Cell(30, 8, a.Type)
 		pdf.Cell(30, 8, fmt.Sprintf("%.4f", a.Amount))
 		pdf.Cell(30, 8, fmt.Sprintf(priceFormat, a.CurrentPrice))

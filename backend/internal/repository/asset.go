@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fin-track-pro/internal/model"
-
 	"github.com/uptrace/bun"
 )
 
@@ -76,7 +75,6 @@ func (r *AssetRepository) UpdateWithLog(asset *model.Asset, tx *model.Transactio
 		if err != nil {
 			return err
 		}
-
 		if _, err := bunTx.NewInsert().Model(tx).Exec(ctx); err != nil {
 			return err
 		}
