@@ -21,23 +21,24 @@ func main() {
 	redis.ConnectRedis()
 	ctx := context.Background()
 
-	modelToCreate := []interface{}{
+	models := []interface{}{
 		(*model.User)(nil),
 		(*model.Asset)(nil),
 		(*model.Transaction)(nil),
 		(*model.Reminder)(nil),
 	}
 
-	for _, m := range modelToCreate {
-		_, err := database.DB.NewCreateTable().
-			Model(m).
-			IfNotExists().
-			Exec(ctx)
+	for _, m := range models {
+		_, _ = database.DB.NewDropTable().Model(m).IfExists().Exec(ctx)
+	}
+
+	for _, m := range models {
+		_, err := database.DB.NewCreateTable().Model(m).IfNotExists().Exec(ctx)
 		if err != nil {
 			log.Fatalf("Tablo olusturma hatasi: %v", err)
 		}
 	}
-	fmt.Println("✅ Veritabani kontrol edildi, eksik tablolar olusturuldu.")
+	fmt.Println("✅ Veritabani sifirlandi ve tablolar yeniden olusturuldu.")
 
 	app := fiber.New(fiber.Config{
 		AppName:      "FinTrack Pro v1.0",
