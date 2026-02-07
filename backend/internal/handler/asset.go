@@ -4,9 +4,8 @@ import (
 	"fin-track-pro/internal/dto"
 	"fin-track-pro/internal/service"
 	"fmt"
-	"strconv"
-
 	"github.com/gofiber/fiber/v2"
+	"strconv"
 )
 
 type AssetHandler struct {
@@ -31,12 +30,10 @@ func (h *AssetHandler) UpdateBalance(c *fiber.Ctx) error {
 
 func (h *AssetHandler) GetSummary(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
-
 	currency := c.Get("X-Currency")
 	if currency == "" {
 		currency = "TRY"
 	}
-
 	ayarStr := c.Get("X-Ayar")
 	ayar, _ := strconv.Atoi(ayarStr)
 
@@ -59,12 +56,10 @@ func (h *AssetHandler) GetTransactions(c *fiber.Ctx) error {
 func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 	id, _ := strconv.ParseInt(c.Params("id"), 10, 64)
 	userID := c.Locals("user_id").(uint)
-
 	currency := c.Get("X-Currency")
 	if currency == "" {
 		currency = "TRY"
 	}
-
 	ayarStr := c.Get("X-Ayar")
 	ayar, _ := strconv.Atoi(ayarStr)
 
@@ -72,12 +67,10 @@ func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Islem bulunamadi"})
 	}
-
 	pdfBytes, err := h.service.GenerateTransactionReceipt(tx, currency, ayar)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Dekont uretilemedi"})
 	}
-
 	c.Set("Content-Type", "application/pdf")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=dekont_%d.pdf", id))
 	return c.Send(pdfBytes)
@@ -85,12 +78,10 @@ func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 
 func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
-
 	currency := c.Get("X-Currency")
 	if currency == "" {
 		currency = "TRY"
 	}
-
 	ayarStr := c.Get("X-Ayar")
 	ayar, _ := strconv.Atoi(ayarStr)
 
@@ -98,7 +89,6 @@ func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Portfoy raporu uretilemedi"})
 	}
-
 	c.Set("Content-Type", "application/pdf")
 	c.Set("Content-Disposition", "attachment; filename=toplam_portfoy.pdf")
 	return c.Send(pdfBytes)

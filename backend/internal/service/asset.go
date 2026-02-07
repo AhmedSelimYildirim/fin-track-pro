@@ -22,9 +22,12 @@ func NewAssetService(repo *repository.AssetRepository, market *MarketService) *A
 }
 
 func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) error {
-	ayar := 24
-	if req.Type == "GOLD" && req.Ayar > 0 {
-		ayar = req.Ayar
+	ayar := 0
+	if req.Type == "GOLD" {
+		ayar = 24
+		if req.Ayar > 0 {
+			ayar = req.Ayar
+		}
 	}
 
 	asset, err := s.repo.GetAsset(int64(userID), req.Type, ayar)
@@ -32,11 +35,12 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 		asset = &model.Asset{UserID: int64(userID), Type: req.Type, Amount: 0, Ayar: ayar}
 	}
 
-	// Ham 24 ayar fiyatını al
 	rawPrice := s.getCurrentPriceInTRY(req.Type)
-	unitPrice := rawPrice
+	if rawPrice <= 0 {
+		return errors.New("piyasa verisi su an alinamiyor, lutfen sonra tekrar deneyin")
+	}
 
-	// Ekleme yaparken maliyeti ayara göre orantıla!
+	unitPrice := rawPrice
 	if req.Type == "GOLD" && ayar < 24 {
 		unitPrice = rawPrice * (float64(ayar) / 24.0)
 	}
@@ -49,17 +53,19 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 			return errors.New("yetersiz bakiye")
 		}
 		if asset.Amount > 0 {
-			avgCost := asset.TotalCost / asset.Amount
-			asset.TotalCost -= req.Amount * avgCost
+			asset.TotalCost -= req.Amount * (asset.TotalCost / asset.Amount)
 		}
 		asset.Amount -= req.Amount
-	} else {
-		return errors.New("gecersiz islem")
 	}
 
 	tx := &model.Transaction{
-		UserID: int64(userID), Type: req.Action, AssetType: req.Type,
-		Amount: req.Amount, Price: unitPrice, Ayar: ayar, TransactionDate: time.Now(),
+		UserID:          int64(userID),
+		Type:            req.Action,
+		AssetType:       req.Type,
+		Amount:          req.Amount,
+		Price:           unitPrice,
+		Ayar:            ayar,
+		TransactionDate: time.Now(),
 	}
 
 	return s.repo.UpdateWithLog(asset, tx)
@@ -71,7 +77,7 @@ func (s *AssetService) getCurrentPriceInTRY(assetType string) float64 {
 	case "USD":
 		return rates["USD"]
 	case "EUR":
-		return rates["EUR"] // Çarpma hatası düzeltildi!
+		return rates["EUR"]
 	case "GOLD":
 		p, _ := s.marketService.GetMetalPrice("GOLD")
 		return p
@@ -81,6 +87,8 @@ func (s *AssetService) getCurrentPriceInTRY(assetType string) float64 {
 	case "BTC":
 		p, _ := s.marketService.GetCryptoPrice("bitcoin")
 		return p
+	case "TRY":
+		return 1.0
 	default:
 		return 1.0
 	}
@@ -92,80 +100,87 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 		return nil, err
 	}
 
-	baseCurrencyPriceInTRY := s.getCurrentPriceInTRY(baseCurrency)
-	if baseCurrency == "GOLD" && targetAyar > 0 && targetAyar < 24 {
-		baseCurrencyPriceInTRY = baseCurrencyPriceInTRY * (float64(targetAyar) / 24.0)
+	basePriceInTRY := s.getCurrentPriceInTRY(baseCurrency)
+	if baseCurrency == "GOLD" && targetAyar > 0 {
+		basePriceInTRY *= (float64(targetAyar) / 24.0)
+	}
+	if basePriceInTRY <= 0 {
+		basePriceInTRY = 1
 	}
 
-	if baseCurrencyPriceInTRY == 0 {
-		baseCurrencyPriceInTRY = 1
+	type tempItem struct {
+		Type    string
+		Amount  float64
+		Ayar    int
+		ValBase float64
+		Rate    float64
+	}
+
+	var items []tempItem
+	var totalValue float64
+
+	for _, a := range assets {
+		rawPriceTRY := s.getCurrentPriceInTRY(a.Type)
+		if rawPriceTRY <= 0 {
+			continue
+		}
+		if a.Type == "GOLD" && a.Ayar > 0 {
+			rawPriceTRY *= (float64(a.Ayar) / 24.0)
+		}
+
+		rate := rawPriceTRY / basePriceInTRY
+		val := a.Amount * rate
+		totalValue += val
+		items = append(items, tempItem{Type: a.Type, Amount: a.Amount, Ayar: a.Ayar, ValBase: val, Rate: rate})
 	}
 
 	var details []dto.AssetResponse
-	var totalValue float64
-	var totalCostInBase float64
-
-	for _, a := range assets {
-		assetRawPriceInTRY := s.getCurrentPriceInTRY(a.Type)
-		adjustedPriceInTRY := assetRawPriceInTRY
-		if a.Type == "GOLD" {
-			adjustedPriceInTRY = assetRawPriceInTRY * (float64(a.Ayar) / 24.0)
+	for _, it := range items {
+		alloc := 0.0
+		if totalValue > 0 {
+			alloc = (it.ValBase / totalValue) * 100
 		}
 
-		exchangeRate := adjustedPriceInTRY / baseCurrencyPriceInTRY
-		valInBase := a.Amount * exchangeRate
-		costInBase := a.TotalCost / baseCurrencyPriceInTRY
-		profitLoss := valInBase - costInBase
-
-		profitLossRatio := 0.0
-		if costInBase > 0 {
-			profitLossRatio = (profitLoss / costInBase) * 100
+		displayAyar := 0
+		if it.Type == "GOLD" {
+			displayAyar = it.Ayar
 		}
-
-		totalValue += valInBase
-		totalCostInBase += costInBase
 
 		details = append(details, dto.AssetResponse{
-			Type:            a.Type,
-			Amount:          a.Amount,
-			Ayar:            a.Ayar,
-			CurrentPrice:    exchangeRate,
-			ValueInBase:     valInBase,
-			ProfitLoss:      profitLoss,
-			ProfitLossRatio: profitLossRatio,
+			Type:         it.Type,
+			Amount:       it.Amount,
+			Ayar:         displayAyar,
+			CurrentPrice: it.Rate,
+			ValueInBase:  it.ValBase,
+			Allocation:   alloc,
 		})
 	}
 
 	return &dto.PortfolioResponse{
-		Assets:          details,
-		TotalValue:      totalValue,
-		TotalCost:       totalCostInBase,
-		TotalProfitLoss: totalValue - totalCostInBase,
-		BaseAsset:       baseCurrency,
+		Assets:     details,
+		TotalValue: totalValue,
+		BaseAsset:  baseCurrency,
 	}, nil
 }
 
-func (s *AssetService) GetUserTransactions(userID uint) ([]model.Transaction, error) {
-	return s.repo.GetTransactionsByUserID(userID)
-}
-
-func (s *AssetService) GetTransactionByID(userID uint, txID int64) (*model.Transaction, error) {
-	return s.repo.GetTransactionByID(txID, int64(userID))
-}
-
 func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCurrency string, targetAyar int) ([]byte, error) {
-	baseCurrencyPriceInTRY := s.getCurrentPriceInTRY(baseCurrency)
-	convertedPrice := tx.Price / baseCurrencyPriceInTRY
-	userName, _ := s.repo.GetUserName(tx.UserID)
+	basePriceInTRY := s.getCurrentPriceInTRY(baseCurrency)
+	if baseCurrency == "GOLD" && targetAyar > 0 {
+		basePriceInTRY *= (float64(targetAyar) / 24.0)
+	}
+	if basePriceInTRY <= 0 {
+		basePriceInTRY = 1
+	}
 
+	convertedPrice := tx.Price / basePriceInTRY
+	userName, _ := s.repo.GetUserName(tx.UserID)
 	txTypeTr := "Ekleme"
 	if tx.Type == "subtract" {
 		txTypeTr = "Cikarma"
 	}
 
-	// Küçük değerler (BTC vb.) için 8 basamak, diğerleri için 2 basamak
 	priceFormat := "%.2f"
-	if convertedPrice < 0.01 {
+	if convertedPrice < 0.0001 {
 		priceFormat = "%.8f"
 	}
 
@@ -177,18 +192,23 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	pdf.SetFont("Arial", "", 12)
 	pdf.Cell(0, 10, fmt.Sprintf("Varlik: %s", tx.AssetType))
 	pdf.Ln(8)
+	if tx.AssetType == "GOLD" && tx.Ayar > 0 {
+		pdf.Cell(0, 10, fmt.Sprintf("Ayar: %d Ayar", tx.Ayar))
+		pdf.Ln(8)
+	}
 	pdf.Cell(0, 10, fmt.Sprintf("Islem Tipi: %s", txTypeTr))
 	pdf.Ln(8)
 	pdf.Cell(0, 10, fmt.Sprintf("Miktar: %.4f", tx.Amount))
 	pdf.Ln(8)
 	pdf.Cell(0, 10, fmt.Sprintf("Birim Fiyat: "+priceFormat+" %s", convertedPrice, baseCurrency))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("Toplam Tutar: %.2f %s", tx.Amount*convertedPrice, baseCurrency))
+	pdf.Cell(0, 10, fmt.Sprintf("Toplam Tutar: %.4f %s", tx.Amount*convertedPrice, baseCurrency))
 	pdf.Ln(8)
 	pdf.Cell(0, 10, fmt.Sprintf("Islem Tarihi: %s", tx.TransactionDate.Format("02.01.2006")))
 	pdf.Ln(20)
 	pdf.SetFont("Arial", "I", 10)
 	pdf.Cell(0, 10, fmt.Sprintf("Bu belge %s tarafindan uretilmistir.", userName))
+
 	var buf bytes.Buffer
 	pdf.Output(&buf)
 	return buf.Bytes(), nil
@@ -206,34 +226,48 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 	pdf.SetFont("Arial", "B", 18)
 	pdf.Cell(0, 15, "FINTRACK PRO - GENEL PORTFOY DEKONTU")
 	pdf.Ln(20)
+
 	pdf.SetFont("Arial", "B", 12)
-	pdf.Cell(30, 10, "Varlik")
-	pdf.Cell(30, 10, "Miktar")
-	pdf.Cell(30, 10, "Birim Deger")
-	pdf.Cell(40, 10, "Toplam")
-	pdf.Cell(40, 10, "Kar/Zarar")
+	pdf.Cell(40, 10, "Varlik")
+	pdf.Cell(40, 10, "Miktar")
+	pdf.Cell(50, 10, "Birim Deger")
+	pdf.Cell(50, 10, fmt.Sprintf("Toplam (%s)", baseCurrency))
 	pdf.Ln(10)
+
 	pdf.SetFont("Arial", "", 10)
 	for _, a := range summary.Assets {
-		priceFormat := "%.2f"
-		if a.CurrentPrice < 0.01 {
-			priceFormat = "%.8f"
+		pFormat := "%.2f"
+		if a.CurrentPrice < 0.0001 {
+			pFormat = "%.8f"
 		}
-
-		pdf.Cell(30, 8, a.Type)
-		pdf.Cell(30, 8, fmt.Sprintf("%.4f", a.Amount))
-		pdf.Cell(30, 8, fmt.Sprintf(priceFormat, a.CurrentPrice))
-		pdf.Cell(40, 8, fmt.Sprintf("%.2f", a.ValueInBase))
-		pdf.Cell(40, 8, fmt.Sprintf("%.2f", a.ProfitLoss))
+		vName := a.Type
+		if a.Type == "GOLD" && a.Ayar > 0 {
+			vName = fmt.Sprintf("GOLD (%dK)", a.Ayar)
+		}
+		pdf.Cell(40, 8, vName)
+		pdf.Cell(40, 8, fmt.Sprintf("%.4f", a.Amount))
+		pdf.Cell(50, 8, fmt.Sprintf(pFormat, a.CurrentPrice))
+		pdf.Cell(50, 8, fmt.Sprintf("%.4f", a.ValueInBase))
 		pdf.Ln(8)
 	}
+
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "B", 14)
-	pdf.Cell(0, 10, fmt.Sprintf("TOPLAM DEGER: %.2f %s", summary.TotalValue, baseCurrency))
+	pdf.Cell(0, 10, fmt.Sprintf("TOPLAM PORTFOY DEGERI: %.4f %s", summary.TotalValue, baseCurrency))
 	pdf.Ln(15)
+
 	pdf.SetFont("Arial", "I", 10)
 	pdf.Cell(0, 10, fmt.Sprintf("Rapor Tarihi: %s | Kullanici: %s", time.Now().Format("02.01.2006 15:04"), userName))
+
 	var buf bytes.Buffer
 	pdf.Output(&buf)
 	return buf.Bytes(), nil
+}
+
+func (s *AssetService) GetUserTransactions(userID uint) ([]model.Transaction, error) {
+	return s.repo.GetTransactionsByUserID(userID)
+}
+
+func (s *AssetService) GetTransactionByID(userID uint, txID int64) (*model.Transaction, error) {
+	return s.repo.GetTransactionByID(txID, int64(userID))
 }

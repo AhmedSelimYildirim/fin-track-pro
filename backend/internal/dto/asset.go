@@ -11,19 +11,16 @@ type AssetCreateRequest struct {
 }
 
 type AssetResponse struct {
-	Type            string  `json:"type"`
-	Amount          float64 `json:"amount"`
-	Ayar            int     `json:"ayar,omitempty"`
-	CurrentPrice    float64 `json:"current_price"`
-	ValueInBase     float64 `json:"value_in_base"`
-	ProfitLoss      float64 `json:"profit_loss"`
-	ProfitLossRatio float64 `json:"profit_loss_ratio"`
+	Type         string  `json:"type"`
+	Amount       float64 `json:"amount"`
+	Ayar         int     `json:"ayar,omitempty"`
+	CurrentPrice float64 `json:"current_price"`
+	ValueInBase  float64 `json:"value_in_base"`
+	Allocation   float64 `json:"allocation"`
 }
 
 type PortfolioResponse struct {
-	Assets          []AssetResponse `json:"assets"`
-	TotalValue      float64         `json:"total_value"`
-	TotalCost       float64         `json:"total_cost"`
-	TotalProfitLoss float64         `json:"total_profit_loss"`
-	BaseAsset       string          `json:"base_asset"`
+	Assets     []AssetResponse `json:"assets"`
+	TotalValue float64         `json:"total_value"`
+	BaseAsset  string          `json:"base_asset"`
 }
