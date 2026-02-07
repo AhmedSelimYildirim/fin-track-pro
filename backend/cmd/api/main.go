@@ -7,7 +7,6 @@ import (
 	"fin-track-pro/internal/infrastructure/redis"
 	"fin-track-pro/internal/model"
 	"fin-track-pro/internal/router"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -21,21 +20,7 @@ func main() {
 	redis.ConnectRedis()
 	ctx := context.Background()
 
-	modelsToDrop := []interface{}{
-		(*model.Transaction)(nil),
-		(*model.Asset)(nil),
-		(*model.Reminder)(nil),
-		(*model.User)(nil),
-	}
-
-	fmt.Println("⚠️  Veritabani temizleniyor... Tablolar siliniyor.")
-	for _, m := range modelsToDrop {
-		_, err := database.DB.NewDropTable().Model(m).IfExists().Cascade().Exec(ctx)
-		if err != nil {
-			log.Printf("Tablo silinirken uyari: %v", err)
-		}
-	}
-	fmt.Println("🗑️  Tum tablolar basariyla silindi!")
+	// NOT: Silme (Drop) kodlarını kaldırdık. Artık veriler kalıcı!
 
 	modelToCreate := []interface{}{
 		(*model.User)(nil),
@@ -47,13 +32,12 @@ func main() {
 	for _, m := range modelToCreate {
 		_, err := database.DB.NewCreateTable().
 			Model(m).
-			IfNotExists().
+			IfNotExists(). // Sadece tablo yoksa oluşturur, varsa dokunmaz.
 			Exec(ctx)
 		if err != nil {
 			log.Fatalf("Tablo olusturma hatasi: %v", err)
 		}
 	}
-	fmt.Println("✅ Tablolar sifirdan yeniden olusturuldu!")
 
 	app := fiber.New(fiber.Config{
 		AppName:      "FinTrack Pro v1.0",

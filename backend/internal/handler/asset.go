@@ -68,7 +68,9 @@ func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 
 func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
-	pdfBytes, err := h.service.GenerateFullPortfolioReceipt(userID)
+	currency := c.Get("X-Currency", c.Query("currency", "TRY"))
+
+	pdfBytes, err := h.service.GenerateFullPortfolioReceipt(userID, currency)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Portfoy raporu uretilemedi"})
 	}
