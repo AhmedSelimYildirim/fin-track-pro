@@ -37,7 +37,10 @@ func (h *AssetHandler) GetSummary(c *fiber.Ctx) error {
 		currency = "TRY"
 	}
 
-	summary, err := h.service.GetPortfolioSummary(userID, currency)
+	ayarStr := c.Get("X-Ayar")
+	ayar, _ := strconv.Atoi(ayarStr)
+
+	summary, err := h.service.GetPortfolioSummary(userID, currency, ayar)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -62,14 +65,19 @@ func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 		currency = "TRY"
 	}
 
+	ayarStr := c.Get("X-Ayar")
+	ayar, _ := strconv.Atoi(ayarStr)
+
 	tx, err := h.service.GetTransactionByID(userID, id)
 	if err != nil {
 		return c.Status(404).JSON(fiber.Map{"error": "Islem bulunamadi"})
 	}
-	pdfBytes, err := h.service.GenerateTransactionReceipt(tx, currency)
+
+	pdfBytes, err := h.service.GenerateTransactionReceipt(tx, currency, ayar)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Dekont uretilemedi"})
 	}
+
 	c.Set("Content-Type", "application/pdf")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=dekont_%d.pdf", id))
 	return c.Send(pdfBytes)
@@ -83,10 +91,14 @@ func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 		currency = "TRY"
 	}
 
-	pdfBytes, err := h.service.GenerateFullPortfolioReceipt(userID, currency)
+	ayarStr := c.Get("X-Ayar")
+	ayar, _ := strconv.Atoi(ayarStr)
+
+	pdfBytes, err := h.service.GenerateFullPortfolioReceipt(userID, currency, ayar)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Portfoy raporu uretilemedi"})
 	}
+
 	c.Set("Content-Type", "application/pdf")
 	c.Set("Content-Disposition", "attachment; filename=toplam_portfoy.pdf")
 	return c.Send(pdfBytes)

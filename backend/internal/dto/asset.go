@@ -13,7 +13,7 @@ type AssetCreateRequest struct {
 type AssetResponse struct {
 	Type            string  `json:"type"`
 	Amount          float64 `json:"amount"`
-	Ayar            int     `json:"ayar"`
+	Ayar            int     `json:"ayar,omitempty"`
 	CurrentPrice    float64 `json:"current_price"`
 	ValueInBase     float64 `json:"value_in_base"`
 	ProfitLoss      float64 `json:"profit_loss"`
