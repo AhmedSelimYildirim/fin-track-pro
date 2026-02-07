@@ -83,3 +83,16 @@ func (r *AssetRepository) UpdateWithLog(asset *model.Asset, tx *model.Transactio
 		return nil
 	})
 }
+
+func (r *AssetRepository) GetUserName(userID int64) (string, error) {
+	var user model.User
+	err := r.db.NewSelect().
+		Model(&user).
+		Column("full_name").
+		Where("id = ?", userID).
+		Scan(context.Background())
+	if err != nil {
+		return "Degerli Kullanicimiz", nil
+	}
+	return user.FullName, nil
+}

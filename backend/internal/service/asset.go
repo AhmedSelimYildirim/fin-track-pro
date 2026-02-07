@@ -175,6 +175,19 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	}
 
 	convertedPrice := tx.Price / baseCurrencyPriceInTRY
+	totalTransactionValue := tx.Amount * convertedPrice
+
+	userName, _ := s.repo.GetUserName(tx.UserID)
+
+	txTypeTr := "Ekleme"
+	if tx.Type == "subtract" {
+		txTypeTr = "Cikarma"
+	}
+
+	priceFormat := "%.2f"
+	if convertedPrice < 0.01 {
+		priceFormat = "%.8f"
+	}
 
 	pdf := gofpdf.New("P", "mm", "A5", "")
 	pdf.AddPage()
@@ -182,24 +195,24 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	pdf.Cell(0, 10, "FINTRACK PRO - ISLEM DEKONTU")
 	pdf.Ln(12)
 	pdf.SetFont("Arial", "", 12)
-	pdf.Cell(0, 10, fmt.Sprintf("Islem No: %d", tx.ID))
-	pdf.Ln(8)
 	pdf.Cell(0, 10, fmt.Sprintf("Varlik: %s", tx.AssetType))
 	pdf.Ln(8)
 	if tx.Type == "GOLD" && tx.Ayar > 0 {
 		pdf.Cell(0, 10, fmt.Sprintf("Ayar: %d Ayar", tx.Ayar))
 		pdf.Ln(8)
 	}
-	pdf.Cell(0, 10, fmt.Sprintf("Islem Tipi: %s", tx.Type))
+	pdf.Cell(0, 10, fmt.Sprintf("Islem Tipi: %s", txTypeTr))
 	pdf.Ln(8)
 	pdf.Cell(0, 10, fmt.Sprintf("Miktar: %.4f", tx.Amount))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("Birim Fiyat: %.2f %s", convertedPrice, baseLabel))
+	pdf.Cell(0, 10, fmt.Sprintf("Birim Fiyat: "+priceFormat+" %s", convertedPrice, baseLabel))
+	pdf.Ln(8)
+	pdf.Cell(0, 10, fmt.Sprintf("Toplam Tutar: %.2f %s", totalTransactionValue, baseLabel))
 	pdf.Ln(8)
 	pdf.Cell(0, 10, fmt.Sprintf("Islem Tarihi: %s", tx.TransactionDate.Format("02.01.2006")))
 	pdf.Ln(20)
 	pdf.SetFont("Arial", "I", 10)
-	pdf.Cell(0, 10, "Bu belge Ahmed Selim YILDIRIM tarafindan uretilmistir.")
+	pdf.Cell(0, 10, fmt.Sprintf("Bu belge %s tarafindan uretilmistir.", userName))
 	var buf bytes.Buffer
 	if err := pdf.Output(&buf); err != nil {
 		return nil, err
@@ -212,6 +225,8 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 	if err != nil {
 		return nil, err
 	}
+	userName, _ := s.repo.GetUserName(int64(userID))
+
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 18)
@@ -226,9 +241,14 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "", 10)
 	for _, a := range summary.Assets {
+		priceFormat := "%.2f"
+		if a.CurrentPrice < 0.01 {
+			priceFormat = "%.8f"
+		}
+
 		pdf.Cell(30, 8, a.Type)
-		pdf.Cell(30, 8, fmt.Sprintf("%.2f", a.Amount))
-		pdf.Cell(30, 8, fmt.Sprintf("%.2f", a.CurrentPrice))
+		pdf.Cell(30, 8, fmt.Sprintf("%.4f", a.Amount))
+		pdf.Cell(30, 8, fmt.Sprintf(priceFormat, a.CurrentPrice))
 		pdf.Cell(40, 8, fmt.Sprintf("%.2f", a.ValueInBase))
 		pdf.Cell(40, 8, fmt.Sprintf("%.2f", a.ProfitLoss))
 		pdf.Ln(8)
@@ -240,7 +260,7 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 	pdf.Cell(0, 10, fmt.Sprintf("TOPLAM KAR/ZARAR: %.2f %s", summary.TotalProfitLoss, summary.BaseAsset))
 	pdf.Ln(15)
 	pdf.SetFont("Arial", "I", 10)
-	pdf.Cell(0, 10, fmt.Sprintf("Rapor Tarihi: %s", time.Now().Format("02.01.2006 15:04")))
+	pdf.Cell(0, 10, fmt.Sprintf("Rapor Tarihi: %s | Kullanici: %s", time.Now().Format("02.01.2006 15:04"), userName))
 	var buf bytes.Buffer
 	pdf.Output(&buf)
 	return buf.Bytes(), nil
