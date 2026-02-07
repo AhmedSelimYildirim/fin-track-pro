@@ -4,8 +4,9 @@ import (
 	"fin-track-pro/internal/dto"
 	"fin-track-pro/internal/service"
 	"fmt"
-	"github.com/gofiber/fiber/v2"
 	"strconv"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type AssetHandler struct {
