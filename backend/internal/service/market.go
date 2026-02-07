@@ -6,6 +6,7 @@ import (
 	"fin-track-pro/internal/infrastructure/config"
 	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -49,7 +50,7 @@ func (s *MarketService) GetCurrencyRates() (map[string]float64, error) {
 	}
 
 	cacheData, _ := json.Marshal(finalRates)
-	s.rdb.Set(ctx, "rates:currency", cacheData, 7*24*time.Hour)
+	s.rdb.Set(ctx, "rates:currency", cacheData, 24*time.Hour)
 	return finalRates, nil
 }
 
@@ -87,7 +88,7 @@ func (s *MarketService) GetMetalPrice(metalCode string) (float64, error) {
 	priceInUSD := 1 / data.Rates[symbol]
 	gramPriceTRY := (priceInUSD * usdToTry) / 31.1035
 
-	s.rdb.Set(ctx, cacheKey, gramPriceTRY, 7*24*time.Hour)
+	s.rdb.Set(ctx, cacheKey, gramPriceTRY, 12*time.Hour)
 	return gramPriceTRY, nil
 }
 
@@ -99,17 +100,38 @@ func (s *MarketService) GetCryptoPrice(coinID string) (float64, error) {
 		return cached, nil
 	}
 
-	url := fmt.Sprintf("https://api.coingecko.com/api/v3/simple/price?ids=%s&vs_currencies=try", coinID)
+	url := fmt.Sprintf("https://api.coincap.io/v2/assets/%s", coinID)
 	resp, err := http.Get(url)
 	if err != nil {
 		return 0, err
 	}
 	defer resp.Body.Close()
 
-	var data map[string]map[string]float64
-	json.NewDecoder(resp.Body).Decode(&data)
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("crypto api error: %d", resp.StatusCode)
+	}
 
-	price := data[coinID]["try"]
-	s.rdb.Set(ctx, cacheKey, price, 7*24*time.Hour)
-	return price, nil
+	var result struct {
+		Data struct {
+			PriceUsd string `json:"priceUsd"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return 0, err
+	}
+
+	priceUSD, err := strconv.ParseFloat(result.Data.PriceUsd, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	rates, err := s.GetCurrencyRates()
+	if err != nil {
+		return 0, err
+	}
+
+	priceTRY := priceUSD * rates["USD"]
+	s.rdb.Set(ctx, cacheKey, priceTRY, 10*time.Minute)
+	return priceTRY, nil
 }
