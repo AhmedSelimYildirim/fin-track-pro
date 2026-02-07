@@ -12,7 +12,7 @@ type Config struct {
 	DBPassword        string
 	DBName            string
 	DBPort            string
-	DBURL             string // Render için ekledik
+	DBURL             string
 	JWTSecret         string
 	ExchangeAPIKey    string
 	CoinGeckoKey      string
@@ -22,7 +22,6 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
-	// .env varsa yükle, yoksa sessizce devam et (Render için kritik)
 	_ = godotenv.Load()
 
 	return &Config{
@@ -31,7 +30,7 @@ func LoadConfig() *Config {
 		DBPassword:        os.Getenv("DB_PASSWORD"),
 		DBName:            os.Getenv("DB_NAME"),
 		DBPort:            os.Getenv("DB_PORT"),
-		DBURL:             os.Getenv("DB_URL"), // Render'daki Internal Database URL buraya gelecek
+		DBURL:             os.Getenv("DB_URL"),
 		JWTSecret:         os.Getenv("JWT_SECRET"),
 		ExchangeAPIKey:    os.Getenv("EXCHANGE_RATE_API_KEY"),
 		CoinGeckoKey:      os.Getenv("COINGECKO_API_KEY"),

@@ -21,24 +21,6 @@ func main() {
 	redis.ConnectRedis()
 	ctx := context.Background()
 
-	// --- ⚠️ BU KISIM SON KEZ ÇALIŞACAK ---
-	modelsToDrop := []interface{}{
-		(*model.Transaction)(nil),
-		(*model.Asset)(nil),
-		(*model.Reminder)(nil),
-		(*model.User)(nil),
-	}
-
-	fmt.Println("⚠️  Veritabani temizleniyor... Tablolar siliniyor.")
-	for _, m := range modelsToDrop {
-		_, err := database.DB.NewDropTable().Model(m).IfExists().Cascade().Exec(ctx)
-		if err != nil {
-			log.Printf("Tablo silinirken uyari: %v", err)
-		}
-	}
-	fmt.Println("🗑️  Tum tablolar basariyla silindi!")
-	// -------------------------------------
-
 	modelToCreate := []interface{}{
 		(*model.User)(nil),
 		(*model.Asset)(nil),
@@ -55,7 +37,7 @@ func main() {
 			log.Fatalf("Tablo olusturma hatasi: %v", err)
 		}
 	}
-	fmt.Println("✅ Tablolar sifirdan yeniden olusturuldu!")
+	fmt.Println("✅ Veritabani kontrol edildi, eksik tablolar olusturuldu.")
 
 	app := fiber.New(fiber.Config{
 		AppName:      "FinTrack Pro v1.0",
@@ -78,7 +60,7 @@ func main() {
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	<-c
 
-	log.Println("Sunucu kapatılıyor...")
+	log.Println("Sunucu kapatiliyor...")
 	_ = app.Shutdown()
-	log.Println("FinTrack Pro durduruldu. Görüşürüz !")
+	log.Println("FinTrack Pro durduruldu. Gorusuruz !")
 }
