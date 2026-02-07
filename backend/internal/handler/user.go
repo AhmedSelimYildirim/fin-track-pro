@@ -3,7 +3,6 @@ package handler
 import (
 	"fin-track-pro/internal/dto"
 	"fin-track-pro/internal/service"
-
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -25,7 +24,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	return c.Status(201).JSON(fiber.Map{"message": "Kayıt başarılı! FinTrack Pro'ya hoş geldiniz"})
+	return c.Status(201).JSON(fiber.Map{"message": "Kayıt başarılı! FinTrack Pro'ya hoş geldiniz."})
 }
 
 func (h *UserHandler) Login(c *fiber.Ctx) error {
@@ -51,17 +50,17 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 	case uint:
 		userID = v
 	default:
-		return c.Status(401).JSON(fiber.Map{"error": "yetkisiz erisim"})
+		return c.Status(401).JSON(fiber.Map{"error": "Yetkisiz erişim."})
 	}
 
 	var req dto.RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "gecersiz veri"})
+		return c.Status(400).JSON(fiber.Map{"error": "Geçersiz veri."})
 	}
 	if err := h.userService.Update(userID, req.Username, req.Email); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "guncelleme basarisiz"})
+		return c.Status(500).JSON(fiber.Map{"error": "Güncelleme başarısız."})
 	}
-	return c.JSON(fiber.Map{"message": "Profil guncellendi !"})
+	return c.JSON(fiber.Map{"message": "Profil güncellendi!"})
 }
 
 func (h *UserHandler) Delete(c *fiber.Ctx) error {
@@ -73,11 +72,11 @@ func (h *UserHandler) Delete(c *fiber.Ctx) error {
 	case uint:
 		userID = v
 	default:
-		return c.Status(401).JSON(fiber.Map{"error": "yetkisiz erisim"})
+		return c.Status(401).JSON(fiber.Map{"error": "Yetkisiz erişim."})
 	}
 
 	if err := h.userService.Delete(userID); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "silme islemi basarisiz"})
+		return c.Status(500).JSON(fiber.Map{"error": "Silme işlemi başarısız."})
 	}
-	return c.JSON(fiber.Map{"message": "Hesabin basariyla silindi. Hoscakal !"})
+	return c.JSON(fiber.Map{"message": "Hesabın başarıyla silindi. Hoşça kal!"})
 }

@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fin-track-pro/internal/model"
-
 	"github.com/uptrace/bun"
 )
 

@@ -55,7 +55,7 @@ func (s *UserService) Login(email, password string) (string, error) {
 
 func (s *UserService) Update(userID uint, username, email string) error {
 	if !utils.IsValidEmail(email) {
-		return errors.New("gecersiz e-posta formati ")
+		return errors.New("Geçersiz e-posta formatı.")
 	}
 
 	user, err := s.repo.GetByID(userID)
