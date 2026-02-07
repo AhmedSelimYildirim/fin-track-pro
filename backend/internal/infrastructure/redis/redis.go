@@ -32,12 +32,5 @@ func ConnectRedis() {
 		fmt.Println("Redis baglantisi kurulamadi:", err)
 	} else {
 		fmt.Println("Redis baglantisi aktif 🟢")
-
-		err := Client.FlushAll(ctx).Err()
-		if err != nil {
-			fmt.Println("Redis sifirlanirken hata olustu:", err)
-		} else {
-			fmt.Println("Redis verileri basariyla SIFIRLANDI! 🗑️")
-		}
 	}
 }
