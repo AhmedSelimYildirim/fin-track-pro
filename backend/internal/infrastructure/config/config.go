@@ -1,7 +1,6 @@
 package config
 
 import (
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -13,6 +12,7 @@ type Config struct {
 	DBPassword        string
 	DBName            string
 	DBPort            string
+	DBURL             string // Render için ekledik
 	JWTSecret         string
 	ExchangeAPIKey    string
 	CoinGeckoKey      string
@@ -22,11 +22,8 @@ type Config struct {
 }
 
 func LoadConfig() *Config {
+	// .env varsa yükle, yoksa sessizce devam et (Render için kritik)
 	_ = godotenv.Load()
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("Warning: .env file not found")
-	}
 
 	return &Config{
 		DBHost:            os.Getenv("DB_HOST"),
@@ -34,6 +31,7 @@ func LoadConfig() *Config {
 		DBPassword:        os.Getenv("DB_PASSWORD"),
 		DBName:            os.Getenv("DB_NAME"),
 		DBPort:            os.Getenv("DB_PORT"),
+		DBURL:             os.Getenv("DB_URL"), // Render'daki Internal Database URL buraya gelecek
 		JWTSecret:         os.Getenv("JWT_SECRET"),
 		ExchangeAPIKey:    os.Getenv("EXCHANGE_RATE_API_KEY"),
 		CoinGeckoKey:      os.Getenv("COINGECKO_API_KEY"),
