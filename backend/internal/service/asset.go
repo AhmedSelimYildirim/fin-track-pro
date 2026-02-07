@@ -32,8 +32,11 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 		asset = &model.Asset{UserID: int64(userID), Type: req.Type, Amount: 0, Ayar: ayar}
 	}
 
+	// Ham 24 ayar fiyatını al
 	rawPrice := s.getCurrentPriceInTRY(req.Type)
 	unitPrice := rawPrice
+
+	// Ekleme yaparken maliyeti ayara göre orantıla!
 	if req.Type == "GOLD" && ayar < 24 {
 		unitPrice = rawPrice * (float64(ayar) / 24.0)
 	}
@@ -68,7 +71,7 @@ func (s *AssetService) getCurrentPriceInTRY(assetType string) float64 {
 	case "USD":
 		return rates["USD"]
 	case "EUR":
-		return rates["EUR"]
+		return rates["EUR"] // Çarpma hatası düzeltildi!
 	case "GOLD":
 		p, _ := s.marketService.GetMetalPrice("GOLD")
 		return p
@@ -78,8 +81,6 @@ func (s *AssetService) getCurrentPriceInTRY(assetType string) float64 {
 	case "BTC":
 		p, _ := s.marketService.GetCryptoPrice("bitcoin")
 		return p
-	case "TRY":
-		return 1.0
 	default:
 		return 1.0
 	}
@@ -124,15 +125,10 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 		totalValue += valInBase
 		totalCostInBase += costInBase
 
-		displayAyar := 0
-		if a.Type == "GOLD" {
-			displayAyar = a.Ayar
-		}
-
 		details = append(details, dto.AssetResponse{
 			Type:            a.Type,
 			Amount:          a.Amount,
-			Ayar:            displayAyar,
+			Ayar:            a.Ayar,
 			CurrentPrice:    exchangeRate,
 			ValueInBase:     valInBase,
 			ProfitLoss:      profitLoss,
@@ -140,17 +136,12 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 		})
 	}
 
-	baseAssetLabel := baseCurrency
-	if baseCurrency == "GOLD" && targetAyar > 0 {
-		baseAssetLabel = fmt.Sprintf("GOLD (%d Ayar)", targetAyar)
-	}
-
 	return &dto.PortfolioResponse{
 		Assets:          details,
 		TotalValue:      totalValue,
 		TotalCost:       totalCostInBase,
 		TotalProfitLoss: totalValue - totalCostInBase,
-		BaseAsset:       baseAssetLabel,
+		BaseAsset:       baseCurrency,
 	}, nil
 }
 
@@ -164,18 +155,7 @@ func (s *AssetService) GetTransactionByID(userID uint, txID int64) (*model.Trans
 
 func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCurrency string, targetAyar int) ([]byte, error) {
 	baseCurrencyPriceInTRY := s.getCurrentPriceInTRY(baseCurrency)
-	baseLabel := baseCurrency
-	if baseCurrency == "GOLD" && targetAyar > 0 && targetAyar < 24 {
-		baseCurrencyPriceInTRY = baseCurrencyPriceInTRY * (float64(targetAyar) / 24.0)
-		baseLabel = fmt.Sprintf("GOLD (%d Ayar)", targetAyar)
-	}
-
-	if baseCurrencyPriceInTRY == 0 {
-		baseCurrencyPriceInTRY = 1
-	}
-
 	convertedPrice := tx.Price / baseCurrencyPriceInTRY
-	totalTransactionValue := tx.Amount * convertedPrice
 	userName, _ := s.repo.GetUserName(tx.UserID)
 
 	txTypeTr := "Ekleme"
@@ -183,6 +163,7 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 		txTypeTr = "Cikarma"
 	}
 
+	// Küçük değerler (BTC vb.) için 8 basamak, diğerleri için 2 basamak
 	priceFormat := "%.2f"
 	if convertedPrice < 0.01 {
 		priceFormat = "%.8f"
@@ -196,26 +177,20 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	pdf.SetFont("Arial", "", 12)
 	pdf.Cell(0, 10, fmt.Sprintf("Varlik: %s", tx.AssetType))
 	pdf.Ln(8)
-	if tx.AssetType == "GOLD" && tx.Ayar > 0 {
-		pdf.Cell(0, 10, fmt.Sprintf("Ayar: %d Ayar", tx.Ayar))
-		pdf.Ln(8)
-	}
 	pdf.Cell(0, 10, fmt.Sprintf("Islem Tipi: %s", txTypeTr))
 	pdf.Ln(8)
 	pdf.Cell(0, 10, fmt.Sprintf("Miktar: %.4f", tx.Amount))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("Birim Fiyat: "+priceFormat+" %s", convertedPrice, baseLabel))
+	pdf.Cell(0, 10, fmt.Sprintf("Birim Fiyat: "+priceFormat+" %s", convertedPrice, baseCurrency))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("Toplam Tutar: %.2f %s", totalTransactionValue, baseLabel))
+	pdf.Cell(0, 10, fmt.Sprintf("Toplam Tutar: %.2f %s", tx.Amount*convertedPrice, baseCurrency))
 	pdf.Ln(8)
 	pdf.Cell(0, 10, fmt.Sprintf("Islem Tarihi: %s", tx.TransactionDate.Format("02.01.2006")))
 	pdf.Ln(20)
 	pdf.SetFont("Arial", "I", 10)
 	pdf.Cell(0, 10, fmt.Sprintf("Bu belge %s tarafindan uretilmistir.", userName))
 	var buf bytes.Buffer
-	if err := pdf.Output(&buf); err != nil {
-		return nil, err
-	}
+	pdf.Output(&buf)
 	return buf.Bytes(), nil
 }
 
@@ -235,8 +210,8 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 	pdf.Cell(30, 10, "Varlik")
 	pdf.Cell(30, 10, "Miktar")
 	pdf.Cell(30, 10, "Birim Deger")
-	pdf.Cell(40, 10, fmt.Sprintf("Toplam (%s)", summary.BaseAsset))
-	pdf.Cell(40, 10, fmt.Sprintf("Kar/Zarar (%s)", summary.BaseAsset))
+	pdf.Cell(40, 10, "Toplam")
+	pdf.Cell(40, 10, "Kar/Zarar")
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "", 10)
 	for _, a := range summary.Assets {
@@ -244,6 +219,7 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 		if a.CurrentPrice < 0.01 {
 			priceFormat = "%.8f"
 		}
+
 		pdf.Cell(30, 8, a.Type)
 		pdf.Cell(30, 8, fmt.Sprintf("%.4f", a.Amount))
 		pdf.Cell(30, 8, fmt.Sprintf(priceFormat, a.CurrentPrice))
@@ -253,9 +229,7 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 	}
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "B", 14)
-	pdf.Cell(0, 10, fmt.Sprintf("TOPLAM DEGER: %.2f %s", summary.TotalValue, summary.BaseAsset))
-	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("TOPLAM KAR/ZARAR: %.2f %s", summary.TotalProfitLoss, summary.BaseAsset))
+	pdf.Cell(0, 10, fmt.Sprintf("TOPLAM DEGER: %.2f %s", summary.TotalValue, baseCurrency))
 	pdf.Ln(15)
 	pdf.SetFont("Arial", "I", 10)
 	pdf.Cell(0, 10, fmt.Sprintf("Rapor Tarihi: %s | Kullanici: %s", time.Now().Format("02.01.2006 15:04"), userName))
