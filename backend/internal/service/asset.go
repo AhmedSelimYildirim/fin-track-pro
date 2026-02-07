@@ -23,7 +23,7 @@ func NewAssetService(repo *repository.AssetRepository, market *MarketService) *A
 
 func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) error {
 	ayar := 24
-	if req.Type == "GOLD" && req.Ayar > 0 {
+	if req.Ayar > 0 {
 		ayar = req.Ayar
 	}
 
@@ -232,8 +232,8 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	return buf.Bytes(), nil
 }
 
-func (s *AssetService) GenerateFullPortfolioReceipt(userID uint) ([]byte, error) {
-	summary, err := s.GetPortfolioSummary(userID, "TRY")
+func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency string) ([]byte, error) {
+	summary, err := s.GetPortfolioSummary(userID, baseCurrency)
 	if err != nil {
 		return nil, err
 	}
@@ -246,23 +246,23 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint) ([]byte, error)
 	pdf.Cell(30, 10, "Varlik")
 	pdf.Cell(30, 10, "Miktar")
 	pdf.Cell(30, 10, "Ayar")
-	pdf.Cell(30, 10, "Deger")
-	pdf.Cell(30, 10, "Kar/Zarar")
+	pdf.Cell(40, 10, fmt.Sprintf("Deger (%s)", baseCurrency))
+	pdf.Cell(40, 10, fmt.Sprintf("Kar/Zarar (%s)", baseCurrency))
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "", 10)
 	for _, a := range summary.Assets {
 		pdf.Cell(30, 8, a.Type)
 		pdf.Cell(30, 8, fmt.Sprintf("%.2f", a.Amount))
 		pdf.Cell(30, 8, fmt.Sprintf("%d", a.Ayar))
-		pdf.Cell(30, 8, fmt.Sprintf("%.2f", a.ValueInBase))
-		pdf.Cell(30, 8, fmt.Sprintf("%.2f", a.ProfitLoss))
+		pdf.Cell(40, 8, fmt.Sprintf("%.2f", a.ValueInBase))
+		pdf.Cell(40, 8, fmt.Sprintf("%.2f", a.ProfitLoss))
 		pdf.Ln(8)
 	}
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "B", 14)
-	pdf.Cell(0, 10, fmt.Sprintf("TOPLAM DEGER: %.2f TRY", summary.TotalValue))
+	pdf.Cell(0, 10, fmt.Sprintf("TOPLAM DEGER: %.2f %s", summary.TotalValue, baseCurrency))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, fmt.Sprintf("TOPLAM KAR/ZARAR: %.2f TRY", summary.TotalProfitLoss))
+	pdf.Cell(0, 10, fmt.Sprintf("TOPLAM KAR/ZARAR: %.2f %s", summary.TotalProfitLoss, baseCurrency))
 	pdf.Ln(15)
 	pdf.SetFont("Arial", "I", 10)
 	pdf.Cell(0, 10, fmt.Sprintf("Rapor Tarihi: %s", time.Now().Format("02.01.2006 15:04")))

@@ -6,7 +6,6 @@ import (
 	"github.com/uptrace/bun"
 )
 
-// internal/model/asset.go
 type Asset struct {
 	bun.BaseModel `bun:"table:assets,alias:a"`
 	ID            int64     `bun:",pk,autoincrement"`
