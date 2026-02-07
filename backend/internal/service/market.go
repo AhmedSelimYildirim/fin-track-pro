@@ -113,35 +113,3 @@ func (s *MarketService) GetCryptoPrice(coinID string) (float64, error) {
 	s.rdb.Set(ctx, cacheKey, price, 7*24*time.Hour)
 	return price, nil
 }
-
-func (s *MarketService) GetHistoricalRate(date time.Time, base string, target string) (float64, error) {
-	ctx := context.Background()
-	dateStr := date.Format("2006-01-02")
-	cacheKey := fmt.Sprintf("rate:hist:%s:%s:%s", base, target, dateStr)
-
-	cached, err := s.rdb.Get(ctx, cacheKey).Float64()
-	if err == nil {
-		return cached, nil
-	}
-
-	url := fmt.Sprintf("https://api.frankfurter.app/%s?from=%s&to=%s", dateStr, base, target)
-	resp, err := http.Get(url)
-	if err != nil {
-		return 0, err
-	}
-	defer resp.Body.Close()
-
-	var data struct {
-		Rates map[string]float64 `json:"rates"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return 0, err
-	}
-
-	rate := data.Rates[target]
-	if rate != 0 {
-		s.rdb.Set(ctx, cacheKey, rate, 0)
-	}
-
-	return rate, nil
-}

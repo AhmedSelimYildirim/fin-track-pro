@@ -6,7 +6,6 @@ type AssetCreateRequest struct {
 	Type            string     `json:"type" validate:"required"`
 	Amount          float64    `json:"amount" validate:"required,gt=0"`
 	Action          string     `json:"action" validate:"required,oneof=add subtract"`
-	Price           float64    `json:"price"`
 	Ayar            int        `json:"ayar"`
 	TransactionDate *time.Time `json:"transaction_date"`
 }
