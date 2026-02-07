@@ -18,7 +18,7 @@ func SetupRoutes(app *fiber.App) {
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-Currency",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-Currency, X-Ayar",
 	}))
 
 	cfg := config.LoadConfig()
