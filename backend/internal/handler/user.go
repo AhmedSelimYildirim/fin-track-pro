@@ -21,7 +21,7 @@ func (h *UserHandler) Register(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Geçersiz veri formatı."})
 	}
 
-	if err := h.userService.Register(req.FullName, req.Username, req.Email, req.Password); err != nil {
+	if err := h.userService.Register(req.Username, req.Email, req.Password); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
 
@@ -58,7 +58,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "gecersiz veri"})
 	}
-	if err := h.userService.Update(userID, req.FullName, req.Username, req.Email); err != nil {
+	if err := h.userService.Update(userID, req.Username, req.Email); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "guncelleme basarisiz"})
 	}
 	return c.JSON(fiber.Map{"message": "Profil guncellendi !"})

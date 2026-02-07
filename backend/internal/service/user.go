@@ -16,7 +16,7 @@ func NewUserService(repo *repository.UserRepository, secret string) *UserService
 	return &UserService{repo: repo, jwtSecret: secret}
 }
 
-func (s *UserService) Register(fullName, username, email, password string) error {
+func (s *UserService) Register(username, email, password string) error {
 	if !utils.IsValidEmail(email) {
 		return errors.New("Geçersiz e-posta formatı.")
 	}
@@ -33,7 +33,6 @@ func (s *UserService) Register(fullName, username, email, password string) error
 
 	hashedPassword, _ := utils.HashPassword(password)
 	user := &model.User{
-		FullName: fullName,
 		Username: username,
 		Email:    email,
 		Password: hashedPassword,
@@ -54,7 +53,7 @@ func (s *UserService) Login(email, password string) (string, error) {
 	return utils.GenerateToken(uint(user.ID), s.jwtSecret)
 }
 
-func (s *UserService) Update(userID uint, fullName, username, email string) error {
+func (s *UserService) Update(userID uint, username, email string) error {
 	if !utils.IsValidEmail(email) {
 		return errors.New("gecersiz e-posta formati ")
 	}
@@ -63,7 +62,7 @@ func (s *UserService) Update(userID uint, fullName, username, email string) erro
 	if err != nil {
 		return err
 	}
-	user.FullName = fullName
+
 	user.Username = username
 	user.Email = email
 	return s.repo.Update(user)

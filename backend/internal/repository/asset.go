@@ -88,11 +88,11 @@ func (r *AssetRepository) GetUserName(userID int64) (string, error) {
 	var user model.User
 	err := r.db.NewSelect().
 		Model(&user).
-		Column("full_name").
+		Column("username").
 		Where("id = ?", userID).
 		Scan(context.Background())
 	if err != nil {
-		return "Degerli Kullanicimiz", nil
+		return "Kullanici", nil
 	}
-	return user.FullName, nil
+	return user.Username, nil
 }

@@ -110,8 +110,9 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 			adjustedPriceInTRY = assetRawPriceInTRY * (float64(a.Ayar) / 24.0)
 		}
 
-		exchangeRate := adjustedPriceInTRY / baseCurrencyPriceInTRY
-		valInBase := a.Amount * exchangeRate
+		currentPriceInBase := adjustedPriceInTRY / baseCurrencyPriceInTRY
+
+		valInBase := a.Amount * currentPriceInBase
 		costInBase := a.TotalCost / baseCurrencyPriceInTRY
 		profitLoss := valInBase - costInBase
 
@@ -132,7 +133,7 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 			Type:            a.Type,
 			Amount:          a.Amount,
 			Ayar:            displayAyar,
-			CurrentPrice:    exchangeRate,
+			CurrentPrice:    currentPriceInBase,
 			ValueInBase:     valInBase,
 			ProfitLoss:      profitLoss,
 			ProfitLossRatio: profitLossRatio,
@@ -197,7 +198,7 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	pdf.SetFont("Arial", "", 12)
 	pdf.Cell(0, 10, fmt.Sprintf("Varlik: %s", tx.AssetType))
 	pdf.Ln(8)
-	if tx.Type == "GOLD" && tx.Ayar > 0 {
+	if tx.AssetType == "GOLD" && tx.Ayar > 0 {
 		pdf.Cell(0, 10, fmt.Sprintf("Ayar: %d Ayar", tx.Ayar))
 		pdf.Ln(8)
 	}
