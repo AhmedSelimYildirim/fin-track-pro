@@ -18,23 +18,27 @@ func NewUserHandler(s *service.UserService) *UserHandler {
 func (h *UserHandler) Register(c *fiber.Ctx) error {
 	var req dto.RegisterRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "geçersiz format"})
+		return c.Status(400).JSON(fiber.Map{"error": "Geçersiz veri formatı."})
 	}
+
 	if err := h.userService.Register(req.FullName, req.Username, req.Email, req.Password); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "kayıt başarısız"})
+		return c.Status(400).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.Status(201).JSON(fiber.Map{"message": "Kayıt başarılı ! 🚀"})
+
+	return c.Status(201).JSON(fiber.Map{"message": "Kayıt başarılı! FinTrack Pro'ya hoş geldiniz"})
 }
 
 func (h *UserHandler) Login(c *fiber.Ctx) error {
 	var req dto.LoginRequest
 	if err := c.BodyParser(&req); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "geçersiz format"})
+		return c.Status(400).JSON(fiber.Map{"error": "Geçersiz veri formatı."})
 	}
+
 	token, err := h.userService.Login(req.Email, req.Password)
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"error": err.Error()})
 	}
+
 	return c.JSON(fiber.Map{"token": token})
 }
 

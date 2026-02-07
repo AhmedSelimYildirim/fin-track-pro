@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"fin-track-pro/internal/model"
-
 	"github.com/uptrace/bun"
 )
 
@@ -27,6 +26,14 @@ func (r *UserRepository) GetByEmail(email string) (*model.User, error) {
 		return nil, err
 	}
 	return &user, nil
+}
+
+func (r *UserRepository) ExistsByEmail(email string) (bool, error) {
+	return r.db.NewSelect().Model((*model.User)(nil)).Where("email = ?", email).Exists(context.Background())
+}
+
+func (r *UserRepository) ExistsByUsername(username string) (bool, error) {
+	return r.db.NewSelect().Model((*model.User)(nil)).Where("username = ?", username).Exists(context.Background())
 }
 
 func (r *UserRepository) GetByID(id uint) (*model.User, error) {

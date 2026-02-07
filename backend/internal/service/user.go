@@ -18,7 +18,17 @@ func NewUserService(repo *repository.UserRepository, secret string) *UserService
 
 func (s *UserService) Register(fullName, username, email, password string) error {
 	if !utils.IsValidEmail(email) {
-		return errors.New("gecersiz e-posta formati")
+		return errors.New("Geçersiz e-posta formatı.")
+	}
+
+	emailExists, _ := s.repo.ExistsByEmail(email)
+	if emailExists {
+		return errors.New("Bu e-posta adresi zaten kullanımda.")
+	}
+
+	usernameExists, _ := s.repo.ExistsByUsername(username)
+	if usernameExists {
+		return errors.New("Bu kullanıcı adı zaten alınmış.")
 	}
 
 	hashedPassword, _ := utils.HashPassword(password)
@@ -34,11 +44,13 @@ func (s *UserService) Register(fullName, username, email, password string) error
 func (s *UserService) Login(email, password string) (string, error) {
 	user, err := s.repo.GetByEmail(email)
 	if err != nil {
-		return "", errors.New("kullanici bulunamadi")
+		return "", errors.New("Girdiğiniz e-posta adresine ait bir hesap bulunamadı.")
 	}
+
 	if !utils.CheckPasswordHash(password, user.Password) {
-		return "", errors.New("hatali sifre")
+		return "", errors.New("Hatalı şifre girdiniz. Lütfen tekrar deneyin.")
 	}
+
 	return utils.GenerateToken(uint(user.ID), s.jwtSecret)
 }
 
