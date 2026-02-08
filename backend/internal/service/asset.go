@@ -37,7 +37,7 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 
 	rawPrice, err := s.getCurrentPriceInTRY(req.Type)
 	if err != nil || rawPrice <= 0 {
-		return errors.New("piyasa verisi su an alinamiyor, lutfen sonra tekrar deneyin")
+		return errors.New("piyasa verisi su an alinamiyor")
 	}
 
 	unitPrice := rawPrice
@@ -117,15 +117,6 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 	var details []dto.AssetResponse
 	var totalValue float64
 
-	type tempItem struct {
-		Type    string
-		Amount  float64
-		Ayar    int
-		ValBase float64
-		Rate    float64
-	}
-	var items []tempItem
-
 	for _, a := range assets {
 		rawPriceTRY, err := s.getCurrentPriceInTRY(a.Type)
 		if err != nil || rawPriceTRY <= 0 {
@@ -135,29 +126,19 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 		displayAyar := 0
 		if a.Type == "GOLD" {
 			displayAyar = a.Ayar
-			if a.Ayar > 0 {
-				rawPriceTRY *= (float64(a.Ayar) / 24.0)
-			}
+			rawPriceTRY *= (float64(a.Ayar) / 24.0)
 		}
 
 		rate := rawPriceTRY / basePriceInTRY
 		val := a.Amount * rate
 		totalValue += val
-		items = append(items, tempItem{Type: a.Type, Amount: a.Amount, Ayar: displayAyar, ValBase: val, Rate: rate})
-	}
 
-	for _, it := range items {
-		alloc := 0.0
-		if totalValue > 0 {
-			alloc = (it.ValBase / totalValue) * 100
-		}
 		details = append(details, dto.AssetResponse{
-			Type:         it.Type,
-			Amount:       it.Amount,
-			Ayar:         it.Ayar,
-			CurrentPrice: it.Rate,
-			ValueInBase:  it.ValBase,
-			Allocation:   alloc,
+			Type:         a.Type,
+			Amount:       a.Amount,
+			Ayar:         displayAyar,
+			CurrentPrice: rate,
+			ValueInBase:  val,
 		})
 	}
 
@@ -168,7 +149,7 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 	}, nil
 }
 
-func (s *AssetService) GetUserTransactionsWithCurrency(userID uint, baseCurrency string, targetAyar int) ([]model.Transaction, error) {
+func (s *AssetService) GetUserTransactionsWithCurrency(userID uint, baseCurrency string, targetAyar int) ([]dto.TransactionResponse, error) {
 	txs, err := s.repo.GetTransactionsByUserID(userID)
 	if err != nil {
 		return nil, err
@@ -182,14 +163,26 @@ func (s *AssetService) GetUserTransactionsWithCurrency(userID uint, baseCurrency
 		basePriceInTRY = 1
 	}
 
-	for i := range txs {
-		txs[i].Price = txs[i].Price / basePriceInTRY
-		if txs[i].AssetType != "GOLD" {
-			txs[i].Ayar = 0
+	var response []dto.TransactionResponse
+	for _, tx := range txs {
+		displayAyar := 0
+		if tx.AssetType == "GOLD" {
+			displayAyar = tx.Ayar
 		}
+
+		response = append(response, dto.TransactionResponse{
+			ID:              tx.ID,
+			Type:            tx.Type,
+			AssetType:       tx.AssetType,
+			Amount:          tx.Amount,
+			Price:           tx.Price / basePriceInTRY,
+			Ayar:            displayAyar,
+			TransactionDate: tx.TransactionDate,
+			CreatedAt:       tx.CreatedAt,
+		})
 	}
 
-	return txs, nil
+	return response, nil
 }
 
 func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCurrency string, targetAyar int) ([]byte, error) {
