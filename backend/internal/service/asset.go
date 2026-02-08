@@ -28,8 +28,6 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 		if req.Ayar > 0 {
 			ayar = req.Ayar
 		}
-	} else {
-		ayar = 0
 	}
 
 	asset, err := s.repo.GetAsset(int64(userID), req.Type, ayar)
@@ -52,7 +50,7 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 		asset.TotalCost += req.Amount * unitPrice
 	} else if req.Action == "subtract" {
 		if asset.Amount < req.Amount {
-			return fmt.Errorf("yetersiz bakiye: %s (%d Ayar) kasasinda sadece %.4f var, sen %.4f cikarmaya calisiyorsun", req.Type, ayar, asset.Amount, req.Amount)
+			return fmt.Errorf("yetersiz bakiye: %s kasasinda sadece %.4f var", req.Type, asset.Amount)
 		}
 		if asset.Amount > 0 {
 			asset.TotalCost -= req.Amount * (asset.TotalCost / asset.Amount)

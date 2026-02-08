@@ -14,7 +14,7 @@ type Transaction struct {
 	AssetType       string    `bun:"asset_type,notnull" json:"asset_type"`
 	Amount          float64   `bun:"amount,notnull" json:"amount"`
 	Price           float64   `bun:"price" json:"price"`
-	Ayar            int       `bun:"ayar,nullzero" json:"ayar"`
+	Ayar            int       `bun:"ayar,nullzero" json:"ayar,omitempty"`
 	TransactionDate time.Time `bun:"transaction_date,notnull" json:"transaction_date"`
 	CreatedAt       time.Time `bun:",nullzero,notnull,default:current_timestamp" json:"created_at"`
 }
