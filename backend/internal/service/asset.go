@@ -265,7 +265,4 @@ func (s *AssetService) GetUserTransactions(userID uint) ([]model.Transaction, er
 
 func (s *AssetService) GetTransactionByID(userID uint, txID int64) (*model.Transaction, error) {
 	return s.repo.GetTransactionByID(txID, int64(userID))
-}git status
-git add .
-git commit -m "Açıklama"
-git push
+}
