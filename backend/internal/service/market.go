@@ -40,7 +40,9 @@ func (s *MarketService) GetCurrencyRates() (map[string]float64, error) {
 	var data struct {
 		Rates map[string]float64 `json:"rates"`
 	}
-	json.NewDecoder(resp.Body).Decode(&data)
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return nil, err
+	}
 
 	tryRate := data.Rates["TRY"]
 	finalRates := make(map[string]float64)
@@ -83,7 +85,9 @@ func (s *MarketService) GetMetalPrice(metalCode string) (float64, error) {
 	var data struct {
 		Rates map[string]float64 `json:"rates"`
 	}
-	json.NewDecoder(resp.Body).Decode(&data)
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return 0, err
+	}
 
 	priceInUSD := 1 / data.Rates[symbol]
 	gramPriceTRY := (priceInUSD * usdToTry) / 31.1035
@@ -107,6 +111,10 @@ func (s *MarketService) GetCryptoPrice(coinID string) (float64, error) {
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return 0, fmt.Errorf("crypto api error: %d", resp.StatusCode)
+	}
+
 	var result struct {
 		Data struct {
 			PriceUsd string `json:"priceUsd"`
@@ -116,7 +124,11 @@ func (s *MarketService) GetCryptoPrice(coinID string) (float64, error) {
 		return 0, err
 	}
 
-	priceUSD, _ := strconv.ParseFloat(result.Data.PriceUsd, 64)
+	priceUSD, err := strconv.ParseFloat(result.Data.PriceUsd, 64)
+	if err != nil {
+		return 0, err
+	}
+
 	rates, err := s.GetCurrencyRates()
 	if err != nil {
 		return 0, err
