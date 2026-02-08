@@ -126,14 +126,18 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 		if err != nil || rawPriceTRY <= 0 {
 			continue
 		}
+
+		displayAyar := a.Ayar
 		if a.Type == "GOLD" && a.Ayar > 0 {
 			rawPriceTRY *= (float64(a.Ayar) / 24.0)
+		} else {
+			displayAyar = 0
 		}
 
 		rate := rawPriceTRY / basePriceInTRY
 		val := a.Amount * rate
 		totalValue += val
-		items = append(items, tempItem{Type: a.Type, Amount: a.Amount, Ayar: a.Ayar, ValBase: val, Rate: rate})
+		items = append(items, tempItem{Type: a.Type, Amount: a.Amount, Ayar: displayAyar, ValBase: val, Rate: rate})
 	}
 
 	for _, it := range items {
