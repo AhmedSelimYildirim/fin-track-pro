@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fin-track-pro/internal/dto"
 	"fin-track-pro/internal/model"
 	"fin-track-pro/internal/repository"
 )
@@ -14,10 +15,11 @@ func NewCalendarService(repo *repository.CalendarRepository) *CalendarService {
 	return &CalendarService{calendarRepo: repo}
 }
 
-func (s *CalendarService) CreateReminder(userID int64, title string) error {
+func (s *CalendarService) CreateReminder(userID int64, req dto.CreateReminderRequest) error {
 	reminder := &model.Reminder{
-		UserID: userID,
-		Title:  title,
+		UserID:     userID,
+		Title:      req.Title,
+		TargetDate: req.TargetDate,
 	}
 	return s.calendarRepo.SaveReminder(context.Background(), reminder)
 }
