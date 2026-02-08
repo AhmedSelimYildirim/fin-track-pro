@@ -35,8 +35,8 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 		asset = &model.Asset{UserID: int64(userID), Type: req.Type, Amount: 0, Ayar: ayar}
 	}
 
-	rawPrice := s.getCurrentPriceInTRY(req.Type)
-	if rawPrice <= 0 {
+	rawPrice, err := s.getCurrentPriceInTRY(req.Type)
+	if err != nil || rawPrice <= 0 {
 		return errors.New("piyasa verisi su an alinamiyor, lutfen sonra tekrar deneyin")
 	}
 
@@ -71,26 +71,27 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 	return s.repo.UpdateWithLog(asset, tx)
 }
 
-func (s *AssetService) getCurrentPriceInTRY(assetType string) float64 {
-	rates, _ := s.marketService.GetCurrencyRates()
+func (s *AssetService) getCurrentPriceInTRY(assetType string) (float64, error) {
+	rates, err := s.marketService.GetCurrencyRates()
+	if err != nil && assetType != "BTC" && assetType != "GOLD" && assetType != "SILVER" {
+		return 0, err
+	}
+
 	switch assetType {
 	case "USD":
-		return rates["USD"]
+		return rates["USD"], nil
 	case "EUR":
-		return rates["EUR"]
+		return rates["EUR"], nil
 	case "GOLD":
-		p, _ := s.marketService.GetMetalPrice("GOLD")
-		return p
+		return s.marketService.GetMetalPrice("GOLD")
 	case "SILVER":
-		p, _ := s.marketService.GetMetalPrice("SILVER")
-		return p
+		return s.marketService.GetMetalPrice("SILVER")
 	case "BTC":
-		p, _ := s.marketService.GetCryptoPrice("bitcoin")
-		return p
+		return s.marketService.GetCryptoPrice("bitcoin")
 	case "TRY":
-		return 1.0
+		return 1.0, nil
 	default:
-		return 1.0
+		return 1.0, nil
 	}
 }
 
@@ -100,13 +101,16 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 		return nil, err
 	}
 
-	basePriceInTRY := s.getCurrentPriceInTRY(baseCurrency)
+	basePriceInTRY, _ := s.getCurrentPriceInTRY(baseCurrency)
 	if baseCurrency == "GOLD" && targetAyar > 0 {
 		basePriceInTRY *= (float64(targetAyar) / 24.0)
 	}
 	if basePriceInTRY <= 0 {
 		basePriceInTRY = 1
 	}
+
+	var details []dto.AssetResponse
+	var totalValue float64
 
 	type tempItem struct {
 		Type    string
@@ -115,13 +119,11 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 		ValBase float64
 		Rate    float64
 	}
-
 	var items []tempItem
-	var totalValue float64
 
 	for _, a := range assets {
-		rawPriceTRY := s.getCurrentPriceInTRY(a.Type)
-		if rawPriceTRY <= 0 {
+		rawPriceTRY, err := s.getCurrentPriceInTRY(a.Type)
+		if err != nil || rawPriceTRY <= 0 {
 			continue
 		}
 		if a.Type == "GOLD" && a.Ayar > 0 {
@@ -134,22 +136,15 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 		items = append(items, tempItem{Type: a.Type, Amount: a.Amount, Ayar: a.Ayar, ValBase: val, Rate: rate})
 	}
 
-	var details []dto.AssetResponse
 	for _, it := range items {
 		alloc := 0.0
 		if totalValue > 0 {
 			alloc = (it.ValBase / totalValue) * 100
 		}
-
-		displayAyar := 0
-		if it.Type == "GOLD" {
-			displayAyar = it.Ayar
-		}
-
 		details = append(details, dto.AssetResponse{
 			Type:         it.Type,
 			Amount:       it.Amount,
-			Ayar:         displayAyar,
+			Ayar:         it.Ayar,
 			CurrentPrice: it.Rate,
 			ValueInBase:  it.ValBase,
 			Allocation:   alloc,
@@ -164,7 +159,7 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 }
 
 func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCurrency string, targetAyar int) ([]byte, error) {
-	basePriceInTRY := s.getCurrentPriceInTRY(baseCurrency)
+	basePriceInTRY, _ := s.getCurrentPriceInTRY(baseCurrency)
 	if baseCurrency == "GOLD" && targetAyar > 0 {
 		basePriceInTRY *= (float64(targetAyar) / 24.0)
 	}

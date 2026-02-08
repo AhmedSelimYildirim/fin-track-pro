@@ -13,7 +13,7 @@ type AssetHandler struct {
 	service *service.AssetService
 }
 
-func NewAssetHandler(s *service.AssetService, m *service.MarketService) *AssetHandler {
+func NewAssetHandler(s *service.AssetService) *AssetHandler {
 	return &AssetHandler{service: s}
 }
 
