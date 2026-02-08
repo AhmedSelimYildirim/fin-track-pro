@@ -12,6 +12,5 @@ type Reminder struct {
 	UserID        int64     `bun:"user_id" json:"user_id"`
 	Title         string    `bun:"title" json:"title"`
 	TargetDate    time.Time `bun:"target_date" json:"target_date"`
-	IsSent        bool      `bun:"is_sent,default:false" json:"is_sent"`
 	CreatedAt     time.Time `bun:"created_at,default:current_timestamp" json:"created_at"`
 }
