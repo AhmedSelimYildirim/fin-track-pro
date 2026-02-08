@@ -34,7 +34,7 @@ func SetupRoutes(app *fiber.App) {
 
 	userHandler := handler.NewUserHandler(userService)
 	marketHandler := handler.NewMarketHandler(marketService)
-	assetHandler := handler.NewAssetHandler(assetService, marketService)
+	assetHandler := handler.NewAssetHandler(assetService)
 	calendarHandler := handler.NewCalendarHandler(calendarService)
 
 	api := app.Group("/api")
