@@ -58,6 +58,11 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 		asset.Amount -= req.Amount
 	}
 
+	tDate := time.Now()
+	if req.TransactionDate != nil {
+		tDate = *req.TransactionDate
+	}
+
 	tx := &model.Transaction{
 		UserID:          int64(userID),
 		Type:            req.Action,
@@ -65,7 +70,7 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 		Amount:          req.Amount,
 		Price:           unitPrice,
 		Ayar:            ayar,
-		TransactionDate: time.Now(),
+		TransactionDate: tDate,
 	}
 
 	return s.repo.UpdateWithLog(asset, tx)
@@ -127,11 +132,12 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 			continue
 		}
 
-		displayAyar := a.Ayar
-		if a.Type == "GOLD" && a.Ayar > 0 {
-			rawPriceTRY *= (float64(a.Ayar) / 24.0)
-		} else {
-			displayAyar = 0
+		displayAyar := 0
+		if a.Type == "GOLD" {
+			displayAyar = a.Ayar
+			if a.Ayar > 0 {
+				rawPriceTRY *= (float64(a.Ayar) / 24.0)
+			}
 		}
 
 		rate := rawPriceTRY / basePriceInTRY
