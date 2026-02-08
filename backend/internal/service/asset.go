@@ -73,7 +73,7 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 
 func (s *AssetService) getCurrentPriceInTRY(assetType string) (float64, error) {
 	rates, err := s.marketService.GetCurrencyRates()
-	if err != nil && assetType != "BTC" && assetType != "GOLD" && assetType != "SILVER" {
+	if err != nil && assetType != "GOLD" && assetType != "SILVER" {
 		return 0, err
 	}
 
@@ -86,8 +86,6 @@ func (s *AssetService) getCurrentPriceInTRY(assetType string) (float64, error) {
 		return s.marketService.GetMetalPrice("GOLD")
 	case "SILVER":
 		return s.marketService.GetMetalPrice("SILVER")
-	case "BTC":
-		return s.marketService.GetCryptoPrice("bitcoin")
 	case "TRY":
 		return 1.0, nil
 	default:
