@@ -87,7 +87,7 @@ func (s *AssetService) getCurrentPriceInTRY(assetType string) (float64, error) {
 	case "SILVER":
 		return s.marketService.GetMetalPrice("SILVER")
 	case "BTC":
-		return s.marketService.GetCryptoPrice("bitcoin")
+		return s.marketService.GetCryptoPrice("BTC")
 	case "TRY":
 		return 1.0, nil
 	default:
@@ -265,4 +265,7 @@ func (s *AssetService) GetUserTransactions(userID uint) ([]model.Transaction, er
 
 func (s *AssetService) GetTransactionByID(userID uint, txID int64) (*model.Transaction, error) {
 	return s.repo.GetTransactionByID(txID, int64(userID))
-}
+}git status
+git add .
+git commit -m "Açıklama"
+git push

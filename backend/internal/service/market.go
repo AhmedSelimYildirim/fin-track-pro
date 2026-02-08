@@ -68,7 +68,6 @@ func (s *MarketService) GetMetalPrice(metalCode string) (float64, error) {
 	if err != nil {
 		return 0, err
 	}
-	usdToTry := rates["USD"]
 
 	symbol := "XAU"
 	if metalCode == "SILVER" {
@@ -90,7 +89,7 @@ func (s *MarketService) GetMetalPrice(metalCode string) (float64, error) {
 	}
 
 	priceInUSD := 1 / data.Rates[symbol]
-	gramPriceTRY := (priceInUSD * usdToTry) / 31.1035
+	gramPriceTRY := (priceInUSD * rates["USD"]) / 31.1035
 
 	s.rdb.Set(ctx, cacheKey, gramPriceTRY, 12*time.Hour)
 	return gramPriceTRY, nil
@@ -98,33 +97,28 @@ func (s *MarketService) GetMetalPrice(metalCode string) (float64, error) {
 
 func (s *MarketService) GetCryptoPrice(coinID string) (float64, error) {
 	ctx := context.Background()
-	cacheKey := fmt.Sprintf("price:crypto:%s", coinID)
+	cacheKey := "price:crypto:BTC"
 	cached, err := s.rdb.Get(ctx, cacheKey).Float64()
 	if err == nil {
 		return cached, nil
 	}
 
-	url := fmt.Sprintf("https://api.coincap.io/v2/assets/%s", coinID)
+	url := "https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT"
 	resp, err := http.Get(url)
 	if err != nil {
 		return 0, err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
-		return 0, fmt.Errorf("crypto api error: %d", resp.StatusCode)
-	}
-
 	var result struct {
-		Data struct {
-			PriceUsd string `json:"priceUsd"`
-		} `json:"data"`
+		Symbol string `json:"symbol"`
+		Price  string `json:"price"`
 	}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
 		return 0, err
 	}
 
-	priceUSD, err := strconv.ParseFloat(result.Data.PriceUsd, 64)
+	priceUSD, err := strconv.ParseFloat(result.Price, 64)
 	if err != nil {
 		return 0, err
 	}
