@@ -28,6 +28,8 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 		if req.Ayar > 0 {
 			ayar = req.Ayar
 		}
+	} else {
+		ayar = 0
 	}
 
 	asset, err := s.repo.GetAsset(int64(userID), req.Type, ayar)
@@ -184,6 +186,9 @@ func (s *AssetService) GetUserTransactionsWithCurrency(userID uint, baseCurrency
 
 	for i := range txs {
 		txs[i].Price = txs[i].Price / basePriceInTRY
+		if txs[i].AssetType != "GOLD" {
+			txs[i].Ayar = 0
+		}
 	}
 
 	return txs, nil
