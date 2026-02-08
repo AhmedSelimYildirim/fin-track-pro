@@ -50,7 +50,7 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 		asset.TotalCost += req.Amount * unitPrice
 	} else if req.Action == "subtract" {
 		if asset.Amount < req.Amount {
-			return errors.New("yetersiz bakiye")
+			return fmt.Errorf("yetersiz bakiye: %s (%d Ayar) kasasinda sadece %.4f var, sen %.4f cikarmaya calisiyorsun", req.Type, ayar, asset.Amount, req.Amount)
 		}
 		if asset.Amount > 0 {
 			asset.TotalCost -= req.Amount * (asset.TotalCost / asset.Amount)

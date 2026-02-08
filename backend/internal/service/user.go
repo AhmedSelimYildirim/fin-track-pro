@@ -26,11 +26,6 @@ func (s *UserService) Register(username, email, password string) error {
 		return errors.New("Bu e-posta adresi zaten kullanımda.")
 	}
 
-	usernameExists, _ := s.repo.ExistsByUsername(username)
-	if usernameExists {
-		return errors.New("Bu kullanıcı adı zaten alınmış.")
-	}
-
 	hashedPassword, _ := utils.HashPassword(password)
 	user := &model.User{
 		Username: username,
