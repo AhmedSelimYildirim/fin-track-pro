@@ -60,8 +60,8 @@ func SetupRoutes(app *fiber.App) {
 	assets.Post("/update", assetHandler.UpdateBalance)
 	assets.Get("/summary", assetHandler.GetSummary)
 	assets.Get("/transactions", assetHandler.GetTransactions)
+	assets.Get("/receipt/full", assetHandler.GetFullPortfolioReceipt)
 	assets.Get("/receipt/:id", assetHandler.GetReceipt)
-	assets.Get("/full-receipt", assetHandler.GetFullPortfolioReceipt)
 
 	calendar := protected.Group("/calendar")
 	calendar.Post("/remind", calendarHandler.AddEvent)

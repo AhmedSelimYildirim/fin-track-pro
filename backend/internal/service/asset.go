@@ -168,6 +168,27 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 	}, nil
 }
 
+func (s *AssetService) GetUserTransactionsWithCurrency(userID uint, baseCurrency string, targetAyar int) ([]model.Transaction, error) {
+	txs, err := s.repo.GetTransactionsByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+
+	basePriceInTRY, _ := s.getCurrentPriceInTRY(baseCurrency)
+	if baseCurrency == "GOLD" && targetAyar > 0 {
+		basePriceInTRY *= (float64(targetAyar) / 24.0)
+	}
+	if basePriceInTRY <= 0 {
+		basePriceInTRY = 1
+	}
+
+	for i := range txs {
+		txs[i].Price = txs[i].Price / basePriceInTRY
+	}
+
+	return txs, nil
+}
+
 func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCurrency string, targetAyar int) ([]byte, error) {
 	basePriceInTRY, _ := s.getCurrentPriceInTRY(baseCurrency)
 	if baseCurrency == "GOLD" && targetAyar > 0 {

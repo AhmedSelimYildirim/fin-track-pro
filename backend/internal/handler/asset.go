@@ -31,11 +31,8 @@ func (h *AssetHandler) UpdateBalance(c *fiber.Ctx) error {
 
 func (h *AssetHandler) GetSummary(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
-	currency := c.Get("X-Currency")
-	if currency == "" {
-		currency = "TRY"
-	}
-	ayarStr := c.Get("X-Ayar")
+	currency := c.Get("X-Currency", "TRY")
+	ayarStr := c.Get("X-Ayar", "0")
 	ayar, _ := strconv.Atoi(ayarStr)
 
 	summary, err := h.service.GetPortfolioSummary(userID, currency, ayar)
@@ -47,7 +44,11 @@ func (h *AssetHandler) GetSummary(c *fiber.Ctx) error {
 
 func (h *AssetHandler) GetTransactions(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
-	txs, err := h.service.GetUserTransactions(userID)
+	currency := c.Get("X-Currency", "TRY")
+	ayarStr := c.Get("X-Ayar", "0")
+	ayar, _ := strconv.Atoi(ayarStr)
+
+	txs, err := h.service.GetUserTransactionsWithCurrency(userID, currency, ayar)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -57,11 +58,8 @@ func (h *AssetHandler) GetTransactions(c *fiber.Ctx) error {
 func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 	id, _ := strconv.ParseInt(c.Params("id"), 10, 64)
 	userID := c.Locals("user_id").(uint)
-	currency := c.Get("X-Currency")
-	if currency == "" {
-		currency = "TRY"
-	}
-	ayarStr := c.Get("X-Ayar")
+	currency := c.Get("X-Currency", "TRY")
+	ayarStr := c.Get("X-Ayar", "0")
 	ayar, _ := strconv.Atoi(ayarStr)
 
 	tx, err := h.service.GetTransactionByID(userID, id)
@@ -79,11 +77,8 @@ func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 
 func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
-	currency := c.Get("X-Currency")
-	if currency == "" {
-		currency = "TRY"
-	}
-	ayarStr := c.Get("X-Ayar")
+	currency := c.Get("X-Currency", "TRY")
+	ayarStr := c.Get("X-Ayar", "0")
 	ayar, _ := strconv.Atoi(ayarStr)
 
 	pdfBytes, err := h.service.GenerateFullPortfolioReceipt(userID, currency, ayar)
