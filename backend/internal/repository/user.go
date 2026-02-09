@@ -33,10 +33,6 @@ func (r *UserRepository) ExistsByEmail(email string) (bool, error) {
 	return r.db.NewSelect().Model((*model.User)(nil)).Where("email = ?", email).Exists(context.Background())
 }
 
-func (r *UserRepository) ExistsByUsername(username string) (bool, error) {
-	return r.db.NewSelect().Model((*model.User)(nil)).Where("username = ?", username).Exists(context.Background())
-}
-
 func (r *UserRepository) GetByID(id uint) (*model.User, error) {
 	var user model.User
 	err := r.db.NewSelect().Model(&user).Where("id = ?", id).Scan(context.Background())
