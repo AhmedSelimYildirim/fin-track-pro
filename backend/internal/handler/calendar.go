@@ -3,6 +3,7 @@ package handler
 import (
 	"fin-track-pro/internal/dto"
 	"fin-track-pro/internal/service"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -35,4 +36,18 @@ func (h *CalendarHandler) ListReminders(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(notes)
+}
+
+func (h *CalendarHandler) DeleteEvent(c *fiber.Ctx) error {
+	userID := int64(c.Locals("user_id").(uint))
+	idStr := c.Params("id")
+	reminderID, err := strconv.ParseInt(idStr, 10, 64)
+	if err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Gecersiz hatirlatici ID"})
+	}
+	err = h.calendarService.DeleteReminder(userID, reminderID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Not silinemedi"})
+	}
+	return c.JSON(fiber.Map{"message": "Not basariyla silindi!"})
 }

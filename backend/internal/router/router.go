@@ -68,4 +68,5 @@ func SetupRoutes(app *fiber.App) {
 	calendar := protected.Group("/calendar")
 	calendar.Post("/remind", calendarHandler.AddEvent)
 	calendar.Get("/list", calendarHandler.ListReminders)
+	calendar.Delete("/:id", calendarHandler.DeleteEvent)
 }

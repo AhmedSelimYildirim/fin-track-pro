@@ -29,3 +29,11 @@ func (r *CalendarRepository) GetRemindersByUserID(ctx context.Context, userID in
 		Scan(ctx)
 	return reminders, err
 }
+
+func (r *CalendarRepository) DeleteReminder(ctx context.Context, userID int64, reminderID int64) error {
+	_, err := r.db.NewDelete().
+		Model((*model.Reminder)(nil)).
+		Where("id = ? AND user_id = ?", reminderID, userID).
+		Exec(ctx)
+	return err
+}

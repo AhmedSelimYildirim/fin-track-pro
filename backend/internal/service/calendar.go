@@ -27,3 +27,7 @@ func (s *CalendarService) CreateReminder(userID int64, req dto.CreateReminderReq
 func (s *CalendarService) GetUserReminders(userID int64) ([]model.Reminder, error) {
 	return s.calendarRepo.GetRemindersByUserID(context.Background(), userID)
 }
+
+func (s *CalendarService) DeleteReminder(userID int64, reminderID int64) error {
+	return s.calendarRepo.DeleteReminder(context.Background(), userID, reminderID)
+}
