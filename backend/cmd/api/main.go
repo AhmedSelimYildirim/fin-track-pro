@@ -46,11 +46,12 @@ func main() {
 
 	router.SetupRoutes(app)
 
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3000"
+	}
+
 	go func() {
-		port := os.Getenv("PORT")
-		if port == "" {
-			port = "3000"
-		}
 		if err := app.Listen(":" + port); err != nil {
 			log.Panic(err)
 		}
