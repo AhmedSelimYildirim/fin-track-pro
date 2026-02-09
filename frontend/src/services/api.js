@@ -1,11 +1,9 @@
 import axios from 'axios';
 
 const api = axios.create({
-    // Canlıdaki Backend Adresin
     baseURL: 'https://fin-track-pro.onrender.com/api',
 });
 
-// Her isteğe otomatik Token ekleyen güvenlik kodu
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {

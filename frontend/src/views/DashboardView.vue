@@ -80,14 +80,12 @@ import { Doughnut } from 'vue-chartjs';
 import { Home, Calendar, User, Trash2, LogOut, FileText } from 'lucide-vue-next';
 import api from '../services/api';
 
-// Chart.js Kaydı
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const router = useRouter();
 const currentUser = localStorage.getItem('username') || 'User';
 const currentEmail = localStorage.getItem('email') || 'user@mail.com';
 
-// State
 const isSidebarOpen = ref(false);
 const showSelector = ref(false);
 const showModal = ref(false);
@@ -98,7 +96,6 @@ const summaryData = ref(null);
 const baseCurrency = ref('TRY');
 const targetAyar = ref(0);
 
-// Dropdown Seçenekleri
 const currencyOptions = [
   { label: 'Turkish Lira (TRY)', val: 'TRY', ayar: 0 },
   { label: 'US Dollar (USD)', val: 'USD', ayar: 0 },
@@ -112,19 +109,16 @@ const currencyOptions = [
   { label: 'Gold (14 Karat)', val: 'GOLD', ayar: 14 },
 ];
 
-// Display text for dropdown
 const displayCurrency = computed(() => {
   const found = currencyOptions.find(c => c.val === baseCurrency.value && c.ayar === targetAyar.value);
   return found ? found.label : 'Select Currency';
 });
 
-// Toplam Bakiye (Formatlı)
 const totalValue = computed(() => {
   if (!summaryData.value) return '0.00';
   return summaryData.value.total_value.toLocaleString('tr-TR', { maximumFractionDigits: 2 });
 });
 
-// Grafik Verisi
 const chartData = computed(() => {
   if (!summaryData.value) return null;
   return {
@@ -139,11 +133,10 @@ const chartData = computed(() => {
 
 const chartOptions = {
   responsive: true,
-  cutout: '70%', // Donut kalınlığı
+  cutout: '70%',
   plugins: { legend: { display: false } }
 };
 
-// Fonksiyonlar
 const fetchData = async () => {
   try {
     const res = await api.get('/assets/summary', {
@@ -159,14 +152,14 @@ const changeCurrency = (opt) => {
   baseCurrency.value = opt.val;
   targetAyar.value = opt.ayar;
   showSelector.value = false;
-  fetchData(); // Veriyi yeni kura göre çek
+  fetchData();
 };
 
 const toggleSidebar = () => {
   if (showModal.value) {
-    showModal.value = false; // Modalı kapat
+    showModal.value = false;
   } else {
-    isSidebarOpen.value = !isSidebarOpen.value; // Menüyü aç
+    isSidebarOpen.value = !isSidebarOpen.value;
   }
 };
 
@@ -184,7 +177,6 @@ const handleTransaction = async (action) => {
       action: action,
       ayar: activeAsset.value === 'GOLD' ? 24 : 0
     });
-    alert('Success!');
     amount.value = '';
     showModal.value = false;
     fetchData();
@@ -222,29 +214,21 @@ onMounted(() => {
 
 <style scoped>
 .dashboard { min-height: 100vh; position: relative; padding: 20px; color: white; }
-
-/* Üst Bar */
 .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
 .left-group { display: flex; align-items: center; gap: 15px; }
 .home-btn { background: #334155; border: none; color: white; padding: 10px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
 .u-name { display: block; font-weight: bold; font-size: 1.1rem; }
 .u-email { font-size: 0.8rem; color: #94A3B8; }
-
-/* Seçici */
 .currency-selector { position: relative; }
 .select-trigger { background: #334155; color: white; border: none; padding: 10px 20px; border-radius: 8px; min-width: 160px; text-align: left; }
 .scroll-dropdown { position: absolute; top: 100%; right: 0; background: var(--card-bg); border: 1px solid #475569; border-radius: 10px; width: 200px; max-height: 200px; overflow-y: auto; z-index: 100; margin-top: 5px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 .dropdown-item { padding: 12px; cursor: pointer; border-bottom: 1px solid #334155; font-size: 0.9rem; }
 .dropdown-item:hover { background: #334155; }
-
-/* Orta Alan */
 .cockpit { display: flex; flex-direction: column; align-items: center; margin-top: 20px; }
 .chart-container { position: relative; width: 280px; height: 280px; margin-bottom: 40px; }
 .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
 .center-balance h2 { margin: 0; font-size: 1.5rem; }
 .center-balance small { color: #94A3B8; }
-
-/* Butonlar */
 .asset-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; max-width: 600px; }
 .asset-btn { border: none; border-radius: 50px; padding: 15px 30px; font-weight: bold; color: white; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 .btc-btn { background: var(--btc-color); }
@@ -253,17 +237,11 @@ onMounted(() => {
 .eur-btn { background: var(--eur-color); }
 .silver-btn { background: var(--silver-color); color: black; }
 .try-btn { background: var(--try-color); }
-
-/* Sidebar */
 .sidebar { position: absolute; top: 80px; left: 20px; background: var(--card-bg); width: 220px; padding: 15px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 50; }
 .menu-item { display: flex; align-items: center; gap: 10px; padding: 12px; cursor: pointer; border-bottom: 1px solid #334155; }
 .menu-item:hover { background: #334155; border-radius: 8px; }
 .red { color: #EF4444; }
-
-/* Dekont Butonu */
 .receipt-btn { position: fixed; bottom: 30px; right: 30px; background: #3B82F6; width: 60px; height: 60px; border-radius: 50%; border: none; color: white; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 20px rgba(0,0,0,0.5); }
-
-/* Modal */
 .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 200; }
 .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 300px; text-align: center; }
 .modal-input { width: 100%; padding: 15px; margin: 20px 0; background: #0F172A; border: 1px solid #475569; color: white; border-radius: 8px; box-sizing: border-box; }
@@ -272,8 +250,6 @@ onMounted(() => {
 .add { background: var(--usd-color); }
 .sub { background: var(--try-color); }
 .close-modal { background: transparent; border: 1px solid #475569; color: #94A3B8; padding: 8px 20px; border-radius: 8px; }
-
-/* Animasyon */
 .slide-enter-active, .slide-leave-active { transition: transform 0.3s ease, opacity 0.3s ease; }
 .slide-enter-from, .slide-leave-to { transform: translateX(-20px); opacity: 0; }
 </style>
