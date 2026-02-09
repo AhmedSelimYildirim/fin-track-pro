@@ -140,6 +140,11 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 			ValueInBase:  val,
 		})
 	}
+	if totalValue > 0 {
+		for i := range details {
+			details[i].Allocation = (details[i].ValueInBase / totalValue) * 100
+		}
+	}
 	return &dto.PortfolioResponse{
 		Assets:     details,
 		TotalValue: totalValue,
