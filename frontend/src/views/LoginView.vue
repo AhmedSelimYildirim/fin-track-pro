@@ -29,9 +29,10 @@
               <span class="icon">🔒</span>
               <input v-model="loginData.password" type="password" placeholder="Şifre" />
             </div>
-            <button class="submit-btn" @click="handleLogin">
-              <span>GİRİŞ YAP</span>
-              <div class="btn-glow"></div>
+            <button class="submit-btn" :disabled="isLoading" @click="handleLogin">
+              <span v-if="!isLoading">GİRİŞ YAP</span>
+              <div v-else class="spinner"></div>
+              <div v-if="!isLoading" class="btn-glow"></div>
             </button>
           </div>
 
@@ -48,9 +49,10 @@
               <span class="icon">🔑</span>
               <input v-model="registerData.password" type="password" placeholder="Şifre" />
             </div>
-            <button class="submit-btn register" @click="handleRegister">
-              <span>HESAP OLUŞTUR</span>
-              <div class="btn-glow"></div>
+            <button class="submit-btn register" :disabled="isLoading" @click="handleRegister">
+              <span v-if="!isLoading">HESAP OLUŞTUR</span>
+              <div v-else class="spinner"></div>
+              <div v-if="!isLoading" class="btn-glow"></div>
             </button>
           </div>
         </transition>
@@ -66,42 +68,50 @@
 
   const router = useRouter();
   const activeTab = ref('login');
+  const isLoading = ref(false);
+
   const loginData = reactive({ email: '', password: '' });
   const registerData = reactive({ username: '', email: '', password: '' });
 
   const handleLogin = async () => {
     if (!loginData.email || !loginData.password) return alert("Bilgileri giriniz.");
+    isLoading.value = true;
     try {
       const res = await api.post('/auth/login', { email: loginData.email, password: loginData.password });
       localStorage.setItem('token', res.data.token);
-      localStorage.setItem('username', res.data.username || 'Kullanıcı');
+      // Backend'den username gelmiyorsa emailin başını al
+      const user = res.data.username || loginData.email.split('@')[0];
+      localStorage.setItem('username', user);
       router.push('/dashboard');
-    } catch (e) { alert('Hata: ' + (e.response?.data?.error || 'Giriş başarısız.')); }
+    } catch (e) {
+      alert('Hata: ' + (e.response?.data?.error || 'Giriş başarısız.'));
+    } finally {
+      isLoading.value = false;
+    }
   };
 
   const handleRegister = async () => {
     if (!registerData.username || !registerData.email || !registerData.password) return alert("Bilgileri giriniz.");
+    isLoading.value = true;
     try {
-      await api.post('/auth/register', { username: registerData.username, email: registerData.email, password: registerData.password });
+      await api.post('/auth/register', {
+        username: registerData.username,
+        email: registerData.email,
+        password: registerData.password
+      });
       activeTab.value = 'login';
       registerData.username = ''; registerData.email = ''; registerData.password = '';
-    } catch (e) { alert('Hata: ' + (e.response?.data?.error || 'Kayıt başarısız.')); }
+      alert("Kayıt başarılı! Lütfen giriş yapın.");
+    } catch (e) {
+      alert('Hata: ' + (e.response?.data?.error || 'Kayıt başarısız.'));
+    } finally {
+      isLoading.value = false;
+    }
   };
 </script>
 
 <style scoped>
-  .login-wrapper-fixed {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: #00040f;
-    z-index: 9999;
-  }
+  .login-wrapper-fixed { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; background: #00040f; z-index: 9999; }
   .animated-background { position: absolute; inset: 0; overflow: hidden; z-index: 0; }
   .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.5; animation: floatOrb 15s infinite alternate ease-in-out; }
   .orb-1 { width: 60vw; height: 60vw; background: #4f46e5; top: -20%; left: -10%; }
@@ -119,9 +129,12 @@
   .input-group { position: relative; margin-bottom: 16px; }
   .input-group .icon { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 1.2rem; z-index: 2; }
   .input-group input { width: 100%; padding: 16px 16px 16px 50px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 14px; color: white; outline: none; box-sizing: border-box; }
-  .submit-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%); border: none; border-radius: 14px; color: white; font-weight: 800; cursor: pointer; position: relative; overflow: hidden; }
+  .submit-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%); border: none; border-radius: 14px; color: white; font-weight: 800; cursor: pointer; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+  .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
   .submit-btn.register { background: linear-gradient(135deg, #818cf8 0%, #4338ca 100%); }
   .btn-glow { position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: glow 3s infinite; }
+  .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
   @keyframes glow { 0% { left: -100%; } 20% { left: 100%; } 100% { left: 100%; } }
   .slide-fade-enter-active, .slide-fade-leave-active { transition: all 0.3s ease; }
   .slide-fade-enter-from, .slide-fade-leave-to { opacity: 0; transform: translateX(20px); }
