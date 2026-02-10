@@ -17,20 +17,21 @@
           </div>
           <div v-if="showSelector" class="currency-dropdown">
             <div class="c-item" @click="changeCurrency('TRY', 0, 'TRY')">TRY</div>
-            <div class="c-item" @click="changeCurrency('GOLD', 24, 'GOLD')">GOLD</div>
+
             <div class="c-item" @click="changeCurrency('USD', 0, 'USD')">USD</div>
+            <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">EUR</div>
             <div class="c-item" @click="changeCurrency('BTC', 0, 'BTC')">BTC</div>
             <div class="c-item" @click="changeCurrency('SILVER', 0, 'SILVER')">SILVER</div>
-            <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">EUR</div>
+
             <div class="c-item has-submenu">
-              {{ t('addAsset') }} (GOLD) ▶
+              GOLD ▶
               <div class="submenu compact-gold-menu">
-                <div @click="changeCurrency('GOLD', 24, '24K')">24K</div>
-                <div @click="changeCurrency('GOLD', 22, '22K')">22K</div>
-                <div @click="changeCurrency('GOLD', 18, '18K')">18K</div>
-                <div @click="changeCurrency('GOLD', 14, '14K')">14K</div>
-                <div @click="changeCurrency('GOLD', 8, '8K')">8K</div>
-                <div @click="changeCurrency('GOLD', 4, '4K')">4K</div>
+                <div @click="changeCurrency('GOLD', 24, 'GOLD 24K')">24K</div>
+                <div @click="changeCurrency('GOLD', 22, 'GOLD 22K')">22K</div>
+                <div @click="changeCurrency('GOLD', 18, 'GOLD 18K')">18K</div>
+                <div @click="changeCurrency('GOLD', 14, 'GOLD 14K')">14K</div>
+                <div @click="changeCurrency('GOLD', 8, 'GOLD 8K')">8K</div>
+                <div @click="changeCurrency('GOLD', 4, 'GOLD 4K')">4K</div>
               </div>
             </div>
           </div>
@@ -144,11 +145,11 @@
 
   const cardConfigs = [
     { type: 'TRY', label: 'TRY', icon: '₺', unit: '₺' },
-    { type: 'GOLD', label: 'GOLD', icon: '👑', unit: 'Gr' },
     { type: 'USD', label: 'USD', icon: '$', unit: '$' },
+    { type: 'EUR', label: 'EUR', icon: '€', unit: '€' },
     { type: 'BTC', label: 'BTC', icon: '₿', unit: 'BTC' },
     { type: 'SILVER', label: 'SILVER', icon: '⚔️', unit: 'Gr' },
-    { type: 'EUR', label: 'EUR', icon: '€', unit: '€' }
+    { type: 'GOLD', label: 'GOLD', icon: '👑', unit: 'Gr' }
   ];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
@@ -168,8 +169,8 @@
   });
 
   const chartData = computed(() => {
-    const labels = ['TRY', 'GOLD', 'USD', 'BTC', 'SILVER', 'EUR'];
-    const colors = ['#EF4444', '#FFD700', '#10B981', '#1a1a1a', '#A0A0A0', '#8B4513'];
+    const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
+    const colors = ['#EF4444', '#10B981', '#8B4513', '#1a1a1a', '#A0A0A0', '#FFD700'];
     const data = labels.map(label => {
       const assets = summaryData.value?.assets || [];
       return assets.filter(a => a.type === label).reduce((sum, curr) => sum + (curr.allocation || 0), 0);

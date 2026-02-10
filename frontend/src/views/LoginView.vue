@@ -32,7 +32,6 @@
             <button class="submit-btn" :disabled="isLoading" @click="handleLogin">
               <span v-if="!isLoading">GİRİŞ YAP</span>
               <div v-else class="spinner"></div>
-              <div v-if="!isLoading" class="btn-glow"></div>
             </button>
           </div>
 
@@ -52,7 +51,6 @@
             <button class="submit-btn register" :disabled="isLoading" @click="handleRegister">
               <span v-if="!isLoading">HESAP OLUŞTUR</span>
               <div v-else class="spinner"></div>
-              <div v-if="!isLoading" class="btn-glow"></div>
             </button>
           </div>
         </transition>
@@ -84,6 +82,7 @@
       if (!user) user = loginData.email.split('@')[0];
       localStorage.setItem('username', user);
 
+      window.dispatchEvent(new Event('storage'));
       router.push('/dashboard');
     } catch (e) {
       alert('Hata: ' + (e.response?.data?.error || 'Giriş başarısız.'));
@@ -130,10 +129,8 @@
   .submit-btn { width: 100%; padding: 16px; background: linear-gradient(135deg, #2dd4bf 0%, #0f766e 100%); border: none; border-radius: 14px; color: white; font-weight: 800; cursor: pointer; position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; }
   .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
   .submit-btn.register { background: linear-gradient(135deg, #818cf8 0%, #4338ca 100%); }
-  .btn-glow { position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); animation: glow 3s infinite; }
   .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes glow { 0% { left: -100%; } 20% { left: 100%; } 100% { left: 100%; } }
   .slide-fade-enter-active, .slide-fade-leave-active { transition: all 0.3s ease; }
   .slide-fade-enter-from, .slide-fade-leave-to { opacity: 0; transform: translateX(20px); }
 </style>
