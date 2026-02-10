@@ -1,25 +1,25 @@
 <template>
     <div class="settings-content">
         <div class="settings-header">
-            <h2>Ayarlar</h2>
+            <h2>{{ t('settings') }}</h2>
         </div>
 
         <div class="settings-grid">
             <div class="section-card">
-                <h3>Görünüm & Dil</h3>
+                <h3>{{ t('appearance') }}</h3>
 
                 <div class="setting-row" @click="toggleTheme">
                     <div class="label">
                         <span class="icon">🌓</span>
-                        <span>Tema</span>
+                        <span>{{ t('theme') }}</span>
                     </div>
-                    <div class="value">{{ theme === 'dark' ? 'Karanlık' : 'Aydınlık' }}</div>
+                    <div class="value">{{ theme === 'dark' ? t('darkMode') : t('lightMode') }}</div>
                 </div>
 
                 <div class="setting-row">
                     <div class="label">
                         <span class="icon">🌍</span>
-                        <span>Dil</span>
+                        <span>{{ t('language') }}</span>
                     </div>
                     <select v-model="selectedLang" @change="changeLang" class="lang-select">
                         <option value="tr">Türkçe</option>
@@ -31,7 +31,7 @@
             </div>
 
             <div class="section-card">
-                <h3>Profil Bilgileri</h3>
+                <h3>{{ t('profileSettings') }}</h3>
                 <div class="input-group">
                     <label>Ad Soyad</label>
                     <input v-model="fullName" type="text" />
@@ -44,13 +44,13 @@
                     <label>Yeni Şifre</label>
                     <input v-model="password" type="password" placeholder="Değiştirmek istemiyorsanız boş bırakın" />
                 </div>
-                <button class="save-btn" @click="updateProfile">Bilgileri Güncelle</button>
+                <button class="save-btn" @click="updateProfile">{{ t('update') }}</button>
             </div>
 
             <div class="section-card danger">
-                <h3>Hesap İşlemleri</h3>
+                <h3>{{ t('dangerZone') }}</h3>
                 <p>Hesabınızı silerseniz tüm verileriniz kalıcı olarak kaybolur.</p>
-                <button class="delete-btn" @click="deleteAccount">Hesabımı Sil</button>
+                <button class="delete-btn" @click="deleteAccount">{{ t('deleteAccount') }}</button>
             </div>
         </div>
     </div>
@@ -60,7 +60,7 @@
     import { ref, inject, onMounted } from 'vue';
     import { useRouter } from 'vue-router';
     import api from '../services/api';
-    import { currentLang } from '../utils/translations';
+    import { t, currentLang } from '../utils/translations';
 
     const router = useRouter();
     const { theme, toggleTheme } = inject('theme');

@@ -2,7 +2,7 @@
   <div :class="theme" class="app-container">
     <aside v-if="!isLoginPage" class="sidebar">
       <div class="brand-container">
-        <div class="brand">FinTrack Pro</div>
+        <div class="brand">FinTrack Pro 🚀</div>
         <div class="user-badge">{{ currentUser }}</div>
       </div>
 
@@ -10,9 +10,11 @@
         <div class="menu-item" :class="{ active: currentRoute === '/dashboard' }" @click="router.push('/dashboard')">
           <span>📊</span> {{ t('home') }}
         </div>
+
         <div class="menu-item" :class="{ active: currentRoute === '/calendar' }" @click="router.push('/calendar')">
           <span>📅</span> {{ t('calendar') }}
         </div>
+
         <div class="menu-item" :class="{ active: currentRoute === '/settings' }" @click="router.push('/settings')">
           <span>⚙️</span> {{ t('settings') }}
         </div>
@@ -60,7 +62,6 @@
     if (savedTheme) theme.value = savedTheme;
     document.documentElement.setAttribute('data-theme', theme.value);
 
-    // Login olunca ismi güncellemek için dinleyici
     window.addEventListener('storage', () => {
       currentUser.value = localStorage.getItem('username');
     });
@@ -99,9 +100,8 @@
   body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); }
 
   .app-container { display: flex; min-height: 100vh; }
-  .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 25px; border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 10; transition: 0.3s; box-sizing: border-box; }
-  .main-content { flex: 1; width: 100%; transition: 0.3s; }
-  .content-shifted { margin-left: 260px; }
+  .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 25px; border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 100; transition: 0.3s; box-sizing: border-box; }
+  .main-content { flex: 1; width: 100%; transition: 0.3s; padding-left: 260px; }
 
   .brand-container { margin-bottom: 40px; text-align: center; }
   .brand { color: var(--accent-color); font-size: 1.6rem; font-weight: 800; letter-spacing: 1px; }
@@ -111,6 +111,11 @@
   .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); transform: translateX(5px); }
 
   .logout-wrapper { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-  .logout { border: 2px solid var(--danger-color); border-radius: 12px; color: var(--danger-color); justify-content: center; font-weight: bold; padding: 12px; }
+  .logout { border: 2px solid var(--danger-color); border-radius: 12px; color: var(--danger-color); justify-content: center; font-weight: bold; padding: 12px; transition: 0.2s; }
   .logout:hover { background: var(--danger-color); color: white; transform: none; }
+
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); }
+    .main-content { padding-left: 0; }
+  }
 </style>

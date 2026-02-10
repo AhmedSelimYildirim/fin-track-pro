@@ -57,13 +57,13 @@
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal-content">
         <div class="modal-header">
-          <h3>Not Ekle - {{ formatDate(selectedDate) }}</h3>
+          <h3>{{ t('addAsset') }} - {{ formatDate(selectedDate) }}</h3>
           <button @click="showModal = false">✕</button>
         </div>
         <div class="modal-body">
-          <input v-model="newEventText" type="text" placeholder="Notunuzu buraya yazın..." class="big-input" />
+          <input v-model="newEventText" type="text" :placeholder="t('calendar') + '...'" class="big-input" />
           <div class="actions">
-            <button class="add" @click="addEvent">KAYDET</button>
+            <button class="add" @click="addEvent">{{ t('save') }}</button>
           </div>
         </div>
       </div>
@@ -232,7 +232,7 @@
   };
 
   const deleteEvent = async (id) => {
-    if(confirm("Not silinsin mi?")) {
+    if(confirm("Bu not silinsin mi?")) {
       try {
         await api.delete(`/calendar/${id}`);
         await fetchEvents();
@@ -247,7 +247,7 @@
 </script>
 
 <style scoped>
-  .calendar-page { padding: 30px; display: flex; justify-content: center; }
+  .calendar-page { padding: 30px; display: flex; justify-content: center; width: 100%; box-sizing: border-box; }
   .calendar-container { width: 100%; max-width: 1200px; background: var(--card-bg); border-radius: 20px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); border: 1px solid var(--border-color); }
 
   .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: relative; }
@@ -290,7 +290,20 @@
   .today { border: 2px solid var(--accent-color); background: rgba(255, 215, 0, 0.05); }
   .today .day-number { color: var(--accent-color); }
 
-  .events-stack { display: flex; flex-direction: column; gap: 3px; overflow-y: auto; flex: 1; }
+  /* --- İŞTE DÜZELTİLEN KISIM: TAŞMAYI ÖNLEYEN STİL --- */
+  .events-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    overflow-y: auto; /* Çok not varsa kaydır */
+    flex: 1;
+    max-height: 85px; /* Hücrenin dışına taşmasını engeller */
+  }
+
+  /* Scrollbar'ı ince yap */
+  .events-stack::-webkit-scrollbar { width: 4px; }
+  .events-stack::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 4px; }
+
   .event-pill {
     background: var(--accent-color);
     color: #000;
@@ -299,6 +312,7 @@
     border-radius: 4px;
     font-weight: bold;
 
+    /* Taşmayı engelle ve ... koy */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -309,6 +323,7 @@
   }
   .event-pill:hover { opacity: 0.8; text-decoration: line-through; cursor: pointer; }
 
+  /* Modal Stilleri */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px); }
   .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 350px; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
   .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
