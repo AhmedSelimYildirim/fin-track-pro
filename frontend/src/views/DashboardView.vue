@@ -1,53 +1,35 @@
 <template>
   <div class="dashboard-wrapper">
-    <div class="animated-background">
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-      <div class="orb orb-3"></div>
-    </div>
+    <header class="top-bar">
+      <h2>{{ t('portfolioSummary') }}</h2>
 
-    <div class="dashboard-content">
-      <header class="top-bar">
-        <h2>{{ t('portfolioSummary') }}</h2>
+      <div class="currency-bar">
+        <div
+                v-for="item in currencyItems"
+                :key="item.code"
+                class="currency-pill"
+                :class="{ active: baseCurrency === item.code }"
+                @click="selectCurrency(item)"
+        >
+          {{ item.label }}
 
-        <div class="currency-bar">
-          <div
-                  v-for="item in currencyItems"
-                  :key="item.code"
-                  class="currency-pill"
-                  :class="{ active: baseCurrency === item.code }"
-                  @click="selectCurrency(item)"
-          >
-            {{ item.label }}
-
-            <div v-if="item.code === 'GOLD'" class="gold-ayars">
-              <span
-                      v-for="k in [24,22,18,14,8,4]"
-                      :key="k"
-                      :class="{ active: targetAyar === k }"
-                      @click.stop="selectGold(k)"
-              >
-                {{ k }}K
-              </span>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div class="chart-section">
-        <div class="chart-wrapper">
-          <template v-if="hasData">
-            <Doughnut :data="chartData" :options="chartOptions" />
-            <div class="center-balance">
-              <h3>{{ totalValue }}</h3>
-              <small>{{ baseCurrency }}</small>
-            </div>
-          </template>
-          <div v-else class="no-data-circle">
-            {{ t('noData') }}
+          <div v-if="item.code === 'GOLD'" class="gold-ayars">
+            <span
+                    v-for="k in [24,22,18,14,8,4]"
+                    :key="k"
+                    :class="{ active: targetAyar === k }"
+                    @click.stop="selectGold(k)"
+            >
+              {{ k }}K
+            </span>
           </div>
         </div>
       </div>
+    </header>
+
+    <div class="chart-section">
+      <Doughnut v-if="hasData" :data="chartData" :options="chartOptions" />
+      <div v-else class="no-data-circle">{{ t('noData') }}</div>
     </div>
   </div>
 </template>
@@ -98,10 +80,6 @@
 
   const hasData = computed(() => summaryData.value?.total_value > 0)
 
-  const totalValue = computed(() =>
-          summaryData.value?.total_value?.toLocaleString() || '0'
-  )
-
   const chartData = computed(() => ({
     labels: ['TRY','USD','EUR','BTC','SILVER','GOLD'],
     datasets: [{
@@ -110,13 +88,20 @@
                       ?.filter(a => a.type === t)
                       .reduce((s,c)=>s+c.allocation,0) || 0
       ),
-      backgroundColor: ['#ef4444','#10b981','#8b5cf6','#111','#9ca3af','#facc15'],
+      backgroundColor: [
+        '#ef4444',
+        '#10b981',
+        '#8b5cf6',
+        '#111111',
+        '#9ca3af',
+        '#facc15'
+      ],
       borderWidth: 0
     }]
   }))
 
   const chartOptions = {
-    cutout: '75%',
+    cutout: '70%',
     plugins: { legend: { display: false } }
   }
 
@@ -124,10 +109,55 @@
 </script>
 
 <style scoped>
-  .currency-bar { display:flex; gap:12px; flex-wrap:wrap }
-  .currency-pill { padding:10px 18px; border-radius:999px; background:rgba(30,41,59,.6); border:1px solid rgba(255,255,255,.1); cursor:pointer; font-weight:700; color:#cbd5e1; display:flex; align-items:center; gap:10px; transition:.25s }
-  .currency-pill.active { background:linear-gradient(135deg,#22d3ee,#3b82f6); color:#020617; box-shadow:0 0 25px rgba(56,189,248,.6) }
-  .gold-ayars { display:flex; gap:6px }
-  .gold-ayars span { padding:4px 8px; border-radius:6px; background:rgba(0,0,0,.3); font-size:.75rem; cursor:pointer }
-  .gold-ayars span.active { background:#facc15; color:#000; font-weight:900 }
+  .currency-bar {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .currency-pill {
+    padding: 10px 18px;
+    border-radius: 999px;
+    background: #1e293b;
+    cursor: pointer;
+    font-weight: 700;
+    color: #cbd5e1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .currency-pill.active {
+    background: #22c55e;
+    color: #020617;
+  }
+
+  .gold-ayars {
+    display: flex;
+    gap: 6px;
+  }
+
+  .gold-ayars span {
+    padding: 4px 8px;
+    border-radius: 6px;
+    background: #020617;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .gold-ayars span.active {
+    background: #facc15;
+    color: #000;
+    font-weight: 800;
+  }
+
+  .chart-section {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+  }
+
+  .no-data-circle {
+    color: #94a3b8;
+  }
 </style>
