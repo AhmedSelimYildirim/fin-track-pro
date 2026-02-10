@@ -21,6 +21,8 @@
               <div @click="changeCurrency('GOLD', 22, '22 Ayar')">22 Ayar</div>
               <div @click="changeCurrency('GOLD', 18, '18 Ayar')">18 Ayar</div>
               <div @click="changeCurrency('GOLD', 14, '14 Ayar')">14 Ayar</div>
+              <div @click="changeCurrency('GOLD', 8, '8 Ayar')">8 Ayar</div>
+              <div @click="changeCurrency('GOLD', 4, '4 Ayar')">4 Ayar</div>
             </div>
           </div>
         </div>
@@ -75,6 +77,8 @@
                 <option :value="22">22 Ayar</option>
                 <option :value="18">18 Ayar</option>
                 <option :value="14">14 Ayar</option>
+                <option :value="8">8 Ayar</option>
+                <option :value="4">4 Ayar</option>
               </select>
             </div>
             <input v-model="transactionDate" type="date" class="date-input" />

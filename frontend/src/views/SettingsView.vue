@@ -42,8 +42,8 @@
             <div class="section-card">
                 <h3>{{ t('profileSettings') }}</h3>
                 <div class="input-group">
-                    <label>Ad Soyad</label>
-                    <input v-model="fullName" type="text" />
+                    <label>Kullanıcı Adı</label>
+                    <input v-model="username" type="text" />
                 </div>
                 <div class="input-group">
                     <label>E-Posta</label>
@@ -73,7 +73,7 @@
 
     const router = useRouter();
     const { theme, toggleTheme } = inject('theme');
-    const fullName = ref('');
+    const username = ref('');
     const email = ref('');
     const password = ref('');
     const selectedLang = ref(currentLang.value);
@@ -86,7 +86,7 @@
     ];
 
     onMounted(() => {
-        fullName.value = localStorage.getItem('username') || '';
+        username.value = localStorage.getItem('username') || '';
     });
 
     const changeLang = (code) => {
@@ -98,10 +98,11 @@
 
     const updateProfile = async () => {
         try {
-            const payload = { full_name: fullName.value, email: email.value };
+            const payload = { username: username.value, email: email.value };
             if (password.value) payload.password = password.value;
+
             await api.put('/user/update', payload);
-            localStorage.setItem('username', fullName.value);
+            localStorage.setItem('username', username.value);
             password.value = '';
         } catch (e) {
             alert('Hata: ' + (e.response?.data?.error || e.message));

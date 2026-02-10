@@ -282,35 +282,120 @@ func (s *AssetService) GenerateExcelReport(userID uint) ([]byte, error) {
 		return nil, err
 	}
 	f := excelize.NewFile()
-	sheet := "Islemler"
-	index, _ := f.NewSheet(sheet)
+	sheetName := "Portföy Raporu"
+	index, _ := f.NewSheet(sheetName)
 	f.SetActiveSheet(index)
-	headers := []string{"ID", "Tarih", "Islem Tipi", "Varlik", "Ayar (Varsa)", "Miktar", "Islem Fiyati (TRY)", "Toplam Tutar (TRY)"}
-	for i, h := range headers {
-		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
-		f.SetCellValue(sheet, cell, h)
+	f.DeleteSheet("Sheet1")
+
+	styleTitle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 16, Color: "FFFFFF"},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#1F4E78"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center"},
+	})
+
+	styleHeader, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Color: "FFFFFF"},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#2E75B6"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center"},
+		Border:    []excelize.Border{{Type: "left", Color: "FFFFFF", Style: 1}, {Type: "right", Color: "FFFFFF", Style: 1}},
+	})
+
+	styleData, _ := f.NewStyle(&excelize.Style{
+		Alignment: &excelize.Alignment{Horizontal: "center"},
+		Border:    []excelize.Border{{Type: "left", Color: "000000", Style: 1}, {Type: "right", Color: "000000", Style: 1}, {Type: "bottom", Color: "000000", Style: 1}},
+	})
+
+	f.MergeCell(sheetName, "A1", "D1")
+	f.SetCellValue(sheetName, "A1", "VARLIK ÖZETİ")
+	f.SetCellStyle(sheetName, "A1", "D1", styleTitle)
+
+	summaryHeaders := []string{"Varlık Tipi", "Toplam Miktar", "Ortalama Maliyet (Tahmini)", "Son İşlem Tarihi"}
+	for i, h := range summaryHeaders {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 2)
+		f.SetCellValue(sheetName, cell, h)
 	}
-	style, _ := f.NewStyle(&excelize.Style{Font: &excelize.Font{Bold: true}})
-	f.SetCellStyle(sheet, "A1", "H1", style)
-	for i, tx := range txs {
-		row := i + 2
-		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), tx.ID)
-		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), tx.TransactionDate.Format("02.01.2006 15:04"))
+	f.SetCellStyle(sheetName, "A2", "D2", styleHeader)
+
+	assetsMap := make(map[string]float64)
+	lastDateMap := make(map[string]time.Time)
+
+	for _, tx := range txs {
+		key := tx.AssetType
+		if tx.AssetType == "GOLD" && tx.Ayar > 0 {
+			key = fmt.Sprintf("GOLD (%dK)", tx.Ayar)
+		}
+
+		if tx.Type == "add" {
+			assetsMap[key] += tx.Amount
+		} else {
+			assetsMap[key] -= tx.Amount
+		}
+
+		if tx.TransactionDate.After(lastDateMap[key]) {
+			lastDateMap[key] = tx.TransactionDate
+		}
+	}
+
+	row := 3
+	for k, v := range assetsMap {
+		if v <= 0 {
+			continue
+		}
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), k)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), v)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), "-")
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), lastDateMap[k].Format("02.01.2006"))
+		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", row), fmt.Sprintf("D%d", row), styleData)
+		row++
+	}
+
+	startRow := row + 3
+	f.MergeCell(sheetName, fmt.Sprintf("A%d", startRow), fmt.Sprintf("H%d", startRow))
+	f.SetCellValue(sheetName, fmt.Sprintf("A%d", startRow), "DETAYLI İŞLEM GEÇMİŞİ")
+	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", startRow), fmt.Sprintf("H%d", startRow), styleTitle)
+
+	txHeaders := []string{"ID", "Tarih", "İşlem Tipi", "Varlık", "Ayar", "Miktar", "Birim Fiyat (TRY)", "Toplam Tutar (TRY)"}
+	headerRow := startRow + 1
+	for i, h := range txHeaders {
+		cell, _ := excelize.CoordinatesToCellName(i+1, headerRow)
+		f.SetCellValue(sheetName, cell, h)
+	}
+	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", headerRow), fmt.Sprintf("H%d", headerRow), styleHeader)
+
+	dataRow := headerRow + 1
+	for _, tx := range txs {
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", dataRow), tx.ID)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", dataRow), tx.TransactionDate.Format("02.01.2006 15:04"))
+
 		typeTr := "Ekleme"
 		if tx.Type == "subtract" {
-			typeTr = "Cikarma"
+			typeTr = "Çıkarma"
 		}
-		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), typeTr)
-		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), tx.AssetType)
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", dataRow), typeTr)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", dataRow), tx.AssetType)
+
 		if tx.Ayar > 0 {
-			f.SetCellValue(sheet, fmt.Sprintf("E%d", row), tx.Ayar)
+			f.SetCellValue(sheetName, fmt.Sprintf("E%d", dataRow), fmt.Sprintf("%d Ayar", tx.Ayar))
 		} else {
-			f.SetCellValue(sheet, fmt.Sprintf("E%d", row), "-")
+			f.SetCellValue(sheetName, fmt.Sprintf("E%d", dataRow), "-")
 		}
-		f.SetCellValue(sheet, fmt.Sprintf("F%d", row), tx.Amount)
-		f.SetCellValue(sheet, fmt.Sprintf("G%d", row), tx.Price)
-		f.SetCellValue(sheet, fmt.Sprintf("H%d", row), tx.Amount*tx.Price)
+
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", dataRow), tx.Amount)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", dataRow), tx.Price)
+		f.SetCellValue(sheetName, fmt.Sprintf("H%d", dataRow), tx.Amount*tx.Price)
+
+		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", dataRow), fmt.Sprintf("H%d", dataRow), styleData)
+		dataRow++
 	}
+
+	f.SetColWidth(sheetName, "A", "A", 10)
+	f.SetColWidth(sheetName, "B", "B", 20)
+	f.SetColWidth(sheetName, "C", "C", 15)
+	f.SetColWidth(sheetName, "D", "D", 15)
+	f.SetColWidth(sheetName, "E", "E", 15)
+	f.SetColWidth(sheetName, "F", "F", 15)
+	f.SetColWidth(sheetName, "G", "H", 20)
+
 	buf, err := f.WriteToBuffer()
 	if err != nil {
 		return nil, err
