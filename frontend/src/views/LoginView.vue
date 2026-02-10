@@ -79,9 +79,13 @@
     try {
       const res = await api.post('/auth/login', { email: loginData.email, password: loginData.password });
       localStorage.setItem('token', res.data.token);
-      // Backend'den username gelmiyorsa emailin başını al
-      const user = res.data.username || loginData.email.split('@')[0];
+
+      let user = res.data.username;
+      if (!user) {
+        user = loginData.email.split('@')[0];
+      }
       localStorage.setItem('username', user);
+
       router.push('/dashboard');
     } catch (e) {
       alert('Hata: ' + (e.response?.data?.error || 'Giriş başarısız.'));

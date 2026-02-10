@@ -55,7 +55,7 @@
                 </div>
                 <button class="save-btn" :disabled="isLoading" @click="updateProfile">
                     <span v-if="!isLoading">{{ t('update') }}</span>
-                    <span v-else>...</span>
+                    <span v-else class="spinner"></span>
                 </button>
             </div>
 
@@ -113,6 +113,10 @@
             await api.put('/user/update', payload);
             localStorage.setItem('username', username.value);
             password.value = '';
+
+            // Sidebar'daki ismin güncellenmesi için event tetikle
+            window.dispatchEvent(new Event('storage'));
+
             alert("Profil güncellendi!");
         } catch (e) {
             alert('Hata: ' + (e.response?.data?.error || e.message));
@@ -155,8 +159,11 @@
     .input-group { margin-bottom: 15px; }
     .input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted); }
     .input-group input { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 8px; box-sizing: border-box; }
-    .save-btn { width: 100%; padding: 12px; background: var(--success-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; display: flex; justify-content: center; }
+    .save-btn { width: 100%; padding: 12px; background: var(--success-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; transition: 0.2s; display: flex; justify-content: center; align-items: center; }
     .save-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .save-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+    .spinner { width: 20px; height: 20px; border: 3px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 1s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .danger { border-color: var(--danger-color); }
     .danger h3 { color: var(--danger-color); border-color: rgba(239, 68, 68, 0.2); }
     .danger p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px; }
