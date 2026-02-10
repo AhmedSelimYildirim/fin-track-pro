@@ -16,7 +16,7 @@
           <div class="c-item" @click="changeCurrency('SILVER', 0, 'SILVER')">SILVER</div>
           <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">EUR</div>
           <div class="c-item has-submenu">
-            {{ t('addAsset') }} (Altın) ▶
+            {{ t('addAsset') }} (GOLD) ▶
             <div class="submenu compact-gold-menu">
               <div @click="changeCurrency('GOLD', 24, '24 Ayar')">24K</div>
               <div @click="changeCurrency('GOLD', 22, '22 Ayar')">22K</div>
@@ -131,15 +131,15 @@
   const summaryData = ref(null);
   const allTransactions = ref([]);
   const baseCurrency = ref('TRY');
-  const baseCurrencyLabel = ref('Türk Lirası (TL)');
+  const baseCurrencyLabel = ref('TRY (TL)');
   const targetAyar = ref(0);
 
   const cardConfigs = [
-    { type: 'TRY', label: 'TL Nakit', icon: '₺', unit: '₺' },
-    { type: 'GOLD', label: 'Altın (Gr)', icon: '👑', unit: 'Gr' },
+    { type: 'TRY', label: 'TRY', icon: '₺', unit: '₺' },
+    { type: 'GOLD', label: 'Gold (Gr)', icon: '👑', unit: 'Gr' },
     { type: 'USD', label: 'USD', icon: '$', unit: '$' },
     { type: 'BTC', label: 'Bitcoin', icon: '₿', unit: 'BTC' },
-    { type: 'SILVER', label: 'Gümüş', icon: '⚔️', unit: 'Gr' },
+    { type: 'SILVER', label: 'SILVER', icon: '⚔️', unit: 'Gr' },
     { type: 'EUR', label: 'EURO', icon: '€', unit: '€' }
   ];
 
