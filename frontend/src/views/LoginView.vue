@@ -23,7 +23,7 @@
         <transition name="fade" mode="out-in">
           <div v-if="activeTab==='login'" key="login" class="form-content">
             <div class="input-box">
-              <input v-model="loginData.username" placeholder="Kullanıcı Adı veya E-Posta" />
+              <input v-model="loginData.email" type="email" placeholder="E-Posta Adresi" />
             </div>
             <div class="input-box">
               <input v-model="loginData.password" type="password" placeholder="Şifre" />
@@ -39,7 +39,7 @@
               <input v-model="registerData.username" placeholder="Kullanıcı Adı" />
             </div>
             <div class="input-box">
-              <input v-model="registerData.email" placeholder="E-Posta Adresi" />
+              <input v-model="registerData.email" type="email" placeholder="E-Posta Adresi" />
             </div>
             <div class="input-box">
               <input v-model="registerData.password" type="password" placeholder="Şifre Belirle" />
@@ -65,7 +65,7 @@
   const isLoading = ref(false)
   const notification = ref({ show: false, message: '', type: 'success' })
 
-  const loginData = ref({ username: '', password: '' })
+  const loginData = ref({ email: '', password: '' })
   const registerData = ref({ username: '', email: '', password: '' })
 
   const showNotification = (msg, type = 'success') => {
@@ -76,34 +76,37 @@
   }
 
   const handleLogin = async () => {
-    if (!loginData.value.username || !loginData.value.password) {
-      showNotification('Lütfen tüm alanları doldurun.', 'error')
+    if (!loginData.value.email || !loginData.value.password) {
+      showNotification('Lütfen e-posta ve şifrenizi girin.', 'error')
       return
     }
 
     isLoading.value = true
     try {
-      const res = await api.post('/auth/login', loginData.value)
+      const res = await api.post('/auth/login', {
+        email: loginData.value.email,
+        password: loginData.value.password
+      })
 
       localStorage.setItem('token', res.data.token)
 
-      const userData = res.data.user || {}
+      const userData = res.data.user || {} // Backend'den user objesi gelmeli
 
+      // Backend username dönmezse loginData'da username olmadığı için registerData'dan veya e-postadan üret
       if (userData.username) {
         localStorage.setItem('username', userData.username)
+      } else if (registerData.value.username) {
+        localStorage.setItem('username', registerData.value.username)
       } else {
-        localStorage.setItem('username', loginData.value.username)
+        localStorage.setItem('username', loginData.value.email.split('@')[0])
       }
 
-      if (userData.email) {
-        localStorage.setItem('email', userData.email)
-      } else {
-        localStorage.setItem('email', '')
-      }
+      localStorage.setItem('email', userData.email || loginData.value.email)
 
       router.push('/dashboard')
     } catch (e) {
-      showNotification(e.response?.data?.message || 'Giriş başarısız, bilgileri kontrol edin.', 'error')
+      console.error(e)
+      showNotification(e.response?.data?.message || 'Giriş başarısız. Bilgileri kontrol edin.', 'error')
     } finally {
       isLoading.value = false
     }
@@ -121,18 +124,16 @@
 
       showNotification('Kayıt başarılı! Giriş yapılıyor...', 'success')
 
-      loginData.value.username = registerData.value.username
+      // Kayıttan gelen bilgileri Login formuna aktar
+      loginData.value.email = registerData.value.email
       loginData.value.password = registerData.value.password
 
-      activeTab.value = 'login'
-
-      setTimeout(() => {
-        handleLogin()
-      }, 1500)
+      // Otomatik giriş yap
+      await handleLogin()
 
     } catch (e) {
+      console.error(e)
       showNotification(e.response?.data?.message || 'Kayıt sırasında hata oluştu.', 'error')
-    } finally {
       isLoading.value = false
     }
   }
