@@ -58,7 +58,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Gecersiz veri."})
 	}
 	if err := h.userService.Update(userID, req.Username, req.Email, req.Password); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()}) // Hata mesajını direkt döndürdük
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}
 	return c.JSON(fiber.Map{"message": "Profil guncellendi!"})
 }

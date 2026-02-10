@@ -37,7 +37,9 @@ export const translations = {
         email: 'E-Posta',
         password: 'Yeni Şifre',
         passwordHint: 'Değiştirmek istemiyorsanız boş bırakın',
-        goldGram: 'Altın (Gram)'
+        goldGram: 'GOLD (Gr)',
+        try: 'TRY',
+        silver: 'SILVER'
     },
     en: {
         home: 'Home',
@@ -73,7 +75,9 @@ export const translations = {
         email: 'E-mail',
         password: 'New Password',
         passwordHint: 'Leave blank if you do not want to change',
-        goldGram: 'Gold (Gram)'
+        goldGram: 'GOLD (Gr)',
+        try: 'TRY',
+        silver: 'SILVER'
     },
     de: {
         home: 'Startseite',
@@ -109,7 +113,9 @@ export const translations = {
         email: 'E-Mail',
         password: 'Neues Passwort',
         passwordHint: 'Leer lassen, wenn Sie nicht ändern möchten',
-        goldGram: 'Gold (Gramm)'
+        goldGram: 'GOLD (Gr)',
+        try: 'TRY',
+        silver: 'SILVER'
     },
     fr: {
         home: 'Accueil',
@@ -145,7 +151,9 @@ export const translations = {
         email: 'E-mail',
         password: 'Nouveau Mot de Passe',
         passwordHint: 'Laisser vide si vous ne voulez pas changer',
-        goldGram: 'Or (Gramme)'
+        goldGram: 'GOLD (Gr)',
+        try: 'TRY',
+        silver: 'SILVER'
     },
     ar: {
         home: 'الرئيسية',
@@ -181,7 +189,9 @@ export const translations = {
         email: 'البريد الإلكتروني',
         password: 'كلمة المرور الجديدة',
         passwordHint: 'اتركه فارغاً إذا كنت لا تريد التغيير',
-        goldGram: 'ذهب (جرام)'
+        goldGram: 'ذهب (جرام)',
+        try: 'ليرة تركية',
+        silver: 'فضة'
     }
 };
 
