@@ -73,18 +73,19 @@
 </template>
 
 <script setup>
-    import { ref, inject, onMounted } from 'vue';
-    import { useRouter } from 'vue-router';
-    import api from '../services/api';
-    import { t, currentLang } from '../utils/translations';
+    import { ref, inject, onMounted } from 'vue'
+    import { useRouter } from 'vue-router'
+    import api from '../services/api'
+    import { t, currentLang } from '../utils/translations'
 
-    const router = useRouter();
-    const { theme, toggleTheme } = inject('theme');
-    const username = ref('');
-    const email = ref('');
-    const password = ref('');
-    const selectedLang = ref(currentLang.value);
-    const isLoading = ref(false);
+    const router = useRouter()
+    const { theme, toggleTheme } = inject('theme')
+
+    const username = ref('')
+    const email = ref('')
+    const password = ref('')
+    const selectedLang = ref(currentLang.value)
+    const isLoading = ref(false)
 
     const languages = [
         { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
@@ -92,46 +93,58 @@
         { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
         { code: 'fr', name: 'Français', flag: '🇫🇷' },
         { code: 'ar', name: 'العربية', flag: '🇸🇦' }
-    ];
+    ]
 
     onMounted(() => {
-        username.value = localStorage.getItem('username') || '';
-    });
+        username.value = localStorage.getItem('username') || ''
+        email.value = localStorage.getItem('email') || ''
+    })
 
     const changeLang = (code) => {
-        selectedLang.value = code;
-        currentLang.value = code;
-        localStorage.setItem('lang', code);
-        window.location.reload();
-    };
+        selectedLang.value = code
+        currentLang.value = code
+        localStorage.setItem('lang', code)
+        window.location.reload()
+    }
 
     const updateProfile = async () => {
-        isLoading.value = true;
+        isLoading.value = true
         try {
-            const payload = { username: username.value, email: email.value };
-            if (password.value) payload.password = password.value;
-            await api.put('/user/update', payload);
-            localStorage.setItem('username', username.value);
-            password.value = '';
-            window.dispatchEvent(new Event('storage'));
-            alert("Profil güncellendi!");
+            const payload = {
+                username: username.value,
+                email: email.value
+            }
+
+            if (password.value) payload.password = password.value
+
+            await api.put('/user/update', payload)
+
+            localStorage.setItem('username', username.value)
+            localStorage.setItem('email', email.value)
+
+            password.value = ''
+            window.dispatchEvent(new Event('storage'))
+            alert("Profil güncellendi!")
         } catch (e) {
-            alert('Hata: ' + (e.response?.data?.error || e.message));
+            alert('Hata: ' + (e.response?.data?.error || e.message))
         } finally {
-            isLoading.value = false;
+            isLoading.value = false
         }
-    };
+    }
 
     const deleteAccount = async () => {
         if (confirm(t('deleteWarning'))) {
             try {
-                await api.delete('/user/delete');
-                localStorage.clear();
-                router.push('/login');
-            } catch (e) { alert('Silme işlemi başarısız.'); }
+                await api.delete('/user/delete')
+                localStorage.clear()
+                router.push('/login')
+            } catch {
+                alert('Silme işlemi başarısız.')
+            }
         }
-    };
+    }
 </script>
+
 
 <style scoped>
     .settings-wrapper { position: relative; width: 100%; min-height: 100%; overflow-y: auto; }

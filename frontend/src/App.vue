@@ -37,40 +37,53 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, provide } from 'vue';
-  import { useRoute, useRouter } from 'vue-router';
-  import { t } from './utils/translations';
+  import { ref, computed, onMounted, provide } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
+  import { t } from './utils/translations'
 
-  const route = useRoute();
-  const router = useRouter();
-  const theme = ref('dark');
-  const currentUser = ref(localStorage.getItem('username') || 'Kullanıcı');
-  const isMobileMenuOpen = ref(false);
+  const route = useRoute()
+  const router = useRouter()
 
-  const isLoginPage = computed(() => route.name === 'login');
-  const currentRoute = computed(() => route.path);
+  const theme = ref('dark')
+  const currentUser = ref(localStorage.getItem('username') || '')
+  const isMobileMenuOpen = ref(false)
+
+  const isLoginPage = computed(() => route.name === 'login')
+  const currentRoute = computed(() => route.path)
 
   const toggleTheme = () => {
-    theme.value = theme.value === 'dark' ? 'light' : 'dark';
-    localStorage.setItem('theme', theme.value);
-    document.documentElement.setAttribute('data-theme', theme.value);
-  };
+    theme.value = theme.value === 'dark' ? 'light' : 'dark'
+    localStorage.setItem('theme', theme.value)
+    document.documentElement.setAttribute('data-theme', theme.value)
+  }
 
-  const toggleMobileMenu = () => { isMobileMenuOpen.value = !isMobileMenuOpen.value; };
-  const closeMobileMenu = () => { isMobileMenuOpen.value = false; };
+  const toggleMobileMenu = () => { isMobileMenuOpen.value = !isMobileMenuOpen.value }
+  const closeMobileMenu = () => { isMobileMenuOpen.value = false }
 
-  const navigate = (path) => { router.push(path); closeMobileMenu(); };
-  const logout = () => { localStorage.clear(); router.push('/login'); closeMobileMenu(); };
+  const navigate = (path) => {
+    router.push(path)
+    closeMobileMenu()
+  }
+
+  const logout = () => {
+    localStorage.clear()
+    router.push('/login')
+    closeMobileMenu()
+  }
 
   onMounted(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) theme.value = savedTheme;
-    document.documentElement.setAttribute('data-theme', theme.value);
-    window.addEventListener('storage', () => { currentUser.value = localStorage.getItem('username'); });
-  });
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme) theme.value = savedTheme
+    document.documentElement.setAttribute('data-theme', theme.value)
 
-  provide('theme', { theme, toggleTheme });
+    window.addEventListener('storage', () => {
+      currentUser.value = localStorage.getItem('username') || ''
+    })
+  })
+
+  provide('theme', { theme, toggleTheme })
 </script>
+
 
 <style>
   :root { --bg-color: #0F172A; --card-bg: #1E293B; --text-color: #FFFFFF; --text-muted: #94A3B8; --border-color: rgba(255, 255, 255, 0.1); --input-bg: #0F172A; --sidebar-bg: #1E293B; --hover-bg: #334155; --accent-color: #FFD700; --danger-color: #EF4444; --success-color: #10B981; }

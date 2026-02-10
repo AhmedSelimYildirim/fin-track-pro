@@ -60,52 +60,62 @@
 </template>
 
 <script setup>
-  import { ref, reactive } from 'vue';
-  import { useRouter } from 'vue-router';
-  import api from '../services/api';
+  import { ref, reactive } from 'vue'
+  import { useRouter } from 'vue-router'
+  import api from '../services/api'
 
-  const router = useRouter();
-  const activeTab = ref('login');
-  const isLoading = ref(false);
+  const router = useRouter()
+  const activeTab = ref('login')
+  const isLoading = ref(false)
 
-  const loginData = reactive({ email: '', password: '' });
-  const registerData = reactive({ username: '', email: '', password: '' });
+  const loginData = reactive({ email: '', password: '' })
+  const registerData = reactive({ username: '', email: '', password: '' })
 
   const handleLogin = async () => {
-    if (!loginData.email || !loginData.password) return alert("Bilgileri giriniz.");
-    isLoading.value = true;
+    if (!loginData.email || !loginData.password) return alert("Bilgileri giriniz.")
+    isLoading.value = true
     try {
-      const res = await api.post('/auth/login', { email: loginData.email, password: loginData.password });
-      localStorage.setItem('token', res.data.token);
+      const res = await api.post('/auth/login', {
+        email: loginData.email,
+        password: loginData.password
+      })
 
-      let user = res.data.username;
-      if (!user) user = loginData.email.split('@')[0];
-      localStorage.setItem('username', user);
+      localStorage.setItem('token', res.data.token)
+      localStorage.setItem('username', res.data.username)
+      localStorage.setItem('email', res.data.email)
 
-      window.dispatchEvent(new Event('storage'));
-      router.push('/dashboard');
+      window.dispatchEvent(new Event('storage'))
+      router.push('/dashboard')
     } catch (e) {
-      alert('Hata: ' + (e.response?.data?.error || 'Giriş başarısız.'));
+      alert('Hata: ' + (e.response?.data?.error || 'Giriş başarısız.'))
     } finally {
-      isLoading.value = false;
+      isLoading.value = false
     }
-  };
+  }
 
   const handleRegister = async () => {
-    if (!registerData.username || !registerData.email || !registerData.password) return alert("Bilgileri giriniz.");
-    isLoading.value = true;
+    if (!registerData.username || !registerData.email || !registerData.password)
+      return alert("Bilgileri giriniz.")
+    isLoading.value = true
     try {
-      await api.post('/auth/register', { username: registerData.username, email: registerData.email, password: registerData.password });
-      activeTab.value = 'login';
-      registerData.username = ''; registerData.email = ''; registerData.password = '';
-      alert("Kayıt başarılı! Giriş yapabilirsiniz.");
+      await api.post('/auth/register', {
+        username: registerData.username,
+        email: registerData.email,
+        password: registerData.password
+      })
+      activeTab.value = 'login'
+      registerData.username = ''
+      registerData.email = ''
+      registerData.password = ''
+      alert("Kayıt başarılı! Giriş yapabilirsiniz.")
     } catch (e) {
-      alert('Hata: ' + (e.response?.data?.error || 'Kayıt başarısız.'));
+      alert('Hata: ' + (e.response?.data?.error || 'Kayıt başarısız.'))
     } finally {
-      isLoading.value = false;
+      isLoading.value = false
     }
-  };
+  }
 </script>
+
 
 <style scoped>
   .login-wrapper-fixed { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; background: #00040f; z-index: 9999; }
