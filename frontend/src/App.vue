@@ -14,7 +14,7 @@
           <span class="nav-icon">📊</span> {{ t('home') }}
         </div>
         <div class="menu-item" :class="{ active: currentRoute.includes('/calendar') }" @click="navigate('/calendar')">
-          <img src="./assets/image_2b3783.png" class="custom-nav-icon" alt="calendar" />
+          <img :src="calendarIcon" class="custom-nav-icon" alt="calendar" />
           {{ t('calendar') }}
         </div>
         <div class="menu-item" :class="{ active: currentRoute.includes('/settings') }" @click="navigate('/settings')">
@@ -24,7 +24,7 @@
 
       <div class="logout-wrapper">
         <div class="menu-item logout" @click="logout">
-          <img src="./assets/image_2b3459.png" class="custom-nav-icon" alt="logout" />
+          <img :src="logoutIcon" class="custom-nav-icon" alt="logout" />
           {{ t('logout') }}
         </div>
       </div>
@@ -40,6 +40,8 @@
   import { ref, computed, onMounted, provide } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { t } from './utils/translations'
+  import calendarIcon from '@/assets/calendar-icon.png'
+  import logoutIcon from '@/assets/logout-icon.png'
 
   const route = useRoute()
   const router = useRouter()
@@ -83,7 +85,6 @@
 
   provide('theme', { theme, toggleTheme })
 </script>
-
 
 <style>
   :root { --bg-color: #0F172A; --card-bg: #1E293B; --text-color: #FFFFFF; --text-muted: #94A3B8; --border-color: rgba(255, 255, 255, 0.1); --input-bg: #0F172A; --sidebar-bg: #1E293B; --hover-bg: #334155; --accent-color: #FFD700; --danger-color: #EF4444; --success-color: #10B981; }
