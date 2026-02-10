@@ -190,8 +190,8 @@ export const translations = {
         password: 'كلمة المرور الجديدة',
         passwordHint: 'اتركه فارغاً إذا كنت لا تريد التغيير',
         goldGram: 'ذهب (جرام)',
-        try: 'ليرة تركية',
-        silver: 'فضة'
+        try: 'TRY',
+        silver: 'SILVER'
     }
 };
 
