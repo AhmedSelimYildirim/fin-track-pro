@@ -83,7 +83,7 @@
 
     isLoading.value = true
     try {
-      const res = await api.post('/api/v1/auth/login', loginData.value)
+      const res = await api.post('/auth/login', loginData.value)
 
       localStorage.setItem('token', res.data.token)
 
@@ -117,7 +117,7 @@
 
     isLoading.value = true
     try {
-      await api.post('/api/v1/auth/register', registerData.value)
+      await api.post('/auth/register', registerData.value)
 
       showNotification('Kayıt başarılı! Giriş yapılıyor...', 'success')
 
@@ -125,6 +125,10 @@
       loginData.value.password = registerData.value.password
 
       activeTab.value = 'login'
+
+      setTimeout(() => {
+        handleLogin()
+      }, 1500)
 
     } catch (e) {
       showNotification(e.response?.data?.message || 'Kayıt sırasında hata oluştu.', 'error')
