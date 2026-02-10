@@ -1,123 +1,104 @@
 <template>
-  <div class="dashboard-page">
-    <aside class="sidebar">
-      <div class="brand-container">
-        <div class="brand">FinTrack Pro</div>
-        <div class="user-badge">{{ currentUser }}</div>
+  <div class="dashboard-content">
+    <header class="top-bar">
+      <div class="page-title">
+        <h2>{{ t('portfolioSummary') }}</h2>
+        <span class="subtitle">{{ t('welcome') }}, {{ currentUser }}</span>
       </div>
-
-      <nav class="menu">
-        <div class="menu-item active">
-          <span>📊</span> Dashboard
+      <div class="currency-wrapper">
+        <div class="currency-btn" @click.stop="toggleDropdown">
+          {{ displayCurrency }} ▼
         </div>
-        <div class="menu-item" @click="router.push('/calendar')">
-          <span>📅</span> Takvim & Notlar
-        </div>
-        <div class="menu-item" @click="router.push('/settings')">
-          <span>⚙️</span> Ayarlar
-        </div>
-      </nav>
-
-      <div class="logout-wrapper">
-        <div class="menu-item logout" @click="logout">
-          <span>🚪</span> Çıkış Yap
-        </div>
-      </div>
-    </aside>
-
-    <main class="content">
-      <header class="top-bar">
-        <div class="page-title">
-          <h2>Portföy Özeti</h2>
-        </div>
-        <div class="currency-wrapper">
-          <div class="currency-btn" @click.stop="toggleDropdown">
-            {{ displayCurrency }} ▼
-          </div>
-          <div v-if="showSelector" class="currency-dropdown">
-            <div class="c-item" @click="changeCurrency('TRY', 0, 'Türk Lirası (TL)')">Türk Lirası (TL)</div>
-            <div class="c-item" @click="changeCurrency('USD', 0, 'Dolar ($)')">Dolar ($)</div>
-            <div class="c-item" @click="changeCurrency('EUR', 0, 'Euro (€)')">Euro (€)</div>
-            <div class="c-item" @click="changeCurrency('BTC', 0, 'Bitcoin')">Bitcoin</div>
-            <div class="c-item" @click="changeCurrency('SILVER', 0, 'Gümüş (Gram)')">Gümüş (Gram)</div>
-            <div class="c-item has-submenu">
-              Altın (Gram) ▶
-              <div class="submenu">
-                <div @click="changeCurrency('GOLD', 24, 'Altın (24 Ayar)')">24 Ayar (Has)</div>
-                <div @click="changeCurrency('GOLD', 22, 'Altın (22 Ayar)')">22 Ayar</div>
-                <div @click="changeCurrency('GOLD', 18, 'Altın (18 Ayar)')">18 Ayar</div>
-                <div @click="changeCurrency('GOLD', 14, 'Altın (14 Ayar)')">14 Ayar</div>
-                <div @click="changeCurrency('GOLD', 8, 'Altın (8 Ayar)')">8 Ayar</div>
-                <div @click="changeCurrency('GOLD', 4, 'Altın (4 Ayar)')">4 Ayar</div>
-              </div>
+        <div v-if="showSelector" class="currency-dropdown">
+          <div class="c-item" @click="changeCurrency('TRY', 0, 'Türk Lirası (TL)')">Türk Lirası (TL)</div>
+          <div class="c-item" @click="changeCurrency('USD', 0, 'Dolar ($)')">Dolar ($)</div>
+          <div class="c-item" @click="changeCurrency('EUR', 0, 'Euro (€)')">Euro (€)</div>
+          <div class="c-item" @click="changeCurrency('BTC', 0, 'Bitcoin')">Bitcoin</div>
+          <div class="c-item" @click="changeCurrency('SILVER', 0, 'Gümüş (Gram)')">Gümüş (Gram)</div>
+          <div class="c-item has-submenu">
+            Altın (Gram) ▶
+            <div class="submenu">
+              <div @click="changeCurrency('GOLD', 24, '24 Ayar (Has)')">24 Ayar</div>
+              <div @click="changeCurrency('GOLD', 22, '22 Ayar')">22 Ayar</div>
+              <div @click="changeCurrency('GOLD', 18, '18 Ayar')">18 Ayar</div>
+              <div @click="changeCurrency('GOLD', 14, '14 Ayar')">14 Ayar</div>
+              <div @click="changeCurrency('GOLD', 8, '8 Ayar')">8 Ayar</div>
+              <div @click="changeCurrency('GOLD', 4, '4 Ayar')">4 Ayar</div>
             </div>
           </div>
         </div>
-      </header>
+      </div>
+    </header>
 
-      <div class="chart-section">
-        <div class="chart-wrapper">
-          <Doughnut v-if="hasData" :data="chartData" :options="chartOptions" />
-          <div v-else class="no-data-circle"><span>Veri Yok</span></div>
+    <div class="chart-section">
+      <div class="chart-wrapper">
+        <template v-if="hasData">
+          <Doughnut :data="chartData" :options="chartOptions" />
           <div class="center-balance">
             <h3>{{ totalValue }}</h3>
             <small>{{ baseCurrencyLabel }}</small>
           </div>
+        </template>
+        <div v-else class="no-data-circle">
+          <div class="no-data-content">
+            <span>{{ t('noData') }}</span>
+            <small>{{ t('addAsset') }}</small>
+          </div>
         </div>
-        <div class="total-underline"></div>
       </div>
+      <div class="total-underline"></div>
+    </div>
 
-      <div class="assets-grid">
-        <div class="asset-card card-btc" @click="openModal('BTC')">
-          <div class="card-icon">₿</div>
-          <div class="card-info">
-            <span class="card-name">Bitcoin</span>
-            <span class="card-amount">{{ getAmount('BTC') }} BTC</span>
-            <span class="card-val">%{{ getAllocation('BTC') }}</span>
-          </div>
-        </div>
-        <div class="asset-card card-gold" @click="openModal('GOLD')">
-          <div class="card-icon">👑</div>
-          <div class="card-info">
-            <span class="card-name">Altın</span>
-            <span class="card-amount">{{ getAmount('GOLD') }} Gr</span>
-            <span class="card-val">%{{ getAllocation('GOLD') }}</span>
-          </div>
-        </div>
-        <div class="asset-card card-usd" @click="openModal('USD')">
-          <div class="card-icon">$</div>
-          <div class="card-info">
-            <span class="card-name">Dolar</span>
-            <span class="card-amount">{{ getAmount('USD') }} $</span>
-            <span class="card-val">%{{ getAllocation('USD') }}</span>
-          </div>
-        </div>
-        <div class="asset-card card-eur" @click="openModal('EUR')">
-          <div class="card-icon">€</div>
-          <div class="card-info">
-            <span class="card-name">Euro</span>
-            <span class="card-amount">{{ getAmount('EUR') }} €</span>
-            <span class="card-val">%{{ getAllocation('EUR') }}</span>
-          </div>
-        </div>
-        <div class="asset-card card-silver" @click="openModal('SILVER')">
-          <div class="card-icon">⚔️</div>
-          <div class="card-info">
-            <span class="card-name">Gümüş</span>
-            <span class="card-amount">{{ getAmount('SILVER') }} Gr</span>
-            <span class="card-val">%{{ getAllocation('SILVER') }}</span>
-          </div>
-        </div>
-        <div class="asset-card card-try" @click="openModal('TRY')">
-          <div class="card-icon">₺</div>
-          <div class="card-info">
-            <span class="card-name">TL Nakit</span>
-            <span class="card-amount">{{ getAmount('TRY') }} ₺</span>
-            <span class="card-val">%{{ getAllocation('TRY') }}</span>
-          </div>
+    <div class="assets-grid">
+      <div class="asset-card card-btc" @click="openModal('BTC')">
+        <div class="card-icon">₿</div>
+        <div class="card-info">
+          <span class="card-name">Bitcoin</span>
+          <span class="card-amount">{{ getAmount('BTC') }} BTC</span>
+          <span class="card-val">%{{ getAllocation('BTC') }}</span>
         </div>
       </div>
-    </main>
+      <div class="asset-card card-gold" @click="openModal('GOLD')">
+        <div class="card-icon">👑</div>
+        <div class="card-info">
+          <span class="card-name">Gold</span>
+          <span class="card-amount">{{ getAmount('GOLD') }} Gr</span>
+          <span class="card-val">%{{ getAllocation('GOLD') }}</span>
+        </div>
+      </div>
+      <div class="asset-card card-usd" @click="openModal('USD')">
+        <div class="card-icon">$</div>
+        <div class="card-info">
+          <span class="card-name">USD</span>
+          <span class="card-amount">{{ getAmount('USD') }} $</span>
+          <span class="card-val">%{{ getAllocation('USD') }}</span>
+        </div>
+      </div>
+      <div class="asset-card card-eur" @click="openModal('EUR')">
+        <div class="card-icon">€</div>
+        <div class="card-info">
+          <span class="card-name">Euro</span>
+          <span class="card-amount">{{ getAmount('EUR') }} €</span>
+          <span class="card-val">%{{ getAllocation('EUR') }}</span>
+        </div>
+      </div>
+      <div class="asset-card card-silver" @click="openModal('SILVER')">
+        <div class="card-icon">⚔️</div>
+        <div class="card-info">
+          <span class="card-name">Silver</span>
+          <span class="card-amount">{{ getAmount('SILVER') }} Gr</span>
+          <span class="card-val">%{{ getAllocation('SILVER') }}</span>
+        </div>
+      </div>
+      <div class="asset-card card-try" @click="openModal('TRY')">
+        <div class="card-icon">₺</div>
+        <div class="card-info">
+          <span class="card-name">TL Nakit</span>
+          <span class="card-amount">{{ getAmount('TRY') }} ₺</span>
+          <span class="card-val">%{{ getAllocation('TRY') }}</span>
+        </div>
+      </div>
+    </div>
 
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal-content">
@@ -126,9 +107,8 @@
           <button @click="showModal = false">✕</button>
         </div>
         <div class="modal-body">
-          <input v-model="amount" type="number" placeholder="Miktar Giriniz" class="big-input" />
+          <input v-model="amount" type="number" placeholder="Miktar" class="big-input" />
           <div v-if="activeAsset === 'GOLD'" class="ayar-wrapper">
-            <label>Altın Ayarı:</label>
             <select v-model="modalAyar" class="ayar-select">
               <option :value="24">24 Ayar (Has)</option>
               <option :value="22">22 Ayar</option>
@@ -138,10 +118,7 @@
               <option :value="4">4 Ayar</option>
             </select>
           </div>
-          <div class="date-wrapper">
-            <label>İşlem Tarihi:</label>
-            <input v-model="transactionDate" type="date" class="date-input" />
-          </div>
+          <input v-model="transactionDate" type="date" class="date-input" />
           <div class="actions">
             <button class="add" @click="handleTransaction('add')">EKLE (+)</button>
             <button class="sub" @click="handleTransaction('subtract')">ÇIKAR (-)</button>
@@ -149,19 +126,18 @@
         </div>
       </div>
     </div>
-    <button class="receipt-btn" @click="downloadReceipt" title="Genel Rapor Al">📄</button>
+    <button class="receipt-btn" @click="downloadReceipt" title="Rapor Al">📄</button>
   </div>
 </template>
 
 <script setup>
   import { ref, computed, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
   import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
   import { Doughnut } from 'vue-chartjs';
   import api from '../services/api';
+  import { t } from '../utils/translations';
 
   ChartJS.register(ArcElement, Tooltip, Legend);
-  const router = useRouter();
 
   const currentUser = ref(localStorage.getItem('username') || 'Yatırımcı');
   const showSelector = ref(false);
@@ -207,10 +183,7 @@
         headers: { 'X-Currency': baseCurrency.value, 'X-Ayar': targetAyar.value.toString() }
       });
       summaryData.value = res.data;
-    } catch(e) {
-      if(e.response && e.response.status === 401) { router.push('/login'); }
-      console.error(e);
-    }
+    } catch(e) { console.error(e); }
   };
 
   const getAmount = (type) => {
@@ -233,10 +206,11 @@
     showModal.value = true;
   };
 
+  // 404 HATASINI ÇÖZEN KISIM: Adres Backend ile uyumlu
   const handleTransaction = async (action) => {
-    if (!amount.value) return alert("Lütfen miktar giriniz.");
+    if (!amount.value) return alert("Miktar girin");
     try {
-      await api.post('/assets/balance', {
+      await api.post('/assets/update', {
         type: activeAsset.value,
         amount: parseFloat(amount.value),
         action,
@@ -269,29 +243,17 @@
       link.setAttribute('download', 'Genel_Rapor.pdf');
       document.body.appendChild(link);
       link.click();
-    } catch (e) { alert('Rapor alınırken hata oluştu.'); }
+    } catch (e) { alert('Rapor hatası'); }
   };
-
-  const logout = () => { localStorage.clear(); router.push('/login'); };
 
   onMounted(fetchData);
 </script>
 
 <style scoped>
-  .dashboard-page { display: flex; min-height: 100vh; background: var(--bg-color); color: var(--text-color); font-family: 'Segoe UI', sans-serif; }
-  .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 25px; border-right: 1px solid var(--border-color); }
-  .brand-container { margin-bottom: 40px; text-align: center; }
-  .brand { color: var(--accent-color); font-size: 1.6rem; font-weight: 800; letter-spacing: 1px; }
-  .user-badge { margin-top: 5px; color: var(--success-color); font-weight: bold; font-size: 1.1rem; border-top: 1px solid var(--border-color); padding-top: 5px; }
-  .menu-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; color: var(--text-muted); display: flex; gap: 12px; align-items: center; transition: all 0.3s; font-weight: 500; }
-  .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); transform: translateX(5px); }
-  .logout-wrapper { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-  /* KIRMIZI ÇERÇEVELİ LOGOUT BUTONU */
-  .logout { border: 2px solid var(--danger-color); border-radius: 12px; color: var(--danger-color); justify-content: center; font-weight: bold; padding: 12px; }
-  .logout:hover { background: var(--danger-color); color: white; transform: none; }
-  .content { flex: 1; padding: 40px; }
+  .dashboard-content { padding: 40px; }
   .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .page-title h2 { color: var(--text-color); margin: 0; }
+  .subtitle { color: var(--text-muted); font-size: 0.9rem; }
   .currency-wrapper { position: relative; z-index: 100; }
   .currency-btn { background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; color: var(--accent-color); min-width: 150px; text-align: center; transition: 0.3s; }
   .currency-btn:hover { border-color: var(--accent-color); }
@@ -308,11 +270,11 @@
   .center-balance h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-color); }
   .center-balance small { color: var(--text-muted); }
   .total-underline { width: 150px; height: 4px; background: linear-gradient(90deg, transparent, var(--accent-color), transparent); margin-top: 20px; border-radius: 2px; }
-  .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 10px solid var(--hover-bg); display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-weight: bold; }
+  .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 8px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
+  .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
   .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 10px; }
   .asset-card { padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
   .asset-card:hover { transform: translateY(-7px) scale(1.02); }
-  /* KART İÇİNDEKİ YAZILAR ZORLA BEYAZ OLSUN (Sarı arka plan olsa bile) */
   .asset-card, .asset-card * { color: white !important; }
   .card-btc { background: linear-gradient(135deg, #2b2b2b 0%, #000000 100%); border-bottom: 4px solid #555; }
   .card-gold { background: linear-gradient(135deg, #DAA520 0%, #FFD700 50%, #B8860B 100%); border-bottom: 4px solid #FFF; }

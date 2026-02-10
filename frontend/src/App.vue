@@ -1,13 +1,48 @@
 <template>
-  <div :class="theme">
-    <router-view />
+  <div :class="theme" class="app-container">
+    <aside v-if="!isLoginPage" class="sidebar">
+      <div class="brand-container">
+        <div class="brand">FinTrack Pro</div>
+        <div class="user-badge">{{ currentUser }}</div>
+      </div>
+
+      <nav class="menu">
+        <div class="menu-item" :class="{ active: currentRoute === '/dashboard' }" @click="router.push('/dashboard')">
+          <span>📊</span> {{ t('home') }}
+        </div>
+        <div class="menu-item" :class="{ active: currentRoute === '/calendar' }" @click="router.push('/calendar')">
+          <span>📅</span> {{ t('calendar') }}
+        </div>
+        <div class="menu-item" :class="{ active: currentRoute === '/settings' }" @click="router.push('/settings')">
+          <span>⚙️</span> {{ t('settings') }}
+        </div>
+      </nav>
+
+      <div class="logout-wrapper">
+        <div class="menu-item logout" @click="logout">
+          <span>🚪</span> {{ t('logout') }}
+        </div>
+      </div>
+    </aside>
+
+    <main :class="{ 'content-shifted': !isLoginPage }" class="main-content">
+      <router-view />
+    </main>
   </div>
 </template>
 
 <script setup>
-  import { ref, onMounted, provide } from 'vue';
+  import { ref, computed, onMounted, provide } from 'vue';
+  import { useRoute, useRouter } from 'vue-router';
+  import { t } from './utils/translations';
 
+  const route = useRoute();
+  const router = useRouter();
   const theme = ref('dark');
+  const currentUser = ref(localStorage.getItem('username') || 'Kullanıcı');
+
+  const isLoginPage = computed(() => route.name === 'login');
+  const currentRoute = computed(() => route.path);
 
   const toggleTheme = () => {
     theme.value = theme.value === 'dark' ? 'light' : 'dark';
@@ -15,12 +50,20 @@
     document.documentElement.setAttribute('data-theme', theme.value);
   };
 
+  const logout = () => {
+    localStorage.clear();
+    router.push('/login');
+  };
+
   onMounted(() => {
     const savedTheme = localStorage.getItem('theme');
-    if (savedTheme) {
-      theme.value = savedTheme;
-    }
+    if (savedTheme) theme.value = savedTheme;
     document.documentElement.setAttribute('data-theme', theme.value);
+
+    // Login olunca ismi güncellemek için dinleyici
+    window.addEventListener('storage', () => {
+      currentUser.value = localStorage.getItem('username');
+    });
   });
 
   provide('theme', { theme, toggleTheme });
@@ -53,12 +96,21 @@
     --accent-color: #F59E0B;
   }
 
-  body {
-    margin: 0;
-    padding: 0;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    font-family: 'Segoe UI', sans-serif;
-    transition: background-color 0.3s, color 0.3s;
-  }
+  body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); }
+
+  .app-container { display: flex; min-height: 100vh; }
+  .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 25px; border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 10; transition: 0.3s; box-sizing: border-box; }
+  .main-content { flex: 1; width: 100%; transition: 0.3s; }
+  .content-shifted { margin-left: 260px; }
+
+  .brand-container { margin-bottom: 40px; text-align: center; }
+  .brand { color: var(--accent-color); font-size: 1.6rem; font-weight: 800; letter-spacing: 1px; }
+  .user-badge { margin-top: 5px; color: var(--success-color); font-weight: bold; font-size: 1.1rem; border-top: 1px solid var(--border-color); padding-top: 5px; }
+
+  .menu-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; color: var(--text-muted); display: flex; gap: 12px; align-items: center; transition: all 0.3s; font-weight: 500; }
+  .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); transform: translateX(5px); }
+
+  .logout-wrapper { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+  .logout { border: 2px solid var(--danger-color); border-radius: 12px; color: var(--danger-color); justify-content: center; font-weight: bold; padding: 12px; }
+  .logout:hover { background: var(--danger-color); color: white; transform: none; }
 </style>

@@ -2,41 +2,45 @@
     <div class="settings-page">
         <div class="settings-container">
             <div class="header">
-                <button class="back-btn" @click="router.push('/dashboard')">← Geri</button>
-                <h2>Ayarlar</h2>
+                <h2>{{ t('settings') }}</h2>
             </div>
 
             <div class="section">
-                <h3>Görünüm</h3>
-                <div class="theme-toggle" @click="toggleTheme">
-                    <span>{{ theme === 'dark' ? '🌙 Karanlık Mod' : '☀️ Aydınlık Mod' }}</span>
-                    <div class="switch" :class="{ active: theme === 'light' }">
-                        <div class="slider"></div>
-                    </div>
+                <h3>{{ t('appearance') }}</h3>
+
+                <div class="setting-item" @click="toggleTheme">
+                    <span>{{ theme === 'dark' ? t('darkMode') : t('lightMode') }}</span>
+                    <div class="switch" :class="{ active: theme === 'light' }"><div class="slider"></div></div>
+                </div>
+
+                <div class="setting-item mt-20">
+                    <span>{{ t('language') }}</span>
+                    <select v-model="selectedLang" @change="changeLang" class="lang-select">
+                        <option value="tr">Türkçe 🇹🇷</option>
+                        <option value="en">English 🇬🇧</option>
+                        <option value="de">Deutsch 🇩🇪</option>
+                        <option value="fr">Français 🇫🇷</option>
+                    </select>
                 </div>
             </div>
 
             <div class="section">
-                <h3>Profil Ayarları</h3>
+                <h3>{{ t('profileSettings') }}</h3>
                 <div class="form-group">
-                    <label>Ad Soyad</label>
                     <input v-model="fullName" type="text" placeholder="Ad Soyad" />
                 </div>
                 <div class="form-group">
-                    <label>Email</label>
                     <input v-model="email" type="email" placeholder="Email" />
                 </div>
                 <div class="form-group">
-                    <label>Yeni Şifre (İsteğe Bağlı)</label>
-                    <input v-model="password" type="password" placeholder="Değiştirmek isterseniz girin" />
+                    <input v-model="password" type="password" placeholder="Yeni Şifre (İsteğe Bağlı)" />
                 </div>
-                <button class="save-btn" @click="updateProfile">Bilgileri Güncelle</button>
+                <button class="save-btn" @click="updateProfile">{{ t('update') }}</button>
             </div>
 
             <div class="section danger-zone">
-                <h3>Tehlikeli Bölge</h3>
-                <p>Hesabını silersen tüm verilerin kaybolur ve geri getirilemez.</p>
-                <button class="delete-btn" @click="deleteAccount">Hesabımı Sil</button>
+                <h3>{{ t('dangerZone') }}</h3>
+                <button class="delete-btn" @click="deleteAccount">{{ t('deleteAccount') }}</button>
             </div>
         </div>
     </div>
@@ -46,62 +50,64 @@
     import { ref, inject, onMounted } from 'vue';
     import { useRouter } from 'vue-router';
     import api from '../services/api';
+    import { t, currentLang } from '../utils/translations';
 
     const router = useRouter();
     const { theme, toggleTheme } = inject('theme');
     const fullName = ref('');
     const email = ref('');
     const password = ref('');
+    const selectedLang = ref(currentLang.value);
 
     onMounted(() => {
         fullName.value = localStorage.getItem('username') || '';
     });
 
+    const changeLang = () => {
+        currentLang.value = selectedLang.value;
+        localStorage.setItem('lang', selectedLang.value);
+        // Sayfayı yenile ki menüler de güncellensin
+        window.location.reload();
+    };
+
     const updateProfile = async () => {
         try {
             const payload = { full_name: fullName.value, email: email.value };
             if (password.value) payload.password = password.value;
-
             await api.put('/user/update', payload);
             localStorage.setItem('username', fullName.value);
-            alert('Profil başarıyla güncellendi!');
-            password.value = '';
-        } catch (e) {
-            alert('Hata: ' + (e.response?.data?.error || e.message));
-        }
+            alert('Güncellendi!');
+            window.location.reload(); // İsim güncellensin diye
+        } catch (e) { alert('Hata oluştu.'); }
     };
 
     const deleteAccount = async () => {
-        if (confirm('Hesabını silmek istediğine emin misin? Bu işlem geri alınamaz!')) {
+        if (confirm('Emin misiniz?')) {
             try {
                 await api.delete('/user/delete');
                 localStorage.clear();
                 router.push('/login');
-            } catch (e) {
-                alert('Silme işlemi başarısız.');
-            }
+            } catch (e) { alert('Hata.'); }
         }
     };
 </script>
 
 <style scoped>
-    .settings-page { min-height: 100vh; background-color: var(--bg-color); display: flex; justify-content: center; padding: 40px; color: var(--text-color); }
+    .settings-page { padding: 40px; display: flex; justify-content: center; }
     .settings-container { width: 100%; max-width: 600px; }
-    .header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
-    .back-btn { background: none; border: none; color: var(--text-color); cursor: pointer; font-size: 1.2rem; font-weight: bold; }
-    h2, h3 { color: var(--text-color); margin: 0; }
+    h2, h3 { color: var(--text-color); margin-bottom: 20px; }
     .section { background: var(--card-bg); padding: 25px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--border-color); }
-    .theme-toggle { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 10px; border-radius: 8px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); }
+    .setting-item { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 10px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); }
+    .mt-20 { margin-top: 15px; }
+    .lang-select { background: transparent; border: none; color: var(--text-color); font-size: 1rem; outline: none; }
     .switch { width: 50px; height: 26px; background: #334155; border-radius: 20px; position: relative; transition: 0.3s; }
     .switch.active { background: var(--success-color); }
     .slider { width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: 0.3s; }
     .switch.active .slider { left: 27px; }
     .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.9rem; }
     input { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 8px; box-sizing: border-box; }
     .save-btn { width: 100%; padding: 12px; background: #3B82F6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
     .danger-zone { border: 1px solid var(--danger-color); }
-    .danger-zone h3 { color: var(--danger-color); margin-bottom: 10px; }
-    .danger-zone p { color: var(--text-muted); margin-bottom: 15px; }
+    .danger-zone h3 { color: var(--danger-color); }
     .delete-btn { width: 100%; padding: 12px; background: var(--danger-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 </style>
