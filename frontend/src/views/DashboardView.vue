@@ -8,7 +8,7 @@
 
       <nav class="menu">
         <div class="menu-item active">
-          <span>📊</span> Dashboard
+          <span>📊</span> Anasayfa
         </div>
         <div class="menu-item" @click="router.push('/calendar')">
           <span>📅</span> Takvim & Notlar
@@ -285,8 +285,9 @@
   .user-badge { margin-top: 5px; color: var(--success-color); font-weight: bold; font-size: 1.1rem; border-top: 1px solid var(--border-color); padding-top: 5px; }
   .menu-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; color: var(--text-muted); display: flex; gap: 12px; align-items: center; transition: all 0.3s; font-weight: 500; }
   .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); transform: translateX(5px); }
-  .logout-wrapper { margin-top: auto; }
-  .logout { color: var(--danger-color); } .logout:hover { background: rgba(239, 68, 68, 0.1); transform: translateX(5px); }
+  .logout-wrapper { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); }
+  .logout { color: var(--danger-color); font-weight: bold; border: 1px solid var(--danger-color); display: flex; justify-content: center; transition: 0.3s; }
+  .logout:hover { background: var(--danger-color); color: white; transform: none; }
   .content { flex: 1; padding: 40px; }
   .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .page-title h2 { color: var(--text-color); margin: 0; }
@@ -311,18 +312,19 @@
   .asset-card { padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
   .asset-card:hover { transform: translateY(-7px) scale(1.02); }
   .card-btc { background: linear-gradient(135deg, #2b2b2b 0%, #000000 100%); border-bottom: 4px solid #555; }
-  .card-btc .card-icon { color: #e0e0e0; }
+  .card-btc .card-icon { color: white; }
+  .card-btc .card-name, .card-btc .card-amount, .card-btc .card-val { color: white !important; }
   .card-gold { background: linear-gradient(135deg, #DAA520 0%, #FFD700 50%, #B8860B 100%); color: #000; border-bottom: 4px solid #FFF; }
   .card-gold .card-name, .card-gold .card-amount { color: #000; font-weight: 900; }
   .card-usd { background: linear-gradient(135deg, #059669 0%, #10B981 100%); border-bottom: 4px solid #A7F3D0; }
   .card-eur { background: linear-gradient(135deg, #5D4037 0%, #8D6E63 100%); border-bottom: 4px solid #D7CCC8; }
   .card-silver { background: linear-gradient(135deg, #757575 0%, #9E9E9E 100%); border-bottom: 4px solid #E0E0E0; }
   .card-try { background: linear-gradient(135deg, #991B1B 0%, #EF4444 100%); border-bottom: 4px solid #FCA5A5; }
-  .card-icon { font-size: 2rem; }
+  .card-icon { font-size: 2rem; color: white; }
   .card-info { display: flex; flex-direction: column; }
-  .card-name { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; font-weight: bold; }
-  .card-amount { font-size: 1.2rem; font-weight: bold; }
-  .card-val { font-size: 0.8rem; opacity: 0.7; }
+  .card-name { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; font-weight: bold; color: white; }
+  .card-amount { font-size: 1.2rem; font-weight: bold; color: white; }
+  .card-val { font-size: 0.8rem; opacity: 0.7; color: white; }
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px); }
   .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 350px; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
   .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
