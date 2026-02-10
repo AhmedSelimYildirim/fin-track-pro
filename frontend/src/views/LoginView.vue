@@ -59,61 +59,92 @@
   </div>
 </template>
 
+<template>
+  <div :class="theme" class="app-container">
+    <button v-if="!isLoginPage" class="mobile-menu-toggle" @click="toggleMobileMenu">☰</button>
+    <div v-if="isMobileMenuOpen && !isLoginPage" class="mobile-overlay" @click="closeMobileMenu"></div>
+
+    <aside v-if="!isLoginPage" class="sidebar" :class="{ 'mobile-open': isMobileMenuOpen }">
+      <div class="brand-container">
+        <div class="brand">FinTrack Pro</div>
+        <div class="user-badge">{{ currentUser }}</div>
+      </div>
+
+      <nav class="menu">
+        <div class="menu-item" :class="{ active: currentRoute.includes('/dashboard') }" @click="navigate('/dashboard')">
+          <span class="nav-icon">📊</span> {{ t('home') }}
+        </div>
+        <div class="menu-item" :class="{ active: currentRoute.includes('/calendar') }" @click="navigate('/calendar')">
+          <img :src="calendarIcon" class="custom-nav-icon" />
+          {{ t('calendar') }}
+        </div>
+        <div class="menu-item" :class="{ active: currentRoute.includes('/settings') }" @click="navigate('/settings')">
+          <span class="nav-icon">⚙️</span> {{ t('settings') }}
+        </div>
+      </nav>
+
+      <div class="logout-wrapper">
+        <div class="menu-item logout" @click="logout">
+          <img :src="logoutIcon" class="custom-nav-icon" />
+          {{ t('logout') }}
+        </div>
+      </div>
+    </aside>
+
+    <main :class="{ 'content-shifted': !isLoginPage }" class="main-content">
+      <router-view />
+    </main>
+  </div>
+</template>
+
 <script setup>
-  import { ref, reactive } from 'vue'
-  import { useRouter } from 'vue-router'
-  import api from '../services/api'
+  import { ref, computed, onMounted, provide } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
+  import { t } from './utils/translations'
+  import calendarIcon from './assets/calendar-icon.png'
+  import logoutIcon from './assets/logout-icon.png'
 
+  const route = useRoute()
   const router = useRouter()
-  const activeTab = ref('login')
-  const isLoading = ref(false)
 
-  const loginData = reactive({ email: '', password: '' })
-  const registerData = reactive({ username: '', email: '', password: '' })
+  const theme = ref('dark')
+  const currentUser = ref(localStorage.getItem('username') || '')
+  const isMobileMenuOpen = ref(false)
 
-  const handleLogin = async () => {
-    if (!loginData.email || !loginData.password) return alert("Bilgileri giriniz.")
-    isLoading.value = true
-    try {
-      const res = await api.post('/auth/login', {
-        email: loginData.email,
-        password: loginData.password
-      })
+  const isLoginPage = computed(() => route.name === 'login')
+  const currentRoute = computed(() => route.path)
 
-      localStorage.setItem('token', res.data.token)
-      localStorage.setItem('username', res.data.username)
-      localStorage.setItem('email', res.data.email)
-
-      window.dispatchEvent(new Event('storage'))
-      router.push('/dashboard')
-    } catch (e) {
-      alert('Hata: ' + (e.response?.data?.error || 'Giriş başarısız.'))
-    } finally {
-      isLoading.value = false
-    }
+  const toggleTheme = () => {
+    theme.value = theme.value === 'dark' ? 'light' : 'dark'
+    localStorage.setItem('theme', theme.value)
+    document.documentElement.setAttribute('data-theme', theme.value)
   }
 
-  const handleRegister = async () => {
-    if (!registerData.username || !registerData.email || !registerData.password)
-      return alert("Bilgileri giriniz.")
-    isLoading.value = true
-    try {
-      await api.post('/auth/register', {
-        username: registerData.username,
-        email: registerData.email,
-        password: registerData.password
-      })
-      activeTab.value = 'login'
-      registerData.username = ''
-      registerData.email = ''
-      registerData.password = ''
-      alert("Kayıt başarılı! Giriş yapabilirsiniz.")
-    } catch (e) {
-      alert('Hata: ' + (e.response?.data?.error || 'Kayıt başarısız.'))
-    } finally {
-      isLoading.value = false
-    }
+  const toggleMobileMenu = () => { isMobileMenuOpen.value = !isMobileMenuOpen.value }
+  const closeMobileMenu = () => { isMobileMenuOpen.value = false }
+
+  const navigate = (path) => {
+    router.push(path)
+    closeMobileMenu()
   }
+
+  const logout = () => {
+    localStorage.clear()
+    router.push('/login')
+    closeMobileMenu()
+  }
+
+  onMounted(() => {
+    const savedTheme = localStorage.getItem('theme')
+    if (savedTheme) theme.value = savedTheme
+    document.documentElement.setAttribute('data-theme', theme.value)
+
+    window.addEventListener('storage', () => {
+      currentUser.value = localStorage.getItem('username') || ''
+    })
+  })
+
+  provide('theme', { theme, toggleTheme })
 </script>
 
 

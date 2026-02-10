@@ -69,6 +69,42 @@
   </div>
 </template>
 
+<template>
+  <div class="dashboard-wrapper">
+    <header class="top-bar">
+      <h2>{{ t('portfolioSummary') }}</h2>
+
+      <div class="currency-bar">
+        <div
+                v-for="item in currencyItems"
+                :key="item.code"
+                class="currency-pill"
+                :class="{ active: baseCurrency === item.code }"
+                @click="selectCurrency(item)"
+        >
+          {{ item.label }}
+
+          <div v-if="item.code === 'GOLD'" class="gold-ayars">
+            <span
+                    v-for="k in [24,22,18,14,8,4]"
+                    :key="k"
+                    :class="{ active: targetAyar === k }"
+                    @click.stop="selectGold(k)"
+            >
+              {{ k }}K
+            </span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="chart-section">
+      <Doughnut v-if="hasData" :data="chartData" :options="chartOptions" />
+      <div v-else class="no-data-circle">{{ t('noData') }}</div>
+    </div>
+  </div>
+</template>
+
 <script setup>
   import { ref, computed, onMounted } from 'vue'
   import { Doughnut } from 'vue-chartjs'
@@ -89,15 +125,6 @@
     { code: 'BTC', label: 'BTC' },
     { code: 'SILVER', label: 'SILVER' },
     { code: 'GOLD', label: 'GOLD (Gr)' }
-  ]
-
-  const cardConfigs = [
-    { type: 'TRY', label: 'TRY', icon: '₺', unit: '₺' },
-    { type: 'USD', label: 'USD', icon: '$', unit: '$' },
-    { type: 'EUR', label: 'EUR', icon: '€', unit: '€' },
-    { type: 'BTC', label: 'BTC', icon: '₿', unit: 'BTC' },
-    { type: 'SILVER', label: 'SILVER', icon: '⚔️', unit: 'Gr' },
-    { type: 'GOLD', label: 'GOLD', icon: '👑', unit: 'Gr' }
   ]
 
   const selectCurrency = (item) => {
@@ -124,10 +151,6 @@
 
   const hasData = computed(() => summaryData.value?.total_value > 0)
 
-  const totalValue = computed(() =>
-          summaryData.value?.total_value?.toLocaleString('tr-TR') || '0'
-  )
-
   const chartData = computed(() => ({
     labels: ['TRY','USD','EUR','BTC','SILVER','GOLD'],
     datasets: [{
@@ -142,22 +165,9 @@
 
   const chartOptions = { cutout: '75%', plugins:{ legend:{ display:false } } }
 
-  const getAmount = (type) =>
-          (summaryData.value?.assets || [])
-                  .filter(a => a.type === type)
-                  .reduce((s,c)=>s+c.amount,0)
-                  .toLocaleString('tr-TR')
-
-  const getAllocation = (type) =>
-          (summaryData.value?.assets || [])
-                  .filter(a => a.type === type)
-                  .reduce((s,c)=>s+c.allocation,0)
-                  .toFixed(1)
-
-  const openModal = () => {}
-
   onMounted(fetchData)
 </script>
+
 
 <style scoped>
   .currency-bar {
