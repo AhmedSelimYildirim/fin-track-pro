@@ -16,7 +16,7 @@
           <div class="c-item" @click="changeCurrency('SILVER', 0, 'Gümüş (Gram)')">Gümüş (Gram)</div>
           <div class="c-item has-submenu">
             {{ t('addAsset') }} (Altın) ▶
-            <div class="submenu">
+            <div class="submenu compact-submenu">
               <div @click="changeCurrency('GOLD', 24, '24 Ayar (Has)')">24 Ayar</div>
               <div @click="changeCurrency('GOLD', 22, '22 Ayar')">22 Ayar</div>
               <div @click="changeCurrency('GOLD', 18, '18 Ayar')">18 Ayar</div>
@@ -44,7 +44,6 @@
           </div>
         </div>
       </div>
-      <div class="total-underline"></div>
     </div>
 
     <div class="assets-grid">
@@ -135,12 +134,12 @@
   const targetAyar = ref(0);
 
   const cardConfigs = [
-    { type: 'BTC', label: 'Bitcoin', icon: '₿', unit: 'BTC' },
-    { type: 'GOLD', label: 'Altın', icon: '👑', unit: 'Gr' },
+    { type: 'TRY', label: 'TL Nakit', icon: '₺', unit: '₺' },
+    { type: 'GOLD', label: 'Altın (Gr)', icon: '👑', unit: 'Gr' },
     { type: 'USD', label: 'USD', icon: '$', unit: '$' },
-    { type: 'EUR', label: 'EURO', icon: '€', unit: '€' },
+    { type: 'BTC', label: 'Bitcoin', icon: '₿', unit: 'BTC' },
     { type: 'SILVER', label: 'Gümüş', icon: '⚔️', unit: 'Gr' },
-    { type: 'TRY', label: 'TL Nakit', icon: '₺', unit: '₺' }
+    { type: 'EUR', label: 'EURO', icon: '€', unit: '€' }
   ];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
@@ -160,8 +159,8 @@
   });
 
   const chartData = computed(() => {
-    const labels = ['BTC', 'GOLD', 'USD', 'EUR', 'SILVER', 'TRY'];
-    const colors = ['#1a1a1a', '#FFD700', '#10B981', '#8B4513', '#A0A0A0', '#EF4444'];
+    const labels = ['TRY', 'GOLD', 'USD', 'BTC', 'SILVER', 'EUR'];
+    const colors = ['#EF4444', '#FFD700', '#10B981', '#1a1a1a', '#A0A0A0', '#8B4513'];
     const data = labels.map(label => {
       const assets = summaryData.value?.assets || [];
       return assets.filter(a => a.type === label).reduce((sum, curr) => sum + (curr.allocation || 0), 0);
@@ -295,7 +294,9 @@
   .c-item:hover { background: var(--hover-bg); color: var(--accent-color); }
   .has-submenu:hover .submenu { display: block; }
   .submenu { display: none; position: absolute; top: 0; right: 100%; background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 15px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-right: 5px; }
-  .submenu div { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid var(--border-color); color: var(--text-color); }
+
+  /* COMPACT SUBMENU AYARI - Boşlukları azalttık */
+  .compact-submenu div { padding: 8px 15px; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
   .submenu div:hover { background: var(--hover-bg); color: var(--accent-color); }
 
   .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 50px; position: relative; width: 100%; }
@@ -303,7 +304,8 @@
   .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
   .center-balance h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; }
   .center-balance small { color: var(--text-muted); }
-  .total-underline { width: 150px; height: 4px; background: linear-gradient(90deg, transparent, var(--accent-color), transparent); margin-top: 20px; border-radius: 2px; }
+  /* ÇUBUK KALDIRILDI */
+  .total-underline { display: none; }
 
   .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 8px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
   .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }

@@ -1,21 +1,27 @@
 <template>
   <div :class="theme" class="app-container">
-    <aside v-if="!isLoginPage" class="sidebar">
+    <button v-if="!isLoginPage" class="mobile-menu-toggle" @click="toggleMobileMenu">
+      ☰
+    </button>
+
+    <div v-if="isMobileMenuOpen && !isLoginPage" class="mobile-overlay" @click="closeMobileMenu"></div>
+
+    <aside v-if="!isLoginPage" class="sidebar" :class="{ 'mobile-open': isMobileMenuOpen }">
       <div class="brand-container">
         <div class="brand">FinTrack Pro</div>
         <div class="user-badge">{{ currentUser }}</div>
       </div>
 
       <nav class="menu">
-        <div class="menu-item" :class="{ active: currentRoute.includes('/dashboard') }" @click="router.push('/dashboard')">
+        <div class="menu-item" :class="{ active: currentRoute.includes('/dashboard') }" @click="navigate('/dashboard')">
           <span>📊</span> {{ t('home') }}
         </div>
 
-        <div class="menu-item" :class="{ active: currentRoute.includes('/calendar') }" @click="router.push('/calendar')">
+        <div class="menu-item" :class="{ active: currentRoute.includes('/calendar') }" @click="navigate('/calendar')">
           <span>📅</span> {{ t('calendar') }}
         </div>
 
-        <div class="menu-item" :class="{ active: currentRoute.includes('/settings') }" @click="router.push('/settings')">
+        <div class="menu-item" :class="{ active: currentRoute.includes('/settings') }" @click="navigate('/settings')">
           <span>⚙️</span> {{ t('settings') }}
         </div>
       </nav>
@@ -42,6 +48,7 @@
   const router = useRouter();
   const theme = ref('dark');
   const currentUser = ref(localStorage.getItem('username') || 'Kullanıcı');
+  const isMobileMenuOpen = ref(false);
 
   const isLoginPage = computed(() => route.name === 'login');
   const currentRoute = computed(() => route.path);
@@ -52,9 +59,23 @@
     document.documentElement.setAttribute('data-theme', theme.value);
   };
 
+  const toggleMobileMenu = () => {
+    isMobileMenuOpen.value = !isMobileMenuOpen.value;
+  };
+
+  const closeMobileMenu = () => {
+    isMobileMenuOpen.value = false;
+  };
+
+  const navigate = (path) => {
+    router.push(path);
+    closeMobileMenu();
+  };
+
   const logout = () => {
     localStorage.clear();
     router.push('/login');
+    closeMobileMenu();
   };
 
   onMounted(() => {
@@ -99,10 +120,9 @@
 
   body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); }
 
-  .app-container { display: flex; min-height: 100vh; }
-  .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 25px; border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 100; transition: 0.3s; box-sizing: border-box; }
+  .app-container { display: flex; min-height: 100vh; position: relative; }
+  .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 25px; border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 1000; transition: transform 0.3s ease-in-out; box-sizing: border-box; }
   .main-content { flex: 1; width: 100%; transition: 0.3s; padding-left: 260px; }
-  .content-shifted { padding-left: 260px; }
 
   .brand-container { margin-bottom: 40px; text-align: center; }
   .brand { color: var(--accent-color); font-size: 1.6rem; font-weight: 800; letter-spacing: 1px; }
@@ -115,8 +135,15 @@
   .logout { border: 2px solid var(--danger-color); border-radius: 12px; color: var(--danger-color); justify-content: center; font-weight: bold; padding: 12px; transition: 0.2s; }
   .logout:hover { background: var(--danger-color); color: white; transform: none; }
 
+  .mobile-menu-toggle { display: none; position: fixed; top: 15px; left: 15px; z-index: 1100; background: var(--accent-color); border: none; color: #000; font-size: 1.5rem; padding: 8px 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+  .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 900; backdrop-filter: blur(3px); }
+
   @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); }
-    .main-content, .content-shifted { padding-left: 0; }
+    .mobile-menu-toggle { display: block; }
+    .sidebar { transform: translateX(-100%); width: 280px; box-shadow: 5px 0 15px rgba(0,0,0,0.5); }
+    .sidebar.mobile-open { transform: translateX(0); }
+    .mobile-overlay { display: block; }
+    .main-content { padding-left: 0; padding-top: 60px; }
+    .top-bar { margin-top: 10px; }
   }
 </style>
