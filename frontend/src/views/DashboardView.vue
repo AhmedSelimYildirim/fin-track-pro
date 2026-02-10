@@ -2,7 +2,7 @@
   <div class="dashboard-page">
     <aside class="sidebar">
       <div class="brand-container">
-        <div class="brand">FinTrack Pro 🚀</div>
+        <div class="brand">FinTrack Pro</div>
         <div class="user-badge">{{ currentUser }}</div>
       </div>
 
@@ -171,6 +171,7 @@
   ChartJS.register(ArcElement, Tooltip, Legend);
   const router = useRouter();
 
+  // LOCALSTORAGE'DAN İSMİ ÇEKİYORUZ
   const currentUser = ref(localStorage.getItem('username') || 'Yatırımcı');
 
   const showSelector = ref(false);
@@ -189,6 +190,7 @@
     showSelector.value = !showSelector.value;
   };
 
+  // Boşluğa tıklayınca dropdown kapansın
   window.addEventListener('click', () => {
     if(showSelector.value) showSelector.value = false;
   });
@@ -214,7 +216,10 @@
       });
       summaryData.value = res.data;
     } catch(e) {
-      if(e.response && e.response.status === 401) router.push('/login');
+      if(e.response && e.response.status === 401) {
+        // Yetkisiz giriş ise logine at
+        router.push('/login');
+      }
       console.error(e);
     }
   };
@@ -279,8 +284,10 @@
 </script>
 
 <style scoped>
+  /* GENEL SAYFA */
   .dashboard-page { display: flex; min-height: 100vh; background: #0F172A; color: white; font-family: 'Segoe UI', sans-serif; }
 
+  /* SOL MENÜ */
   .sidebar { width: 260px; background: #1E293B; display: flex; flex-direction: column; padding: 25px; border-right: 1px solid rgba(255,255,255,0.05); }
   .brand-container { margin-bottom: 40px; text-align: center; }
   .brand { color: #FFD700; font-size: 1.6rem; font-weight: 800; letter-spacing: 1px; }
@@ -291,9 +298,11 @@
   .logout-wrapper { margin-top: auto; }
   .logout { color: #EF4444; } .logout:hover { background: rgba(239, 68, 68, 0.1); transform: translateX(5px); }
 
+  /* İÇERİK */
   .content { flex: 1; padding: 40px; }
   .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 
+  /* DROPDOWN */
   .currency-wrapper { position: relative; z-index: 100; }
   .currency-btn { background: linear-gradient(135deg, #1E293B, #0F172A); border: 1px solid #475569; padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; color: #FFD700; min-width: 150px; text-align: center; transition: 0.3s; }
   .currency-btn:hover { border-color: #FFD700; }
@@ -307,6 +316,7 @@
   .submenu div { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
   .submenu div:hover { background: #334155; color: #FFD700; }
 
+  /* GRAFİK */
   .chart-section { display: flex; flex-direction: column; align-items: center; margin: 20px 0 50px 0; position: relative; }
   .chart-wrapper { width: 300px; height: 300px; position: relative; }
   .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
@@ -314,6 +324,7 @@
   .center-balance small { color: #94A3B8; }
   .total-underline { width: 150px; height: 4px; background: linear-gradient(90deg, transparent, #FFD700, transparent); margin-top: 20px; border-radius: 2px; }
 
+  /* KARTLAR */
   .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 10px; }
   .asset-card { padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
   .asset-card:hover { transform: translateY(-7px) scale(1.02); }
@@ -333,6 +344,7 @@
   .card-amount { font-size: 1.2rem; font-weight: bold; }
   .card-val { font-size: 0.8rem; opacity: 0.7; }
 
+  /* MODAL */
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px); }
   .modal-content { background: #1E293B; padding: 30px; border-radius: 20px; width: 350px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
   .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }

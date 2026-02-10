@@ -22,15 +22,16 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-    const isAuthenticated = localStorage.getItem('token')
+    const isAuthenticated = localStorage.getItem('token');
 
     if (to.meta.requiresAuth && !isAuthenticated) {
-        next('/login')
+        // Giriş yapmamışsa Login'e at
+        next('/login');
     } else if (to.path === '/login' && isAuthenticated) {
-        next('/dashboard')
+        next('/dashboard');
     } else {
-        next()
+        next();
     }
-})
+});
 
 export default router

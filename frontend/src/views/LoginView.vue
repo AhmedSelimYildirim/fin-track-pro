@@ -1,11 +1,11 @@
 <template>
   <div class="login-container">
     <div class="login-card">
-      <h2 class="title">{{ isRegister ? 'Register' : 'Login' }}</h2>
+      <h2 class="title">{{ isRegister ? 'Kayıt Ol' : 'Giriş Yap' }}</h2>
 
       <form @submit.prevent="handleAuth">
         <div class="input-group" v-if="isRegister">
-          <input v-model="fullName" type="text" placeholder="Ad Soyad" required />
+          <input v-model="fullName" type="text" placeholder="Ad Soyad (Örn: Ahmed Selim)" required />
         </div>
 
         <div class="input-group">
@@ -44,24 +44,46 @@
     loading.value = true;
     try {
       if (isRegister.value) {
+        // --- KAYIT OLMA İŞLEMİ ---
         await api.post('/auth/register', {
           full_name: fullName.value,
           email: email.value,
           password: password.value
         });
+
+        // İsmi hemen kaydedelim ki kaybolmasın
+        if(fullName.value) {
+          localStorage.setItem('username', fullName.value);
+        }
+
         alert("Kayıt başarılı! Şimdi giriş yapabilirsin.");
-        isRegister.value = false;
+        isRegister.value = false; // Giriş ekranına dön
       } else {
+        // --- GİRİŞ YAPMA İŞLEMİ ---
         const res = await api.post('/auth/login', {
           email: email.value,
           password: password.value
         });
 
+        // Token'ı kaydet
         localStorage.setItem('token', res.data.token);
 
-        const savedName = res.data.username || email.value.split('@')[0];
+        // Kullanıcı Adını Belirle:
+        // 1. Backend'den geldiyse onu al.
+        // 2. Gelmediyse, kayıt olurken localStorage'a attığımızı al.
+        // 3. O da yoksa "Yatırımcı" yaz.
+        let savedName = res.data.username;
+        if (!savedName || savedName === "") {
+          savedName = localStorage.getItem('username');
+        }
+        if (!savedName) {
+          savedName = "Yatırımcı";
+        }
+
+        // Son kararı kaydet
         localStorage.setItem('username', savedName);
 
+        // Dashboard'a yönlendir
         router.push('/dashboard');
       }
     } catch (e) {
