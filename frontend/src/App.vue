@@ -2,7 +2,7 @@
   <div :class="theme" class="app-container">
     <aside v-if="!isLoginPage" class="sidebar">
       <div class="brand-container">
-        <div class="brand">FinTrack Pro 🚀</div>
+        <div class="brand">FinTrack Pro</div>
         <div class="user-badge">{{ currentUser }}</div>
       </div>
 

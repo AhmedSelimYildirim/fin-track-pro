@@ -1,104 +1,93 @@
 <template>
-  <div class="dashboard-content">
-    <header class="top-bar">
-      <div class="page-title">
-        <h2>{{ t('portfolioSummary') }}</h2>
-        <span class="subtitle">{{ t('welcome') }}, {{ currentUser }}</span>
+  <div class="dashboard-page">
+    <aside class="sidebar">
+      <div class="brand-container">
+        <div class="brand">FinTrack Pro</div>
+        <div class="user-badge">{{ currentUser }}</div>
       </div>
-      <div class="currency-wrapper">
-        <div class="currency-btn" @click.stop="toggleDropdown">
-          {{ displayCurrency }} ▼
+
+      <nav class="menu">
+        <div class="menu-item" :class="{ active: currentTab === 'dashboard' }" @click="currentTab = 'dashboard'">
+          <span>📊</span> {{ t('home') }}
         </div>
-        <div v-if="showSelector" class="currency-dropdown">
-          <div class="c-item" @click="changeCurrency('TRY', 0, 'Türk Lirası (TL)')">Türk Lirası (TL)</div>
-          <div class="c-item" @click="changeCurrency('USD', 0, 'Dolar ($)')">Dolar ($)</div>
-          <div class="c-item" @click="changeCurrency('EUR', 0, 'Euro (€)')">Euro (€)</div>
-          <div class="c-item" @click="changeCurrency('BTC', 0, 'Bitcoin')">Bitcoin</div>
-          <div class="c-item" @click="changeCurrency('SILVER', 0, 'Gümüş (Gram)')">Gümüş (Gram)</div>
-          <div class="c-item has-submenu">
-            Altın (Gram) ▶
-            <div class="submenu">
-              <div @click="changeCurrency('GOLD', 24, '24 Ayar (Has)')">24 Ayar</div>
-              <div @click="changeCurrency('GOLD', 22, '22 Ayar')">22 Ayar</div>
-              <div @click="changeCurrency('GOLD', 18, '18 Ayar')">18 Ayar</div>
-              <div @click="changeCurrency('GOLD', 14, '14 Ayar')">14 Ayar</div>
-              <div @click="changeCurrency('GOLD', 8, '8 Ayar')">8 Ayar</div>
-              <div @click="changeCurrency('GOLD', 4, '4 Ayar')">4 Ayar</div>
+        <div class="menu-item" :class="{ active: currentTab === 'calendar' }" @click="router.push('/calendar')">
+          <span>📅</span> {{ t('calendar') }}
+        </div>
+        <div class="menu-item" :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">
+          <span>⚙️</span> {{ t('settings') }}
+        </div>
+      </nav>
+
+      <div class="logout-wrapper">
+        <div class="menu-item logout" @click="logout">
+          <span>🚪</span> {{ t('logout') }}
+        </div>
+      </div>
+    </aside>
+
+    <main class="content">
+      <SettingsView v-if="currentTab === 'settings'" />
+
+      <div v-else>
+        <header class="top-bar">
+          <div class="page-title">
+            <h2>{{ t('portfolioSummary') }}</h2>
+          </div>
+          <div class="currency-wrapper">
+            <div class="currency-btn" @click.stop="toggleDropdown">
+              {{ displayCurrency }} ▼
+            </div>
+            <div v-if="showSelector" class="currency-dropdown">
+              <div class="c-item" @click="changeCurrency('TRY', 0, 'Türk Lirası (TL)')">Türk Lirası (TL)</div>
+              <div class="c-item" @click="changeCurrency('USD', 0, 'Dolar ($)')">Dolar ($)</div>
+              <div class="c-item" @click="changeCurrency('EUR', 0, 'Euro (€)')">Euro (€)</div>
+              <div class="c-item" @click="changeCurrency('BTC', 0, 'Bitcoin')">Bitcoin</div>
+              <div class="c-item" @click="changeCurrency('SILVER', 0, 'Gümüş (Gram)')">Gümüş (Gram)</div>
+              <div class="c-item has-submenu">
+                {{ t('addAsset') }} (Altın) ▶
+                <div class="submenu">
+                  <div @click="changeCurrency('GOLD', 24, '24 Ayar (Has)')">24 Ayar</div>
+                  <div @click="changeCurrency('GOLD', 22, '22 Ayar')">22 Ayar</div>
+                  <div @click="changeCurrency('GOLD', 18, '18 Ayar')">18 Ayar</div>
+                  <div @click="changeCurrency('GOLD', 14, '14 Ayar')">14 Ayar</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div class="chart-section">
+          <div class="chart-wrapper">
+            <template v-if="hasData">
+              <Doughnut :data="chartData" :options="chartOptions" />
+              <div class="center-balance">
+                <h3>{{ totalValue }}</h3>
+                <small>{{ baseCurrencyLabel }}</small>
+              </div>
+            </template>
+            <div v-else class="no-data-circle">
+              <div class="no-data-content">
+                <span>{{ t('noData') }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="total-underline"></div>
+        </div>
+
+        <div class="assets-grid">
+          <div v-for="asset in cardConfigs" :key="asset.type"
+               class="asset-card" :class="'card-' + asset.type.toLowerCase()"
+               @click="openModal(asset.type)">
+            <div class="card-icon">{{ asset.icon }}</div>
+            <div class="card-info">
+              <span class="card-name">{{ asset.label }}</span>
+              <span class="card-amount">{{ getAmount(asset.type) }} {{ asset.unit }}</span>
+              <span class="card-val">%{{ getAllocation(asset.type) }}</span>
             </div>
           </div>
         </div>
       </div>
-    </header>
-
-    <div class="chart-section">
-      <div class="chart-wrapper">
-        <template v-if="hasData">
-          <Doughnut :data="chartData" :options="chartOptions" />
-          <div class="center-balance">
-            <h3>{{ totalValue }}</h3>
-            <small>{{ baseCurrencyLabel }}</small>
-          </div>
-        </template>
-        <div v-else class="no-data-circle">
-          <div class="no-data-content">
-            <span>{{ t('noData') }}</span>
-            <small>{{ t('addAsset') }}</small>
-          </div>
-        </div>
-      </div>
-      <div class="total-underline"></div>
-    </div>
-
-    <div class="assets-grid">
-      <div class="asset-card card-btc" @click="openModal('BTC')">
-        <div class="card-icon">₿</div>
-        <div class="card-info">
-          <span class="card-name">Bitcoin</span>
-          <span class="card-amount">{{ getAmount('BTC') }} BTC</span>
-          <span class="card-val">%{{ getAllocation('BTC') }}</span>
-        </div>
-      </div>
-      <div class="asset-card card-gold" @click="openModal('GOLD')">
-        <div class="card-icon">👑</div>
-        <div class="card-info">
-          <span class="card-name">Gold</span>
-          <span class="card-amount">{{ getAmount('GOLD') }} Gr</span>
-          <span class="card-val">%{{ getAllocation('GOLD') }}</span>
-        </div>
-      </div>
-      <div class="asset-card card-usd" @click="openModal('USD')">
-        <div class="card-icon">$</div>
-        <div class="card-info">
-          <span class="card-name">USD</span>
-          <span class="card-amount">{{ getAmount('USD') }} $</span>
-          <span class="card-val">%{{ getAllocation('USD') }}</span>
-        </div>
-      </div>
-      <div class="asset-card card-eur" @click="openModal('EUR')">
-        <div class="card-icon">€</div>
-        <div class="card-info">
-          <span class="card-name">Euro</span>
-          <span class="card-amount">{{ getAmount('EUR') }} €</span>
-          <span class="card-val">%{{ getAllocation('EUR') }}</span>
-        </div>
-      </div>
-      <div class="asset-card card-silver" @click="openModal('SILVER')">
-        <div class="card-icon">⚔️</div>
-        <div class="card-info">
-          <span class="card-name">Silver</span>
-          <span class="card-amount">{{ getAmount('SILVER') }} Gr</span>
-          <span class="card-val">%{{ getAllocation('SILVER') }}</span>
-        </div>
-      </div>
-      <div class="asset-card card-try" @click="openModal('TRY')">
-        <div class="card-icon">₺</div>
-        <div class="card-info">
-          <span class="card-name">TL Nakit</span>
-          <span class="card-amount">{{ getAmount('TRY') }} ₺</span>
-          <span class="card-val">%{{ getAllocation('TRY') }}</span>
-        </div>
-      </div>
-    </div>
+    </main>
 
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal-content large-modal">
@@ -117,8 +106,6 @@
                 <option :value="22">22 Ayar</option>
                 <option :value="18">18 Ayar</option>
                 <option :value="14">14 Ayar</option>
-                <option :value="8">8 Ayar</option>
-                <option :value="4">4 Ayar</option>
               </select>
             </div>
             <input v-model="transactionDate" type="date" class="date-input" />
@@ -138,29 +125,35 @@
                   <span class="tx-type" :class="tx.type">{{ tx.type === 'add' ? '+' : '-' }}</span>
                   <span class="tx-amount">{{ tx.amount }} <span v-if="tx.ayar > 0">({{ tx.ayar }}K)</span></span>
                 </div>
-                <button class="receipt-download-btn" @click="downloadSingleReceipt(tx.id)" :title="t('receipt')">
-                  📄
-                </button>
+                <button class="receipt-download-btn" @click="downloadSingleReceipt(tx.id)">📄</button>
               </div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <button class="receipt-btn" @click="downloadReceipt" title="Rapor Al">📄</button>
+
+    <div class="floating-actions" v-if="currentTab === 'dashboard'">
+      <button class="f-btn excel" @click="downloadExcel" title="Excel Al">📊</button>
+      <button class="f-btn pdf" @click="downloadReceipt" title="PDF Al">📄</button>
+    </div>
   </div>
 </template>
 
 <script setup>
   import { ref, computed, onMounted } from 'vue';
+  import { useRouter } from 'vue-router';
   import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
   import { Doughnut } from 'vue-chartjs';
   import api from '../services/api';
   import { t } from '../utils/translations';
+  import SettingsView from './SettingsView.vue';
 
   ChartJS.register(ArcElement, Tooltip, Legend);
+  const router = useRouter();
 
   const currentUser = ref(localStorage.getItem('username') || 'Yatırımcı');
+  const currentTab = ref('dashboard');
   const showSelector = ref(false);
   const showModal = ref(false);
   const activeAsset = ref('');
@@ -172,6 +165,15 @@
   const baseCurrency = ref('TRY');
   const baseCurrencyLabel = ref('Türk Lirası (TL)');
   const targetAyar = ref(0);
+
+  const cardConfigs = [
+    { type: 'BTC', label: 'Bitcoin', icon: '₿', unit: 'BTC' },
+    { type: 'GOLD', label: 'Altın', icon: '👑', unit: 'Gr' },
+    { type: 'USD', label: 'USD', icon: '$', unit: '$' },
+    { type: 'EUR', label: 'EURO', icon: '€', unit: '€' },
+    { type: 'SILVER', label: 'Gümüş', icon: '⚔️', unit: 'Gr' },
+    { type: 'TRY', label: 'TL Nakit', icon: '₺', unit: '₺' }
+  ];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
   window.addEventListener('click', () => { if(showSelector.value) showSelector.value = false; });
@@ -281,6 +283,18 @@
     } catch (e) { alert('Rapor hatası'); }
   };
 
+  const downloadExcel = async () => {
+    try {
+      const res = await api.get('/assets/export/excel', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `FinTrack_Export_${new Date().toLocaleDateString()}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+    } catch (e) { alert('Excel indirilemedi'); }
+  };
+
   const downloadSingleReceipt = async (id) => {
     try {
       const res = await api.get(`/assets/receipt/${id}`, { responseType: 'blob', headers: { 'X-Currency': baseCurrency.value } });
@@ -298,71 +312,71 @@
     return new Date(dateString).toLocaleDateString('tr-TR');
   };
 
+  const logout = () => { localStorage.clear(); router.push('/login'); };
+
   onMounted(() => { fetchData(); fetchTransactions(); });
 </script>
 
 <style scoped>
-  .dashboard-content { padding: 40px; overflow-y: auto; }
-  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-  .page-title h2 { color: var(--text-color); margin: 0; }
-  .subtitle { color: var(--text-muted); font-size: 0.9rem; }
-  .currency-wrapper { position: relative; z-index: 100; }
-  .currency-btn { background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; color: var(--accent-color); min-width: 150px; text-align: center; transition: 0.3s; }
-  .currency-btn:hover { border-color: var(--accent-color); }
-  .currency-dropdown { position: absolute; top: 110%; right: 0; background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 15px; width: 220px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-  .c-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid var(--border-color); position: relative; color: var(--text-color); }
-  .c-item:hover { background: var(--hover-bg); color: var(--accent-color); }
-  .has-submenu:hover .submenu { display: block; }
-  .submenu { display: none; position: absolute; top: 0; right: 100%; background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 15px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-right: 5px; }
-  .submenu div { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid var(--border-color); color: var(--text-color); }
-  .submenu div:hover { background: var(--hover-bg); color: var(--accent-color); }
-  .chart-section { display: flex; flex-direction: column; align-items: center; margin: 20px 0 50px 0; position: relative; }
+  .dashboard-page { display: flex; min-height: 100vh; background: var(--bg-color); color: var(--text-color); }
+  .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 25px; border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 100; }
+  .content { flex: 1; margin-left: 260px; padding: 40px; }
+
+  .brand { color: var(--accent-color); font-size: 1.6rem; font-weight: 800; text-align: center; margin-bottom: 40px; }
+  .user-badge { color: var(--success-color); font-weight: bold; text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+
+  .menu-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; color: var(--text-muted); display: flex; gap: 12px; transition: 0.3s; }
+  .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); }
+
+  .logout-wrapper { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); }
+  .logout { border: 2px solid var(--danger-color); border-radius: 12px; color: var(--danger-color); justify-content: center; font-weight: bold; padding: 12px; }
+  .logout:hover { background: var(--danger-color); color: white; }
+
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+  .currency-btn { background: var(--card-bg); border: 1px solid var(--border-color); padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; color: var(--accent-color); }
+
+  .chart-section { margin-bottom: 50px; display: flex; flex-direction: column; align-items: center; }
   .chart-wrapper { width: 300px; height: 300px; position: relative; }
-  .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
-  .center-balance h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-color); }
-  .center-balance small { color: var(--text-muted); }
-  .total-underline { width: 150px; height: 4px; background: linear-gradient(90deg, transparent, var(--accent-color), transparent); margin-top: 20px; border-radius: 2px; }
-  .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 8px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
-  .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
-  .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 10px; }
-  .asset-card { padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-  .asset-card:hover { transform: translateY(-7px) scale(1.02); }
-  .asset-card, .asset-card * { color: white !important; }
-  .card-btc { background: linear-gradient(135deg, #2b2b2b 0%, #000000 100%); border-bottom: 4px solid #555; }
-  .card-gold { background: linear-gradient(135deg, #DAA520 0%, #FFD700 50%, #B8860B 100%); border-bottom: 4px solid #FFF; }
-  .card-usd { background: linear-gradient(135deg, #059669 0%, #10B981 100%); border-bottom: 4px solid #A7F3D0; }
-  .card-eur { background: linear-gradient(135deg, #5D4037 0%, #8D6E63 100%); border-bottom: 4px solid #D7CCC8; }
-  .card-silver { background: linear-gradient(135deg, #757575 0%, #9E9E9E 100%); border-bottom: 4px solid #E0E0E0; }
-  .card-try { background: linear-gradient(135deg, #991B1B 0%, #EF4444 100%); border-bottom: 4px solid #FCA5A5; }
-  .card-icon { font-size: 2rem; }
-  .card-info { display: flex; flex-direction: column; }
-  .card-name { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; font-weight: bold; }
-  .card-amount { font-size: 1.2rem; font-weight: bold; }
-  .card-val { font-size: 0.8rem; opacity: 0.7; }
+  .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .center-balance h3 { font-size: 1.8rem; margin: 0; }
+
+  .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+  .asset-card { padding: 20px; border-radius: 20px; cursor: pointer; transition: 0.3s; border: 1px solid var(--border-color); }
+  .asset-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+  .asset-card * { color: white !important; }
+
+  .card-btc { background: linear-gradient(135deg, #1a1a1a, #444); }
+  .card-gold { background: linear-gradient(135deg, #DAA520, #FFD700); }
+  .card-usd { background: linear-gradient(135deg, #059669, #10B981); }
+  .card-eur { background: linear-gradient(135deg, #5D4037, #8D6E63); }
+  .card-silver { background: linear-gradient(135deg, #757575, #9E9E9E); }
+  .card-try { background: linear-gradient(135deg, #991B1B, #EF4444); }
+
+  .floating-actions { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; }
+  .f-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; }
+  .f-btn:hover { transform: scale(1.1); }
+  .excel { background: #10B981; color: white; }
+  .pdf { background: #3B82F6; color: white; }
+
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px); }
-  .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-  .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-  .modal-header h3 { color: var(--text-color); margin: 0; }
-  .modal-header button { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; }
-  .modal-body-split { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-  .transaction-form, .transaction-history { display: flex; flex-direction: column; gap: 10px; }
+  .large-modal { width: 750px !important; max-width: 95%; }
+  .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); }
+  .modal-body-split { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
   .transaction-history { border-left: 1px solid var(--border-color); padding-left: 20px; }
-  h4 { color: var(--text-muted); margin: 0 0 10px 0; }
-  .history-list { max-height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
-  .history-item { background: var(--input-bg); padding: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
-  .tx-info { display: flex; flex-direction: column; }
-  .tx-date { color: var(--text-muted); font-size: 0.8rem; }
+  .history-list { max-height: 300px; overflow-y: auto; }
+  .history-item { background: var(--input-bg); padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
   .tx-type.add { color: var(--success-color); }
   .tx-type.subtract { color: var(--danger-color); }
-  .tx-amount { color: var(--text-color); font-weight: bold; }
-  .receipt-download-btn { background: transparent; border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; padding: 5px; transition: 0.2s; }
-  .receipt-download-btn:hover { background: var(--hover-bg); }
-  .big-input, .ayar-select, .date-input { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); margin-bottom: 15px; font-size: 1.1rem; border-radius: 10px; box-sizing: border-box; }
-  .actions { display: flex; gap: 15px; margin-top: 10px; }
-  .actions button { flex: 1; padding: 15px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
-  .add { background: var(--success-color); } .sub { background: var(--danger-color); }
-  .receipt-btn { position: fixed; bottom: 30px; right: 30px; background: #3B82F6; width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 5px 20px rgba(59, 130, 246, 0.5); z-index: 90; }
+
+  .big-input, .ayar-select, .date-input { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 10px; margin-bottom: 15px; }
+  .actions { display: flex; gap: 10px; }
+  .actions button { flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; color: white; }
+  .add { background: var(--success-color); }
+  .sub { background: var(--danger-color); }
+
   @media (max-width: 768px) {
+    .sidebar { display: none; }
+    .content { margin-left: 0; }
     .modal-body-split { grid-template-columns: 1fr; }
     .transaction-history { border-left: none; border-top: 1px solid var(--border-color); padding-left: 0; padding-top: 20px; }
   }
