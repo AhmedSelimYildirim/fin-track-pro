@@ -7,15 +7,15 @@
       </div>
 
       <nav class="menu">
-        <div class="menu-item" :class="{ active: currentRoute === '/dashboard' }" @click="router.push('/dashboard')">
+        <div class="menu-item" :class="{ active: currentRoute.includes('/dashboard') }" @click="router.push('/dashboard')">
           <span>📊</span> {{ t('home') }}
         </div>
 
-        <div class="menu-item" :class="{ active: currentRoute === '/calendar' }" @click="router.push('/calendar')">
+        <div class="menu-item" :class="{ active: currentRoute.includes('/calendar') }" @click="router.push('/calendar')">
           <span>📅</span> {{ t('calendar') }}
         </div>
 
-        <div class="menu-item" :class="{ active: currentRoute === '/settings' }" @click="router.push('/settings')">
+        <div class="menu-item" :class="{ active: currentRoute.includes('/settings') }" @click="router.push('/settings')">
           <span>⚙️</span> {{ t('settings') }}
         </div>
       </nav>
@@ -102,6 +102,7 @@
   .app-container { display: flex; min-height: 100vh; }
   .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 25px; border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 100; transition: 0.3s; box-sizing: border-box; }
   .main-content { flex: 1; width: 100%; transition: 0.3s; padding-left: 260px; }
+  .content-shifted { padding-left: 260px; }
 
   .brand-container { margin-bottom: 40px; text-align: center; }
   .brand { color: var(--accent-color); font-size: 1.6rem; font-weight: 800; letter-spacing: 1px; }
@@ -116,6 +117,6 @@
 
   @media (max-width: 768px) {
     .sidebar { transform: translateX(-100%); }
-    .main-content { padding-left: 0; }
+    .main-content, .content-shifted { padding-left: 0; }
   }
 </style>

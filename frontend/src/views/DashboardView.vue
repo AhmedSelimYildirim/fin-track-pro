@@ -1,93 +1,62 @@
 <template>
-  <div class="dashboard-page">
-    <aside class="sidebar">
-      <div class="brand-container">
-        <div class="brand">FinTrack Pro</div>
-        <div class="user-badge">{{ currentUser }}</div>
+  <div class="dashboard-content">
+    <header class="top-bar">
+      <div class="page-title">
+        <h2>{{ t('portfolioSummary') }}</h2>
       </div>
-
-      <nav class="menu">
-        <div class="menu-item" :class="{ active: currentTab === 'dashboard' }" @click="currentTab = 'dashboard'">
-          <span>📊</span> {{ t('home') }}
+      <div class="currency-wrapper">
+        <div class="currency-btn" @click.stop="toggleDropdown">
+          {{ displayCurrency }} ▼
         </div>
-        <div class="menu-item" :class="{ active: currentTab === 'calendar' }" @click="router.push('/calendar')">
-          <span>📅</span> {{ t('calendar') }}
-        </div>
-        <div class="menu-item" :class="{ active: currentTab === 'settings' }" @click="currentTab = 'settings'">
-          <span>⚙️</span> {{ t('settings') }}
-        </div>
-      </nav>
-
-      <div class="logout-wrapper">
-        <div class="menu-item logout" @click="logout">
-          <span>🚪</span> {{ t('logout') }}
-        </div>
-      </div>
-    </aside>
-
-    <main class="content">
-      <SettingsView v-if="currentTab === 'settings'" />
-
-      <div v-else>
-        <header class="top-bar">
-          <div class="page-title">
-            <h2>{{ t('portfolioSummary') }}</h2>
-          </div>
-          <div class="currency-wrapper">
-            <div class="currency-btn" @click.stop="toggleDropdown">
-              {{ displayCurrency }} ▼
-            </div>
-            <div v-if="showSelector" class="currency-dropdown">
-              <div class="c-item" @click="changeCurrency('TRY', 0, 'Türk Lirası (TL)')">Türk Lirası (TL)</div>
-              <div class="c-item" @click="changeCurrency('USD', 0, 'Dolar ($)')">Dolar ($)</div>
-              <div class="c-item" @click="changeCurrency('EUR', 0, 'Euro (€)')">Euro (€)</div>
-              <div class="c-item" @click="changeCurrency('BTC', 0, 'Bitcoin')">Bitcoin</div>
-              <div class="c-item" @click="changeCurrency('SILVER', 0, 'Gümüş (Gram)')">Gümüş (Gram)</div>
-              <div class="c-item has-submenu">
-                {{ t('addAsset') }} (Altın) ▶
-                <div class="submenu">
-                  <div @click="changeCurrency('GOLD', 24, '24 Ayar (Has)')">24 Ayar</div>
-                  <div @click="changeCurrency('GOLD', 22, '22 Ayar')">22 Ayar</div>
-                  <div @click="changeCurrency('GOLD', 18, '18 Ayar')">18 Ayar</div>
-                  <div @click="changeCurrency('GOLD', 14, '14 Ayar')">14 Ayar</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div class="chart-section">
-          <div class="chart-wrapper">
-            <template v-if="hasData">
-              <Doughnut :data="chartData" :options="chartOptions" />
-              <div class="center-balance">
-                <h3>{{ totalValue }}</h3>
-                <small>{{ baseCurrencyLabel }}</small>
-              </div>
-            </template>
-            <div v-else class="no-data-circle">
-              <div class="no-data-content">
-                <span>{{ t('noData') }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="total-underline"></div>
-        </div>
-
-        <div class="assets-grid">
-          <div v-for="asset in cardConfigs" :key="asset.type"
-               class="asset-card" :class="'card-' + asset.type.toLowerCase()"
-               @click="openModal(asset.type)">
-            <div class="card-icon">{{ asset.icon }}</div>
-            <div class="card-info">
-              <span class="card-name">{{ asset.label }}</span>
-              <span class="card-amount">{{ getAmount(asset.type) }} {{ asset.unit }}</span>
-              <span class="card-val">%{{ getAllocation(asset.type) }}</span>
+        <div v-if="showSelector" class="currency-dropdown">
+          <div class="c-item" @click="changeCurrency('TRY', 0, 'Türk Lirası (TL)')">Türk Lirası (TL)</div>
+          <div class="c-item" @click="changeCurrency('USD', 0, 'Dolar ($)')">Dolar ($)</div>
+          <div class="c-item" @click="changeCurrency('EUR', 0, 'Euro (€)')">Euro (€)</div>
+          <div class="c-item" @click="changeCurrency('BTC', 0, 'Bitcoin')">Bitcoin</div>
+          <div class="c-item" @click="changeCurrency('SILVER', 0, 'Gümüş (Gram)')">Gümüş (Gram)</div>
+          <div class="c-item has-submenu">
+            {{ t('addAsset') }} (Altın) ▶
+            <div class="submenu">
+              <div @click="changeCurrency('GOLD', 24, '24 Ayar (Has)')">24 Ayar</div>
+              <div @click="changeCurrency('GOLD', 22, '22 Ayar')">22 Ayar</div>
+              <div @click="changeCurrency('GOLD', 18, '18 Ayar')">18 Ayar</div>
+              <div @click="changeCurrency('GOLD', 14, '14 Ayar')">14 Ayar</div>
             </div>
           </div>
         </div>
       </div>
-    </main>
+    </header>
+
+    <div class="chart-section">
+      <div class="chart-wrapper">
+        <template v-if="hasData">
+          <Doughnut :data="chartData" :options="chartOptions" />
+          <div class="center-balance">
+            <h3>{{ totalValue }}</h3>
+            <small>{{ baseCurrencyLabel }}</small>
+          </div>
+        </template>
+        <div v-else class="no-data-circle">
+          <div class="no-data-content">
+            <span>{{ t('noData') }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="total-underline"></div>
+    </div>
+
+    <div class="assets-grid">
+      <div v-for="asset in cardConfigs" :key="asset.type"
+           class="asset-card" :class="'card-' + asset.type.toLowerCase()"
+           @click="openModal(asset.type)">
+        <div class="card-icon">{{ asset.icon }}</div>
+        <div class="card-info">
+          <span class="card-name">{{ asset.label }}</span>
+          <span class="card-amount">{{ getAmount(asset.type) }} {{ asset.unit }}</span>
+          <span class="card-val">%{{ getAllocation(asset.type) }}</span>
+        </div>
+      </div>
+    </div>
 
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal-content large-modal">
@@ -133,7 +102,7 @@
       </div>
     </div>
 
-    <div class="floating-actions" v-if="currentTab === 'dashboard'">
+    <div class="floating-actions">
       <button class="f-btn excel" @click="downloadExcel" title="Excel Al">📊</button>
       <button class="f-btn pdf" @click="downloadReceipt" title="PDF Al">📄</button>
     </div>
@@ -142,18 +111,13 @@
 
 <script setup>
   import { ref, computed, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
   import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
   import { Doughnut } from 'vue-chartjs';
   import api from '../services/api';
   import { t } from '../utils/translations';
-  import SettingsView from './SettingsView.vue';
 
   ChartJS.register(ArcElement, Tooltip, Legend);
-  const router = useRouter();
 
-  const currentUser = ref(localStorage.getItem('username') || 'Yatırımcı');
-  const currentTab = ref('dashboard');
   const showSelector = ref(false);
   const showModal = ref(false);
   const activeAsset = ref('');
@@ -312,27 +276,11 @@
     return new Date(dateString).toLocaleDateString('tr-TR');
   };
 
-  const logout = () => { localStorage.clear(); router.push('/login'); };
-
   onMounted(() => { fetchData(); fetchTransactions(); });
 </script>
 
 <style scoped>
-  .dashboard-page { display: flex; min-height: 100vh; background: var(--bg-color); color: var(--text-color); }
-  .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 25px; border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 100; box-sizing: border-box; }
-  .content { flex: 1; margin-left: 260px; padding: 40px; overflow-y: auto; }
-
-  .brand-container { margin-bottom: 40px; text-align: center; }
-  .brand { color: var(--accent-color); font-size: 1.6rem; font-weight: 800; letter-spacing: 1px; }
-  .user-badge { margin-top: 5px; color: var(--success-color); font-weight: bold; font-size: 1.1rem; border-top: 1px solid var(--border-color); padding-top: 5px; }
-
-  .menu-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; color: var(--text-muted); display: flex; gap: 12px; align-items: center; transition: all 0.3s; font-weight: 500; }
-  .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); transform: translateX(5px); }
-
-  .logout-wrapper { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
-  .logout { border: 2px solid var(--danger-color); border-radius: 12px; color: var(--danger-color); justify-content: center; font-weight: bold; padding: 12px; transition: 0.2s; }
-  .logout:hover { background: var(--danger-color); color: white; }
-
+  .dashboard-content { padding: 40px; overflow-y: auto; width: 100%; height: 100%; }
   .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
   .page-title h2 { color: var(--text-color); margin: 0; }
   .currency-wrapper { position: relative; z-index: 100; }
@@ -369,6 +317,12 @@
   .card-silver { background: linear-gradient(135deg, #757575, #9E9E9E); }
   .card-try { background: linear-gradient(135deg, #991B1B, #EF4444); }
 
+  .card-icon { font-size: 2rem; }
+  .card-info { display: flex; flex-direction: column; }
+  .card-name { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; font-weight: bold; }
+  .card-amount { font-size: 1.2rem; font-weight: bold; }
+  .card-val { font-size: 0.8rem; opacity: 0.7; }
+
   .floating-actions { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 110; }
   .f-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; color: white; display: flex; align-items: center; justify-content: center; }
   .f-btn:hover { transform: scale(1.1); }
@@ -404,8 +358,6 @@
   .add:hover, .sub:hover { opacity: 0.9; }
 
   @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); display: none; }
-    .content { margin-left: 0; padding: 20px; }
     .modal-body-split { grid-template-columns: 1fr; }
     .transaction-history { border-left: none; border-top: 1px solid var(--border-color); padding-left: 0; padding-top: 20px; }
   }
