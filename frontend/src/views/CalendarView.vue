@@ -1,7 +1,7 @@
 <template>
   <div class="calendar-page">
     <aside class="sidebar">
-      <div class="brand">FinTrack Pro 🚀</div>
+      <div class="brand">FinTrack Pro</div>
 
       <nav class="menu">
         <div class="menu-item" @click="router.push('/dashboard')">

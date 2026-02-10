@@ -5,7 +5,7 @@
 
       <form @submit.prevent="handleAuth">
         <div class="input-group" v-if="isRegister">
-          <input v-model="fullName" type="text" placeholder="Ad Soyad (Örn: Ahmed Selim)" required />
+          <input v-model="fullName" type="text" placeholder="Ad Soyad" required />
         </div>
 
         <div class="input-group">
@@ -44,51 +44,37 @@
     loading.value = true;
     try {
       if (isRegister.value) {
-        // --- KAYIT OLMA İŞLEMİ ---
         await api.post('/auth/register', {
           full_name: fullName.value,
           email: email.value,
           password: password.value
         });
 
-        // İsmi hemen kaydedelim ki kaybolmasın
         if(fullName.value) {
           localStorage.setItem('username', fullName.value);
         }
 
         alert("Kayıt başarılı! Şimdi giriş yapabilirsin.");
-        isRegister.value = false; // Giriş ekranına dön
+        isRegister.value = false;
       } else {
-        // --- GİRİŞ YAPMA İŞLEMİ ---
         const res = await api.post('/auth/login', {
           email: email.value,
           password: password.value
         });
 
-        // Token'ı kaydet
         localStorage.setItem('token', res.data.token);
 
-        // Kullanıcı Adını Belirle:
-        // 1. Backend'den geldiyse onu al.
-        // 2. Gelmediyse, kayıt olurken localStorage'a attığımızı al.
-        // 3. O da yoksa "Yatırımcı" yaz.
         let savedName = res.data.username;
-        if (!savedName || savedName === "") {
-          savedName = localStorage.getItem('username');
-        }
-        if (!savedName) {
-          savedName = "Yatırımcı";
-        }
+        if (!savedName) savedName = localStorage.getItem('username');
+        if (!savedName) savedName = "Yatırımcı";
 
-        // Son kararı kaydet
         localStorage.setItem('username', savedName);
 
-        // Dashboard'a yönlendir
         router.push('/dashboard');
       }
     } catch (e) {
       console.error(e);
-      alert(e.response?.data?.error || "İşlem başarısız! Bilgileri kontrol et.");
+      alert(e.response?.data?.error || "İşlem başarısız!");
     } finally {
       loading.value = false;
     }
@@ -96,13 +82,13 @@
 </script>
 
 <style scoped>
-  .login-container { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #0F172A; }
-  .login-card { background: #1E293B; padding: 2rem; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
-  .title { color: white; margin-bottom: 1.5rem; font-size: 2rem; font-weight: bold; }
+  .login-container { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: var(--bg-color); }
+  .login-card { background: var(--card-bg); padding: 2rem; border-radius: 15px; width: 100%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; border: 1px solid var(--border-color); }
+  .title { color: var(--text-color); margin-bottom: 1.5rem; font-size: 2rem; font-weight: bold; }
   .input-group { margin-bottom: 1rem; }
-  .input-group input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155; background: #0F172A; color: white; box-sizing: border-box; }
-  .auth-btn { width: 100%; padding: 12px; background: #EF4444; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-  .auth-btn:hover { background: #DC2626; }
-  .toggle-text { color: #94A3B8; margin-top: 1rem; cursor: pointer; font-size: 0.9rem; }
-  .toggle-text:hover { color: white; text-decoration: underline; }
+  .input-group input { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--input-bg); color: var(--text-color); box-sizing: border-box; }
+  .auth-btn { width: 100%; padding: 12px; background: var(--danger-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+  .auth-btn:hover { opacity: 0.9; }
+  .toggle-text { color: var(--text-muted); margin-top: 1rem; cursor: pointer; font-size: 0.9rem; }
+  .toggle-text:hover { color: var(--text-color); text-decoration: underline; }
 </style>
