@@ -2,7 +2,7 @@
   <div class="dashboard-page">
     <aside class="sidebar">
       <div class="brand-container">
-        <div class="brand">FinTrack Pro 🚀</div>
+        <div class="brand">FinTrack Pro</div>
         <div class="user-badge">{{ currentUser }}</div>
       </div>
 
@@ -285,9 +285,10 @@
   .user-badge { margin-top: 5px; color: var(--success-color); font-weight: bold; font-size: 1.1rem; border-top: 1px solid var(--border-color); padding-top: 5px; }
   .menu-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; color: var(--text-muted); display: flex; gap: 12px; align-items: center; transition: all 0.3s; font-weight: 500; }
   .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); transform: translateX(5px); }
-  .logout-wrapper { margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 20px; }
-  .logout { border: 2px solid #EF4444; border-radius: 12px; color: #EF4444; justify-content: center; font-weight: bold; }
-  .logout:hover { background: #EF4444; color: white; transform: none; }
+  .logout-wrapper { margin-top: auto; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
+  /* KIRMIZI ÇERÇEVELİ LOGOUT BUTONU */
+  .logout { border: 2px solid var(--danger-color); border-radius: 12px; color: var(--danger-color); justify-content: center; font-weight: bold; padding: 12px; }
+  .logout:hover { background: var(--danger-color); color: white; transform: none; }
   .content { flex: 1; padding: 40px; }
   .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
   .page-title h2 { color: var(--text-color); margin: 0; }
@@ -311,7 +312,8 @@
   .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 10px; }
   .asset-card { padding: 20px; border-radius: 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: all 0.3s ease; position: relative; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
   .asset-card:hover { transform: translateY(-7px) scale(1.02); }
-  .asset-card * { color: white !important; }
+  /* KART İÇİNDEKİ YAZILAR ZORLA BEYAZ OLSUN (Sarı arka plan olsa bile) */
+  .asset-card, .asset-card * { color: white !important; }
   .card-btc { background: linear-gradient(135deg, #2b2b2b 0%, #000000 100%); border-bottom: 4px solid #555; }
   .card-gold { background: linear-gradient(135deg, #DAA520 0%, #FFD700 50%, #B8860B 100%); border-bottom: 4px solid #FFF; }
   .card-usd { background: linear-gradient(135deg, #059669 0%, #10B981 100%); border-bottom: 4px solid #A7F3D0; }

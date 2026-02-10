@@ -26,6 +26,10 @@
                     <label>Email</label>
                     <input v-model="email" type="email" placeholder="Email" />
                 </div>
+                <div class="form-group">
+                    <label>Yeni Şifre (İsteğe Bağlı)</label>
+                    <input v-model="password" type="password" placeholder="Değiştirmek isterseniz girin" />
+                </div>
                 <button class="save-btn" @click="updateProfile">Bilgileri Güncelle</button>
             </div>
 
@@ -47,6 +51,7 @@
     const { theme, toggleTheme } = inject('theme');
     const fullName = ref('');
     const email = ref('');
+    const password = ref('');
 
     onMounted(() => {
         fullName.value = localStorage.getItem('username') || '';
@@ -54,11 +59,15 @@
 
     const updateProfile = async () => {
         try {
-            await api.put('/user/update', { full_name: fullName.value, email: email.value });
+            const payload = { full_name: fullName.value, email: email.value };
+            if (password.value) payload.password = password.value;
+
+            await api.put('/user/update', payload);
             localStorage.setItem('username', fullName.value);
-            alert('Profil güncellendi!');
+            alert('Profil başarıyla güncellendi!');
+            password.value = '';
         } catch (e) {
-            alert('Güncelleme henüz aktif değil veya hata oluştu.');
+            alert('Hata: ' + (e.response?.data?.error || e.message));
         }
     };
 
@@ -69,33 +78,30 @@
                 localStorage.clear();
                 router.push('/login');
             } catch (e) {
-                alert('Silme işlemi sırasında hata oluştu.');
+                alert('Silme işlemi başarısız.');
             }
         }
     };
 </script>
 
 <style scoped>
-    .settings-page { min-height: 100vh; background-color: var(--bg-color); display: flex; justify-content: center; padding: 40px; }
+    .settings-page { min-height: 100vh; background-color: var(--bg-color); display: flex; justify-content: center; padding: 40px; color: var(--text-color); }
     .settings-container { width: 100%; max-width: 600px; }
     .header { display: flex; align-items: center; gap: 20px; margin-bottom: 30px; }
-    .back-btn { background: none; border: none; color: var(--text-color); cursor: pointer; font-size: 1rem; }
-    h2, h3 { color: var(--text-color); }
+    .back-btn { background: none; border: none; color: var(--text-color); cursor: pointer; font-size: 1.2rem; font-weight: bold; }
+    h2, h3 { color: var(--text-color); margin: 0; }
     .section { background: var(--card-bg); padding: 25px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--border-color); }
-
-    .theme-toggle { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 10px; border-radius: 8px; background: var(--input-bg); color: var(--text-color); }
+    .theme-toggle { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 10px; border-radius: 8px; background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); }
     .switch { width: 50px; height: 26px; background: #334155; border-radius: 20px; position: relative; transition: 0.3s; }
     .switch.active { background: var(--success-color); }
     .slider { width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: 0.3s; }
     .switch.active .slider { left: 27px; }
-
     .form-group { margin-bottom: 15px; }
-    label { display: block; margin-bottom: 5px; color: var(--text-muted); }
+    label { display: block; margin-bottom: 5px; color: var(--text-muted); font-size: 0.9rem; }
     input { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 8px; box-sizing: border-box; }
-
     .save-btn { width: 100%; padding: 12px; background: #3B82F6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
     .danger-zone { border: 1px solid var(--danger-color); }
-    .danger-zone h3 { color: var(--danger-color); }
+    .danger-zone h3 { color: var(--danger-color); margin-bottom: 10px; }
     .danger-zone p { color: var(--text-muted); margin-bottom: 15px; }
     .delete-btn { width: 100%; padding: 12px; background: var(--danger-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
 </style>
