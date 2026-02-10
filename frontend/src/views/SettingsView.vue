@@ -1,68 +1,72 @@
 <template>
-    <div class="settings-content">
-        <div class="settings-header">
-            <h2>{{ t('settings') }}</h2>
+    <div class="settings-wrapper">
+        <div class="animated-background">
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="orb orb-3"></div>
         </div>
 
-        <div class="settings-grid">
-            <div class="section-card">
-                <h3>{{ t('appearance') }}</h3>
-
-                <div class="setting-item">
-                    <div class="item-info">
-                        <span class="icon">🌓</span>
-                        <div>
-                            <span class="label">{{ t('theme') }}</span>
-                            <span class="sub-label">{{ theme === 'dark' ? t('darkMode') : t('lightMode') }}</span>
-                        </div>
-                    </div>
-                    <div class="theme-switch" :class="{ 'is-light': theme === 'light' }" @click="toggleTheme">
-                        <div class="switch-handle">
-                            <span v-if="theme === 'dark'">🌙</span>
-                            <span v-else>☀️</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="setting-item mt-20">
-                    <div class="item-info">
-                        <span class="icon">🌍</span>
-                        <span class="label">{{ t('language') }}</span>
-                    </div>
-                    <div class="lang-buttons">
-                        <button v-for="lang in languages" :key="lang.code"
-                                :class="{ active: selectedLang === lang.code }"
-                                @click="changeLang(lang.code)">
-                            {{ lang.flag }} {{ lang.name }}
-                        </button>
-                    </div>
-                </div>
+        <div class="settings-content">
+            <div class="settings-header">
+                <h2>{{ t('settings') }}</h2>
             </div>
 
-            <div class="section-card">
-                <h3>{{ t('profileSettings') }}</h3>
-                <div class="input-group">
-                    <label>{{ t('username') }}</label>
-                    <input v-model="username" type="text" />
+            <div class="settings-grid">
+                <div class="section-card">
+                    <h3>{{ t('appearance') }}</h3>
+                    <div class="setting-item">
+                        <div class="item-info">
+                            <span class="icon">🌓</span>
+                            <div>
+                                <span class="label">{{ t('theme') }}</span>
+                                <span class="sub-label">{{ theme === 'dark' ? t('darkMode') : t('lightMode') }}</span>
+                            </div>
+                        </div>
+                        <div class="theme-switch" :class="{ 'is-light': theme === 'light' }" @click="toggleTheme">
+                            <div class="switch-handle">
+                                <span v-if="theme === 'dark'">🌙</span>
+                                <span v-else>☀️</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="setting-item mt-20">
+                        <div class="item-info">
+                            <span class="icon">🌍</span>
+                            <span class="label">{{ t('language') }}</span>
+                        </div>
+                        <div class="lang-buttons">
+                            <button v-for="lang in languages" :key="lang.code" :class="{ active: selectedLang === lang.code }" @click="changeLang(lang.code)">
+                                {{ lang.flag }} {{ lang.name }}
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <div class="input-group">
-                    <label>{{ t('email') }}</label>
-                    <input v-model="email" type="email" />
-                </div>
-                <div class="input-group">
-                    <label>{{ t('password') }}</label>
-                    <input v-model="password" type="password" :placeholder="t('passwordHint')" />
-                </div>
-                <button class="save-btn" :disabled="isLoading" @click="updateProfile">
-                    <span v-if="!isLoading">{{ t('update') }}</span>
-                    <span v-else class="spinner"></span>
-                </button>
-            </div>
 
-            <div class="section-card danger">
-                <h3>{{ t('dangerZone') }}</h3>
-                <p>{{ t('deleteWarning') }}</p>
-                <button class="delete-btn" @click="deleteAccount">{{ t('deleteAccount') }}</button>
+                <div class="section-card">
+                    <h3>{{ t('profileSettings') }}</h3>
+                    <div class="input-group">
+                        <label>{{ t('username') }}</label>
+                        <input v-model="username" type="text" />
+                    </div>
+                    <div class="input-group">
+                        <label>{{ t('email') }}</label>
+                        <input v-model="email" type="email" />
+                    </div>
+                    <div class="input-group">
+                        <label>{{ t('password') }}</label>
+                        <input v-model="password" type="password" :placeholder="t('passwordHint')" />
+                    </div>
+                    <button class="save-btn" :disabled="isLoading" @click="updateProfile">
+                        <span v-if="!isLoading">{{ t('update') }}</span>
+                        <span v-else class="spinner"></span>
+                    </button>
+                </div>
+
+                <div class="section-card danger">
+                    <h3>{{ t('dangerZone') }}</h3>
+                    <p>{{ t('deleteWarning') }}</p>
+                    <button class="delete-btn" @click="deleteAccount">{{ t('deleteAccount') }}</button>
+                </div>
             </div>
         </div>
     </div>
@@ -104,19 +108,12 @@
     const updateProfile = async () => {
         isLoading.value = true;
         try {
-            const payload = {
-                username: username.value,
-                email: email.value
-            };
+            const payload = { username: username.value, email: email.value };
             if (password.value) payload.password = password.value;
-
             await api.put('/user/update', payload);
             localStorage.setItem('username', username.value);
             password.value = '';
-
-            // Sidebar'daki ismin güncellenmesi için event tetikle
             window.dispatchEvent(new Event('storage'));
-
             alert("Profil güncellendi!");
         } catch (e) {
             alert('Hata: ' + (e.response?.data?.error || e.message));
@@ -131,18 +128,24 @@
                 await api.delete('/user/delete');
                 localStorage.clear();
                 router.push('/login');
-            } catch (e) {
-                alert('Silme işlemi başarısız.');
-            }
+            } catch (e) { alert('Silme işlemi başarısız.'); }
         }
     };
 </script>
 
 <style scoped>
-    .settings-content { padding: 30px; width: 100%; max-width: 800px; margin: 0 auto; color: var(--text-color); }
+    .settings-wrapper { position: relative; width: 100%; min-height: 100%; overflow-y: auto; }
+    .animated-background { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
+    .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; animation: floatOrb 15s infinite alternate ease-in-out; }
+    .orb-1 { width: 60vw; height: 60vw; background: #4f46e5; top: -20%; left: -10%; }
+    .orb-2 { width: 50vw; height: 50vw; background: #ec4899; bottom: -20%; right: -10%; }
+    .orb-3 { width: 40vw; height: 40vw; background: #10b981; top: 40%; left: 40%; }
+    @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
+
+    .settings-content { position: relative; z-index: 10; padding: 30px; width: 100%; max-width: 800px; margin: 0 auto; color: var(--text-color); box-sizing: border-box; }
     .settings-header h2 { margin-bottom: 30px; font-size: 1.8rem; }
     .settings-grid { display: grid; gap: 20px; }
-    .section-card { background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid var(--border-color); }
+    .section-card { background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid var(--border-color); backdrop-filter: blur(10px); }
     .section-card h3 { margin-top: 0; margin-bottom: 20px; color: var(--accent-color); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
     .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
     .item-info { display: flex; align-items: center; gap: 15px; }

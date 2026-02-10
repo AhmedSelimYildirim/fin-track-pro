@@ -81,9 +81,7 @@
       localStorage.setItem('token', res.data.token);
 
       let user = res.data.username;
-      if (!user) {
-        user = loginData.email.split('@')[0];
-      }
+      if (!user) user = loginData.email.split('@')[0];
       localStorage.setItem('username', user);
 
       router.push('/dashboard');
@@ -98,14 +96,10 @@
     if (!registerData.username || !registerData.email || !registerData.password) return alert("Bilgileri giriniz.");
     isLoading.value = true;
     try {
-      await api.post('/auth/register', {
-        username: registerData.username,
-        email: registerData.email,
-        password: registerData.password
-      });
+      await api.post('/auth/register', { username: registerData.username, email: registerData.email, password: registerData.password });
       activeTab.value = 'login';
       registerData.username = ''; registerData.email = ''; registerData.password = '';
-      alert("Kayıt başarılı! Lütfen giriş yapın.");
+      alert("Kayıt başarılı! Giriş yapabilirsiniz.");
     } catch (e) {
       alert('Hata: ' + (e.response?.data?.error || 'Kayıt başarısız.'));
     } finally {
