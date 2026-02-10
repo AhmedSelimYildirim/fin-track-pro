@@ -1,46 +1,56 @@
 <template>
-    <div class="settings-page">
-        <div class="settings-container">
-            <div class="header">
-                <h2>{{ t('settings') }}</h2>
-            </div>
+    <div class="settings-content">
+        <div class="settings-header">
+            <h2>Ayarlar</h2>
+        </div>
 
-            <div class="section">
-                <h3>{{ t('appearance') }}</h3>
+        <div class="settings-grid">
+            <div class="section-card">
+                <h3>Görünüm & Dil</h3>
 
-                <div class="setting-item" @click="toggleTheme">
-                    <span>{{ theme === 'dark' ? t('darkMode') : t('lightMode') }}</span>
-                    <div class="switch" :class="{ active: theme === 'light' }"><div class="slider"></div></div>
+                <div class="setting-row" @click="toggleTheme">
+                    <div class="label">
+                        <span class="icon">🌓</span>
+                        <span>Tema</span>
+                    </div>
+                    <div class="value">{{ theme === 'dark' ? 'Karanlık' : 'Aydınlık' }}</div>
                 </div>
 
-                <div class="setting-item mt-20">
-                    <span>{{ t('language') }}</span>
+                <div class="setting-row">
+                    <div class="label">
+                        <span class="icon">🌍</span>
+                        <span>Dil</span>
+                    </div>
                     <select v-model="selectedLang" @change="changeLang" class="lang-select">
-                        <option value="tr">Türkçe 🇹🇷</option>
-                        <option value="en">English 🇬🇧</option>
-                        <option value="de">Deutsch 🇩🇪</option>
-                        <option value="fr">Français 🇫🇷</option>
+                        <option value="tr">Türkçe</option>
+                        <option value="en">English</option>
+                        <option value="de">Deutsch</option>
+                        <option value="fr">Français</option>
                     </select>
                 </div>
             </div>
 
-            <div class="section">
-                <h3>{{ t('profileSettings') }}</h3>
-                <div class="form-group">
-                    <input v-model="fullName" type="text" placeholder="Ad Soyad" />
+            <div class="section-card">
+                <h3>Profil Bilgileri</h3>
+                <div class="input-group">
+                    <label>Ad Soyad</label>
+                    <input v-model="fullName" type="text" />
                 </div>
-                <div class="form-group">
-                    <input v-model="email" type="email" placeholder="Email" />
+                <div class="input-group">
+                    <label>E-Posta</label>
+                    <input v-model="email" type="email" />
                 </div>
-                <div class="form-group">
-                    <input v-model="password" type="password" placeholder="Yeni Şifre (İsteğe Bağlı)" />
+                <div class="input-group">
+                    <label>Yeni Şifre</label>
+                    <input v-model="password" type="password" placeholder="Değiştirmek istemiyorsanız boş bırakın" />
                 </div>
-                <button class="save-btn" @click="updateProfile">{{ t('update') }}</button>
+                <button class="save-btn" @click="updateProfile">Bilgileri Güncelle</button>
             </div>
 
-            <div class="section danger-zone">
-                <h3>{{ t('dangerZone') }}</h3>
-                <button class="delete-btn" @click="deleteAccount">{{ t('deleteAccount') }}</button>
+            <div class="section-card danger">
+                <h3>Hesap İşlemleri</h3>
+                <p>Hesabınızı silerseniz tüm verileriniz kalıcı olarak kaybolur.</p>
+                <button class="delete-btn" @click="deleteAccount">Hesabımı Sil</button>
             </div>
         </div>
     </div>
@@ -50,7 +60,7 @@
     import { ref, inject, onMounted } from 'vue';
     import { useRouter } from 'vue-router';
     import api from '../services/api';
-    import { t, currentLang } from '../utils/translations';
+    import { currentLang } from '../utils/translations';
 
     const router = useRouter();
     const { theme, toggleTheme } = inject('theme');
@@ -66,7 +76,6 @@
     const changeLang = () => {
         currentLang.value = selectedLang.value;
         localStorage.setItem('lang', selectedLang.value);
-        // Sayfayı yenile ki menüler de güncellensin
         window.location.reload();
     };
 
@@ -76,38 +85,43 @@
             if (password.value) payload.password = password.value;
             await api.put('/user/update', payload);
             localStorage.setItem('username', fullName.value);
-            alert('Güncellendi!');
-            window.location.reload(); // İsim güncellensin diye
-        } catch (e) { alert('Hata oluştu.'); }
+            alert('Profil güncellendi!');
+            password.value = '';
+        } catch (e) {
+            alert('Hata: ' + (e.response?.data?.error || e.message));
+        }
     };
 
     const deleteAccount = async () => {
-        if (confirm('Emin misiniz?')) {
+        if (confirm('Hesabınızı silmek istediğinize emin misiniz?')) {
             try {
                 await api.delete('/user/delete');
                 localStorage.clear();
                 router.push('/login');
-            } catch (e) { alert('Hata.'); }
+            } catch (e) {
+                alert('Silme işlemi başarısız.');
+            }
         }
     };
 </script>
 
 <style scoped>
-    .settings-page { padding: 40px; display: flex; justify-content: center; }
-    .settings-container { width: 100%; max-width: 600px; }
-    h2, h3 { color: var(--text-color); margin-bottom: 20px; }
-    .section { background: var(--card-bg); padding: 25px; border-radius: 15px; margin-bottom: 20px; border: 1px solid var(--border-color); }
-    .setting-item { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 10px; border-radius: 8px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); }
-    .mt-20 { margin-top: 15px; }
-    .lang-select { background: transparent; border: none; color: var(--text-color); font-size: 1rem; outline: none; }
-    .switch { width: 50px; height: 26px; background: #334155; border-radius: 20px; position: relative; transition: 0.3s; }
-    .switch.active { background: var(--success-color); }
-    .slider { width: 20px; height: 20px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: 0.3s; }
-    .switch.active .slider { left: 27px; }
-    .form-group { margin-bottom: 15px; }
-    input { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 8px; box-sizing: border-box; }
-    .save-btn { width: 100%; padding: 12px; background: #3B82F6; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-    .danger-zone { border: 1px solid var(--danger-color); }
-    .danger-zone h3 { color: var(--danger-color); }
-    .delete-btn { width: 100%; padding: 12px; background: var(--danger-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .settings-content { padding: 30px; width: 100%; max-width: 800px; margin: 0 auto; color: var(--text-color); }
+    .settings-header h2 { margin-bottom: 30px; font-size: 1.8rem; }
+    .settings-grid { display: grid; gap: 20px; }
+    .section-card { background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid var(--border-color); }
+    .section-card h3 { margin-top: 0; margin-bottom: 20px; color: var(--accent-color); font-size: 1.1rem; }
+    .setting-row { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid var(--border-color); cursor: pointer; }
+    .setting-row:last-child { border-bottom: none; }
+    .label { display: flex; align-items: center; gap: 10px; font-weight: 500; }
+    .value { color: var(--text-muted); }
+    .lang-select { background: var(--input-bg); color: var(--text-color); border: 1px solid var(--border-color); padding: 5px 10px; border-radius: 5px; }
+    .input-group { margin-bottom: 15px; }
+    .input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted); }
+    .input-group input { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 8px; box-sizing: border-box; }
+    .save-btn { width: 100%; padding: 12px; background: var(--success-color); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+    .danger { border-color: var(--danger-color); }
+    .danger h3 { color: var(--danger-color); }
+    .danger p { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 15px; }
+    .delete-btn { background: var(--danger-color); color: white; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 </style>
