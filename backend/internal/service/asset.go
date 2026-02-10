@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/jung-kurt/gofpdf"
+	"github.com/xuri/excelize/v2"
 )
 
 type AssetService struct {
@@ -272,6 +273,48 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Rapor Tarihi: %s | Kullanici: %s", time.Now().Format("02.01.2006 15:04"), userName)))
 	var buf bytes.Buffer
 	pdf.Output(&buf)
+	return buf.Bytes(), nil
+}
+
+func (s *AssetService) GenerateExcelReport(userID uint) ([]byte, error) {
+	txs, err := s.repo.GetTransactionsByUserID(userID)
+	if err != nil {
+		return nil, err
+	}
+	f := excelize.NewFile()
+	sheet := "Islemler"
+	index, _ := f.NewSheet(sheet)
+	f.SetActiveSheet(index)
+	headers := []string{"ID", "Tarih", "Islem Tipi", "Varlik", "Ayar (Varsa)", "Miktar", "Islem Fiyati (TRY)", "Toplam Tutar (TRY)"}
+	for i, h := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 1)
+		f.SetCellValue(sheet, cell, h)
+	}
+	style, _ := f.NewStyle(&excelize.Style{Font: &excelize.Font{Bold: true}})
+	f.SetCellStyle(sheet, "A1", "H1", style)
+	for i, tx := range txs {
+		row := i + 2
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), tx.ID)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), tx.TransactionDate.Format("02.01.2006 15:04"))
+		typeTr := "Ekleme"
+		if tx.Type == "subtract" {
+			typeTr = "Cikarma"
+		}
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), typeTr)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), tx.AssetType)
+		if tx.Ayar > 0 {
+			f.SetCellValue(sheet, fmt.Sprintf("E%d", row), tx.Ayar)
+		} else {
+			f.SetCellValue(sheet, fmt.Sprintf("E%d", row), "-")
+		}
+		f.SetCellValue(sheet, fmt.Sprintf("F%d", row), tx.Amount)
+		f.SetCellValue(sheet, fmt.Sprintf("G%d", row), tx.Price)
+		f.SetCellValue(sheet, fmt.Sprintf("H%d", row), tx.Amount*tx.Price)
+	}
+	buf, err := f.WriteToBuffer()
+	if err != nil {
+		return nil, err
+	}
 	return buf.Bytes(), nil
 }
 

@@ -5,6 +5,7 @@ import (
 	"fin-track-pro/internal/service"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -88,4 +89,15 @@ func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 	c.Set("Content-Type", "application/pdf")
 	c.Set("Content-Disposition", "attachment; filename=toplam_portfoy.pdf")
 	return c.Send(pdfBytes)
+}
+
+func (h *AssetHandler) GetExcel(c *fiber.Ctx) error {
+	userID := c.Locals("user_id").(uint)
+	excelBytes, err := h.service.GenerateExcelReport(userID)
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Excel raporu uretilemedi"})
+	}
+	c.Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=islemler_%s.xlsx", time.Now().Format("20060102")))
+	return c.Send(excelBytes)
 }
