@@ -111,14 +111,12 @@
 
 <script setup>
   import { ref, computed, onMounted } from 'vue';
-  import { useRouter } from 'vue-router';
   import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
   import { Doughnut } from 'vue-chartjs';
   import api from '../services/api';
   import { t } from '../utils/translations';
 
   ChartJS.register(ArcElement, Tooltip, Legend);
-  const router = useRouter();
 
   const showSelector = ref(false);
   const showModal = ref(false);
@@ -282,14 +280,14 @@
 </script>
 
 <style scoped>
-  .dashboard-content { padding: 40px; overflow-y: auto; width: 100%; height: 100%; }
-  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-  .page-title h2 { color: var(--text-color); margin: 0; }
+  .dashboard-content { width: 100%; height: 100%; overflow-y: auto; padding: 30px; box-sizing: border-box; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 20px; }
+  .page-title h2 { color: var(--text-color); margin: 0; font-size: 1.8rem; }
   .currency-wrapper { position: relative; z-index: 100; }
-  .currency-btn { background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; color: var(--accent-color); transition: 0.3s; }
+  .currency-btn { background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; color: var(--accent-color); transition: 0.3s; display: flex; align-items: center; justify-content: center; min-width: 160px; }
   .currency-btn:hover { border-color: var(--accent-color); }
 
-  .currency-dropdown { position: absolute; top: 110%; right: 0; background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 15px; width: 220px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .currency-dropdown { position: absolute; top: 110%; right: 0; background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 15px; width: 220px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 101; }
   .c-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid var(--border-color); position: relative; color: var(--text-color); transition: 0.2s; }
   .c-item:hover { background: var(--hover-bg); color: var(--accent-color); }
   .has-submenu:hover .submenu { display: block; }
@@ -297,20 +295,20 @@
   .submenu div { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid var(--border-color); color: var(--text-color); }
   .submenu div:hover { background: var(--hover-bg); color: var(--accent-color); }
 
-  .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 50px; position: relative; }
+  .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 50px; position: relative; width: 100%; }
   .chart-wrapper { width: 300px; height: 300px; position: relative; }
   .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
-  .center-balance h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-color); }
+  .center-balance h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; }
   .center-balance small { color: var(--text-muted); }
   .total-underline { width: 150px; height: 4px; background: linear-gradient(90deg, transparent, var(--accent-color), transparent); margin-top: 20px; border-radius: 2px; }
 
   .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 8px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
   .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
 
-  .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-  .asset-card { padding: 20px; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 15px; }
-  .asset-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-  .asset-card, .asset-card * { color: white !important; }
+  .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; width: 100%; }
+  .asset-card { padding: 25px; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 15px; position: relative; overflow: hidden; }
+  .asset-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
+  .asset-card * { color: white !important; }
 
   .card-btc { background: linear-gradient(135deg, #1a1a1a, #444); }
   .card-gold { background: linear-gradient(135deg, #DAA520, #FFD700); }
@@ -318,6 +316,12 @@
   .card-eur { background: linear-gradient(135deg, #5D4037, #8D6E63); }
   .card-silver { background: linear-gradient(135deg, #757575, #9E9E9E); }
   .card-try { background: linear-gradient(135deg, #991B1B, #EF4444); }
+
+  .card-icon { font-size: 2.2rem; }
+  .card-info { display: flex; flex-direction: column; }
+  .card-name { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+  .card-amount { font-size: 1.4rem; font-weight: bold; margin: 2px 0; }
+  .card-val { font-size: 0.85rem; opacity: 0.8; }
 
   .floating-actions { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 110; }
   .f-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; color: white; display: flex; align-items: center; justify-content: center; }
@@ -354,8 +358,6 @@
   .add:hover, .sub:hover { opacity: 0.9; }
 
   @media (max-width: 768px) {
-    .sidebar { transform: translateX(-100%); display: none; }
-    .content { margin-left: 0; padding: 20px; }
     .modal-body-split { grid-template-columns: 1fr; }
     .transaction-history { border-left: none; border-top: 1px solid var(--border-color); padding-left: 0; padding-top: 20px; }
   }
