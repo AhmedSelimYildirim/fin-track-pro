@@ -1,5 +1,11 @@
 <template>
   <div class="login-page">
+    <transition name="slide-down">
+      <div v-if="notification.show" class="toast-notification" :class="notification.type">
+        {{ notification.message }}
+      </div>
+    </transition>
+
     <div class="glow-bg glow-1"></div>
     <div class="glow-bg glow-2"></div>
 
@@ -22,8 +28,9 @@
             <div class="input-box">
               <input v-model="loginData.password" type="password" placeholder="Şifre" />
             </div>
-            <button class="action-btn" @click="handleLogin">
-              <span>Giriş Yap</span>
+            <button class="action-btn" :disabled="isLoading" @click="handleLogin">
+              <span v-if="isLoading" class="spinner"></span>
+              <span v-else>Giriş Yap</span>
             </button>
           </div>
 
@@ -37,8 +44,9 @@
             <div class="input-box">
               <input v-model="registerData.password" type="password" placeholder="Şifre Belirle" />
             </div>
-            <button class="action-btn register-btn" @click="handleRegister">
-              <span>Hesap Oluştur</span>
+            <button class="action-btn register-btn" :disabled="isLoading" @click="handleRegister">
+              <span v-if="isLoading" class="spinner"></span>
+              <span v-else>Hesap Oluştur</span>
             </button>
           </div>
         </transition>
@@ -54,54 +62,79 @@
 
   const router = useRouter()
   const activeTab = ref('login')
+  const isLoading = ref(false)
+  const notification = ref({ show: false, message: '', type: 'success' })
 
   const loginData = ref({ username: '', password: '' })
   const registerData = ref({ username: '', email: '', password: '' })
 
-  const handleLogin = async () => {
-    try {
-      const res = await api.post('/auth/login', loginData.value)
+  const showNotification = (msg, type = 'success') => {
+    notification.value = { show: true, message: msg, type }
+    setTimeout(() => {
+      notification.value.show = false
+    }, 3000)
+  }
 
-      // Token Kaydı
+  const handleLogin = async () => {
+    if (!loginData.value.username || !loginData.value.password) {
+      showNotification('Lütfen tüm alanları doldurun.', 'error')
+      return
+    }
+
+    isLoading.value = true
+    try {
+      const res = await api.post('/api/v1/auth/login', loginData.value)
+
       localStorage.setItem('token', res.data.token)
 
-      // Backend'den gelen kullanıcı verisini al
       const userData = res.data.user || {}
 
-      // Username ve Email'i ayrı ayrı kaydet (Settings için kritik)
       if (userData.username) {
         localStorage.setItem('username', userData.username)
       } else {
-        // Eğer backend username dönmezse inputtan al
         localStorage.setItem('username', loginData.value.username)
       }
 
       if (userData.email) {
         localStorage.setItem('email', userData.email)
       } else {
-        // Email yoksa boş string bas, null olmasın
         localStorage.setItem('email', '')
       }
 
       router.push('/dashboard')
     } catch (e) {
-      alert('Giriş başarısız: ' + (e.response?.data?.message || e.message))
+      showNotification(e.response?.data?.message || 'Giriş başarısız, bilgileri kontrol edin.', 'error')
+    } finally {
+      isLoading.value = false
     }
   }
 
   const handleRegister = async () => {
+    if (!registerData.value.username || !registerData.value.email || !registerData.value.password) {
+      showNotification('Lütfen tüm alanları doldurun.', 'error')
+      return
+    }
+
+    isLoading.value = true
     try {
-      await api.post('/auth/register', registerData.value)
-      alert('Kayıt başarılı! Lütfen giriş yapın.')
+      await api.post('/api/v1/auth/register', registerData.value)
+
+      showNotification('Kayıt başarılı! Giriş yapılıyor...', 'success')
+
+      loginData.value.username = registerData.value.username
+      loginData.value.password = registerData.value.password
+
       activeTab.value = 'login'
+
     } catch (e) {
-      alert('Kayıt hatası: ' + e.message)
+      showNotification(e.response?.data?.message || 'Kayıt sırasında hata oluştu.', 'error')
+    } finally {
+      isLoading.value = false
     }
   }
 </script>
 
 <style scoped>
-  /* Fixed Layout */
   .login-page {
     position: fixed;
     inset: 0;
@@ -115,7 +148,27 @@
     z-index: 1000;
   }
 
-  /* Glow Effects */
+  .toast-notification {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 12px 24px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    z-index: 2000;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .toast-notification.success { background: rgba(34, 197, 94, 0.9); }
+  .toast-notification.error { background: rgba(239, 68, 68, 0.9); }
+
+  .slide-down-enter-active, .slide-down-leave-active { transition: all 0.3s ease; }
+  .slide-down-enter-from, .slide-down-leave-to { transform: translate(-50%, -100%); opacity: 0; }
+
   .glow-bg {
     position: absolute;
     border-radius: 50%;
@@ -125,7 +178,6 @@
   .glow-1 { width: 300px; height: 300px; background: #22c55e; top: -50px; left: -50px; }
   .glow-2 { width: 400px; height: 400px; background: #3b82f6; bottom: -100px; right: -100px; }
 
-  /* Glass Card */
   .glass-card {
     position: relative;
     width: 400px;
@@ -151,7 +203,6 @@
   .highlight { color: #facc15; }
   .brand-subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-top: 5px; margin-bottom: 30px; }
 
-  /* Tab Container */
   .tab-container {
     background: rgba(15, 23, 42, 0.6);
     padding: 4px;
@@ -190,7 +241,6 @@
 
   .tab-btn.active { color: white; }
 
-  /* Inputs */
   .input-box { margin-bottom: 15px; }
 
   input {
@@ -211,7 +261,6 @@
     background: rgba(2, 6, 23, 0.8);
   }
 
-  /* Buttons */
   .action-btn {
     width: 100%;
     padding: 16px;
@@ -224,13 +273,29 @@
     cursor: pointer;
     margin-top: 10px;
     transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 56px;
   }
 
-  .action-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(34, 197, 94, 0.4); }
-  .register-btn { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
-  .register-btn:hover { box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4); }
+  .action-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(34, 197, 94, 0.4); }
+  .action-btn:disabled { opacity: 0.7; cursor: not-allowed; }
 
-  /* Transitions */
+  .register-btn { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); }
+  .register-btn:hover:not(:disabled) { box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.4); }
+
   .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
   .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+  .spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid rgba(255,255,255,0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
