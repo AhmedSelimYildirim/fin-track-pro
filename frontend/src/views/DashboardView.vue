@@ -2,7 +2,7 @@
   <div class="dashboard-page">
     <aside class="sidebar">
       <div class="brand-container">
-        <div class="brand">FinTrack Pro 🚀</div>
+        <div class="brand">FinTrack Pro</div>
         <div class="user-badge">{{ currentUser }}</div>
       </div>
 
@@ -368,12 +368,6 @@
   .card-eur { background: linear-gradient(135deg, #5D4037, #8D6E63); }
   .card-silver { background: linear-gradient(135deg, #757575, #9E9E9E); }
   .card-try { background: linear-gradient(135deg, #991B1B, #EF4444); }
-
-  .card-icon { font-size: 2rem; }
-  .card-info { display: flex; flex-direction: column; }
-  .card-name { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; font-weight: bold; }
-  .card-amount { font-size: 1.2rem; font-weight: bold; }
-  .card-val { font-size: 0.8rem; opacity: 0.7; }
 
   .floating-actions { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 110; }
   .f-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; color: white; display: flex; align-items: center; justify-content: center; }
