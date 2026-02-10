@@ -9,20 +9,21 @@
           {{ displayCurrency }} ▼
         </div>
         <div v-if="showSelector" class="currency-dropdown">
-          <div class="c-item" @click="changeCurrency('TRY', 0, 'Türk Lirası (TL)')">Türk Lirası (TL)</div>
-          <div class="c-item" @click="changeCurrency('USD', 0, 'Dolar ($)')">Dolar ($)</div>
-          <div class="c-item" @click="changeCurrency('EUR', 0, 'Euro (€)')">Euro (€)</div>
-          <div class="c-item" @click="changeCurrency('BTC', 0, 'Bitcoin')">Bitcoin</div>
-          <div class="c-item" @click="changeCurrency('SILVER', 0, 'Gümüş (Gram)')">Gümüş (Gram)</div>
+          <div class="c-item" @click="changeCurrency('TRY', 0, 'TRY')">TRY</div>
+          <div class="c-item" @click="changeCurrency('GOLD', 24, 'GOLD (GR)')">GOLD (GR)</div>
+          <div class="c-item" @click="changeCurrency('USD', 0, 'USD')">USD</div>
+          <div class="c-item" @click="changeCurrency('BTC', 0, 'BTC')">BTC</div>
+          <div class="c-item" @click="changeCurrency('SILVER', 0, 'SILVER')">SILVER</div>
+          <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">EUR</div>
           <div class="c-item has-submenu">
             {{ t('addAsset') }} (Altın) ▶
-            <div class="submenu compact-submenu">
-              <div @click="changeCurrency('GOLD', 24, '24 Ayar (Has)')">24 Ayar</div>
-              <div @click="changeCurrency('GOLD', 22, '22 Ayar')">22 Ayar</div>
-              <div @click="changeCurrency('GOLD', 18, '18 Ayar')">18 Ayar</div>
-              <div @click="changeCurrency('GOLD', 14, '14 Ayar')">14 Ayar</div>
-              <div @click="changeCurrency('GOLD', 8, '8 Ayar')">8 Ayar</div>
-              <div @click="changeCurrency('GOLD', 4, '4 Ayar')">4 Ayar</div>
+            <div class="submenu compact-gold-menu">
+              <div @click="changeCurrency('GOLD', 24, '24 Ayar')">24K</div>
+              <div @click="changeCurrency('GOLD', 22, '22 Ayar')">22K</div>
+              <div @click="changeCurrency('GOLD', 18, '18 Ayar')">18K</div>
+              <div @click="changeCurrency('GOLD', 14, '14 Ayar')">14K</div>
+              <div @click="changeCurrency('GOLD', 8, '8 Ayar')">8K</div>
+              <div @click="changeCurrency('GOLD', 4, '4 Ayar')">4K</div>
             </div>
           </div>
         </div>
@@ -146,7 +147,6 @@
   window.addEventListener('click', () => { if(showSelector.value) showSelector.value = false; });
 
   const displayCurrency = computed(() => baseCurrencyLabel.value);
-
   const totalValue = computed(() => {
     if (summaryData.value && summaryData.value.total_value) {
       return summaryData.value.total_value.toLocaleString('tr-TR', { maximumFractionDigits: 2 });
@@ -288,79 +288,59 @@
   .currency-wrapper { position: relative; z-index: 100; }
   .currency-btn { background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; color: var(--accent-color); transition: 0.3s; display: flex; align-items: center; justify-content: center; min-width: 160px; }
   .currency-btn:hover { border-color: var(--accent-color); }
-
   .currency-dropdown { position: absolute; top: 110%; right: 0; background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 15px; width: 220px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 101; }
   .c-item { padding: 12px 20px; cursor: pointer; border-bottom: 1px solid var(--border-color); position: relative; color: var(--text-color); transition: 0.2s; }
   .c-item:hover { background: var(--hover-bg); color: var(--accent-color); }
-  .has-submenu:hover .submenu { display: block; }
-  .submenu { display: none; position: absolute; top: 0; right: 100%; background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 15px; width: 180px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-right: 5px; }
-
-  /* COMPACT SUBMENU AYARI - Boşlukları azalttık */
-  .compact-submenu div { padding: 8px 15px; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .submenu div:hover { background: var(--hover-bg); color: var(--accent-color); }
-
+  .has-submenu { position: relative; }
+  .has-submenu:hover .compact-gold-menu { display: block; }
+  .compact-gold-menu { display: none; position: absolute; top: 0; right: 100%; background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 12px; min-width: 100px; padding: 5px 0; box-shadow: -5px 5px 20px rgba(0,0,0,0.4); margin-right: 2px; }
+  .compact-gold-menu div { padding: 8px 15px; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.05); color: var(--text-color); }
+  .compact-gold-menu div:hover { background: var(--hover-bg); color: var(--accent-color); }
   .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 50px; position: relative; width: 100%; }
   .chart-wrapper { width: 300px; height: 300px; position: relative; }
   .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
   .center-balance h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; }
   .center-balance small { color: var(--text-muted); }
-  /* ÇUBUK KALDIRILDI */
-  .total-underline { display: none; }
-
   .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 8px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
   .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
-
   .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 25px; width: 100%; }
   .asset-card { padding: 25px; border-radius: 20px; cursor: pointer; transition: all 0.3s ease; border: 1px solid var(--border-color); display: flex; align-items: center; gap: 15px; position: relative; overflow: hidden; }
   .asset-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
-  .asset-card * { color: white !important; }
-
+  .asset-card, .asset-card * { color: white !important; }
   .card-btc { background: linear-gradient(135deg, #1a1a1a, #444); }
   .card-gold { background: linear-gradient(135deg, #DAA520, #FFD700); }
   .card-usd { background: linear-gradient(135deg, #059669, #10B981); }
   .card-eur { background: linear-gradient(135deg, #5D4037, #8D6E63); }
   .card-silver { background: linear-gradient(135deg, #757575, #9E9E9E); }
   .card-try { background: linear-gradient(135deg, #991B1B, #EF4444); }
-
   .card-icon { font-size: 2.2rem; }
   .card-info { display: flex; flex-direction: column; }
   .card-name { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
   .card-amount { font-size: 1.4rem; font-weight: bold; margin: 2px 0; }
   .card-val { font-size: 0.85rem; opacity: 0.8; }
-
   .floating-actions { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 110; }
   .f-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; color: white; display: flex; align-items: center; justify-content: center; }
   .f-btn:hover { transform: scale(1.1); }
   .excel { background: #10B981; }
   .pdf { background: #3B82F6; }
-
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px); }
   .large-modal { width: 750px !important; max-width: 95%; }
   .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
   .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
   .modal-header h3 { color: var(--text-color); margin: 0; }
   .modal-header button { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; }
-
   .modal-body-split { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
   .transaction-form, .transaction-history { display: flex; flex-direction: column; gap: 10px; }
   .transaction-history { border-left: 1px solid var(--border-color); padding-left: 20px; }
-  h4 { color: var(--text-muted); margin: 0 0 10px 0; }
   .history-list { max-height: 300px; overflow-y: auto; padding-right: 5px; }
   .history-item { background: var(--input-bg); padding: 12px; border-radius: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
-  .tx-info { display: flex; flex-direction: column; gap: 4px; }
-  .tx-date { color: var(--text-muted); font-size: 0.8rem; }
   .tx-type.add { color: var(--success-color) !important; font-weight: bold; }
   .tx-type.subtract { color: var(--danger-color) !important; font-weight: bold; }
-  .tx-amount { color: var(--text-color); font-weight: bold; }
-  .receipt-download-btn { background: transparent; border: 1px solid var(--border-color); border-radius: 5px; cursor: pointer; padding: 5px; transition: 0.2s; font-size: 1rem; }
-  .receipt-download-btn:hover { background: var(--hover-bg); }
-
   .big-input, .ayar-select, .date-input { width: 100%; padding: 12px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 10px; margin-bottom: 15px; font-size: 1rem; box-sizing: border-box; }
   .actions { display: flex; gap: 10px; }
   .actions button { flex: 1; padding: 15px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; }
   .add { background: var(--success-color); }
   .sub { background: var(--danger-color); }
-  .add:hover, .sub:hover { opacity: 0.9; }
 
   @media (max-width: 768px) {
     .modal-body-split { grid-template-columns: 1fr; }
