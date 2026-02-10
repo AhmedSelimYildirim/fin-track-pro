@@ -223,11 +223,7 @@
       fetchData();
       fetchTransactions();
       amount.value = '';
-      // BAŞARILI MESAJI KALDIRILDI (Sessiz mod)
-    } catch(e) {
-      // Sadece hata varsa uyar
-      alert("Hata: " + (e.response?.data?.error || e.message));
-    }
+    } catch(e) { alert("Hata: " + (e.response?.data?.error || e.message)); }
   };
 
   const changeCurrency = (code, ayar, label) => {
