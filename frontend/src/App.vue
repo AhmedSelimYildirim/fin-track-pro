@@ -1,12 +1,13 @@
-<script setup>
-import { RouterView } from 'vue-router'
-</script>
-
 <template>
-  <RouterView />
+  <router-view />
 </template>
 
 <style>
-/* Renk paletini yüklüyoruz */
-@import './assets/main.css';
+/* Tüm tarayıcı boşluklarını sıfırla */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #0F172A; /* Senin koyu arkaplan rengin */
+  font-family: 'Segoe UI', sans-serif;
+}
 </style>
