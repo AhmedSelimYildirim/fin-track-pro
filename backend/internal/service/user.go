@@ -33,15 +33,16 @@ func (s *UserService) Register(username, email, password string) error {
 	return s.repo.Create(user)
 }
 
-func (s *UserService) Login(email, password string) (string, error) {
+func (s *UserService) Login(email, password string) (string, *model.User, error) {
 	user, err := s.repo.GetByEmail(email)
 	if err != nil {
-		return "", errors.New("Girdiginiz e-posta adresine ait bir hesap bulunamadi.")
+		return "", nil, errors.New("Girdiginiz e-posta adresine ait bir hesap bulunamadi.")
 	}
 	if !utils.CheckPasswordHash(password, user.Password) {
-		return "", errors.New("Hatali sifre girdiniz. Lutfen tekrar deneyin.")
+		return "", nil, errors.New("Hatali sifre girdiniz. Lutfen tekrar deneyin.")
 	}
-	return utils.GenerateToken(uint(user.ID), s.jwtSecret)
+	token, err := utils.GenerateToken(uint(user.ID), s.jwtSecret)
+	return token, user, err
 }
 
 func (s *UserService) Update(userID uint, username, email, password string) error {
@@ -52,6 +53,14 @@ func (s *UserService) Update(userID uint, username, email, password string) erro
 	if err != nil {
 		return err
 	}
+
+	if user.Email != email {
+		exists, _ := s.repo.ExistsByEmail(email)
+		if exists {
+			return errors.New("Bu e-posta adresi zaten kullanimda.")
+		}
+	}
+
 	user.Username = username
 	user.Email = email
 	if password != "" {

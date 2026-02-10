@@ -31,11 +31,15 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Gecersiz veri formati."})
 	}
-	token, err := h.userService.Login(req.Email, req.Password)
+	token, user, err := h.userService.Login(req.Email, req.Password)
 	if err != nil {
 		return c.Status(401).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.JSON(fiber.Map{"token": token})
+	return c.JSON(fiber.Map{
+		"token":    token,
+		"username": user.Username,
+		"email":    user.Email,
+	})
 }
 
 func (h *UserHandler) Update(c *fiber.Ctx) error {
@@ -54,7 +58,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Gecersiz veri."})
 	}
 	if err := h.userService.Update(userID, req.Username, req.Email, req.Password); err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Guncelleme basarisiz."})
+		return c.Status(500).JSON(fiber.Map{"error": err.Error()}) // Hata mesajını direkt döndürdük
 	}
 	return c.JSON(fiber.Map{"message": "Profil guncellendi!"})
 }
