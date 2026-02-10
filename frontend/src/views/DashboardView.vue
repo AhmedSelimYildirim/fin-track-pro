@@ -223,7 +223,6 @@
       fetchData();
       fetchTransactions();
       amount.value = '';
-      alert("İşlem Başarılı! ✅");
     } catch(e) { alert("Hata: " + (e.response?.data?.error || e.message)); }
   };
 

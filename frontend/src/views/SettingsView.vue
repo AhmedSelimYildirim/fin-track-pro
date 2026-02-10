@@ -102,7 +102,6 @@
             if (password.value) payload.password = password.value;
             await api.put('/user/update', payload);
             localStorage.setItem('username', fullName.value);
-            alert('Profil güncellendi!');
             password.value = '';
         } catch (e) {
             alert('Hata: ' + (e.response?.data?.error || e.message));
