@@ -46,7 +46,7 @@ func SetupRoutes(app *fiber.App) {
 	auth.Post("/login", userHandler.Login)
 
 	api.Get("/ping", func(c *fiber.Ctx) error {
-		return c.Status(200).JSON(fiber.Map{"message": "Sistem hazir"})
+		return c.Status(200).JSON(fiber.Map{"message": "Sistem hazir Ahmed Selim! 🚀"})
 	})
 
 	market := api.Group("/market")

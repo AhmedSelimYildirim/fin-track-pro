@@ -26,8 +26,9 @@ func (s *MarketService) GetCurrencyRates() (map[string]float64, error) {
 	cached, err := s.rdb.Get(ctx, "rates:currency").Result()
 	if err == nil {
 		var rates map[string]float64
-		json.Unmarshal([]byte(cached), &rates)
-		return rates, nil
+		if err := json.Unmarshal([]byte(cached), &rates); err == nil {
+			return rates, nil
+		}
 	}
 
 	url := fmt.Sprintf("https://api.currencybeacon.com/v1/latest?api_key=%s&base=USD", s.cfg.CurrencyBeaconKey)
@@ -45,14 +46,21 @@ func (s *MarketService) GetCurrencyRates() (map[string]float64, error) {
 	}
 
 	tryRate := data.Rates["TRY"]
+	if tryRate <= 0 {
+		return nil, fmt.Errorf("gecersiz kur verisi")
+	}
+
 	finalRates := make(map[string]float64)
 	finalRates["USD"] = tryRate
+
 	if eurRate, ok := data.Rates["EUR"]; ok && eurRate != 0 {
 		finalRates["EUR"] = tryRate / eurRate
+	} else {
+		finalRates["EUR"] = tryRate * 1.08 // Fallback kabaca parite
 	}
 
 	cacheData, _ := json.Marshal(finalRates)
-	s.rdb.Set(ctx, "rates:currency", cacheData, 24*time.Hour)
+	s.rdb.Set(ctx, "rates:currency", cacheData, 6*time.Hour) // 24 saat cok uzun, 6 saat daha ideal
 	return finalRates, nil
 }
 
@@ -88,10 +96,11 @@ func (s *MarketService) GetMetalPrice(metalCode string) (float64, error) {
 		return 0, err
 	}
 
+	// Ounce to Gram conversion
 	priceInUSD := 1 / data.Rates[symbol]
 	gramPriceTRY := (priceInUSD * rates["USD"]) / 31.1035
 
-	s.rdb.Set(ctx, cacheKey, gramPriceTRY, 12*time.Hour)
+	s.rdb.Set(ctx, cacheKey, gramPriceTRY, 1*time.Hour) // Altin fiyati saatlik guncellenmeli
 	return gramPriceTRY, nil
 }
 
@@ -129,6 +138,6 @@ func (s *MarketService) GetCryptoPrice(coinID string) (float64, error) {
 	}
 
 	priceTRY := priceUSD * rates["USD"]
-	s.rdb.Set(ctx, cacheKey, priceTRY, 10*time.Minute)
+	s.rdb.Set(ctx, cacheKey, priceTRY, 5*time.Minute) // Kripto cok oynak, 5 dk ideal
 	return priceTRY, nil
 }
