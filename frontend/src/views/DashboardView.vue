@@ -193,14 +193,13 @@
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
-    // Metalik ve Canlı Renkler
     const colors = [
-      '#E63946', // Canlı Kırmızı (TRY)
-      '#2A9D8F', // Dolar Yeşili (USD)
-      '#A0522D', // Kahve/Bronz (EUR)
-      '#1B1B1B', // Koyu Siyah/Antrasit (BTC)
-      '#A9A9A9', // Gümüş Gri (SILVER)
-      '#FFD700'  // Altın Sarısı (GOLD)
+      '#E63946',
+      '#2A9D8F',
+      '#A0522D',
+      '#1B1B1B',
+      '#A9A9A9',
+      '#FFD700'
     ];
     const data = labels.map(label => {
       const assets = summaryData.value?.assets || [];
@@ -214,7 +213,10 @@
   const fetchData = async () => {
     try {
       const res = await api.get('/assets/summary', {
-        headers: { 'X-Currency': baseCurrency.value, 'X-Ayar': targetAyar.value.toString() }
+        params: {
+          currency: baseCurrency.value,
+          ayar: targetAyar.value
+        }
       });
       summaryData.value = res.data;
     } catch(e) { console.error(e); }
@@ -222,7 +224,12 @@
 
   const fetchTransactions = async () => {
     try {
-      const res = await api.get('/assets/transactions', { headers: { 'X-Currency': baseCurrency.value } });
+      const res = await api.get('/assets/transactions', {
+        params: {
+          currency: baseCurrency.value,
+          ayar: targetAyar.value
+        }
+      });
       allTransactions.value = res.data || [];
     } catch (e) { console.error(e); }
   };
@@ -276,11 +283,18 @@
     baseCurrencyLabel.value = label;
     showSelector.value = false;
     fetchData();
+    fetchTransactions();
   };
 
   const downloadReceipt = async () => {
     try {
-      const res = await api.get('/assets/receipt/full', { responseType: 'blob', headers: { 'X-Currency': baseCurrency.value, 'X-Ayar': targetAyar.value.toString() } });
+      const res = await api.get('/assets/receipt/full', {
+        responseType: 'blob',
+        params: {
+          currency: baseCurrency.value,
+          ayar: targetAyar.value
+        }
+      });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -292,7 +306,13 @@
 
   const downloadExcel = async () => {
     try {
-      const res = await api.get('/assets/export/excel', { responseType: 'blob' });
+      const res = await api.get('/assets/export/excel', {
+        responseType: 'blob',
+        params: {
+          currency: baseCurrency.value,
+          ayar: targetAyar.value
+        }
+      });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -304,7 +324,13 @@
 
   const downloadSingleReceipt = async (id) => {
     try {
-      const res = await api.get(`/assets/receipt/${id}`, { responseType: 'blob', headers: { 'X-Currency': baseCurrency.value } });
+      const res = await api.get(`/assets/receipt/${id}`, {
+        responseType: 'blob',
+        params: {
+          currency: baseCurrency.value,
+          ayar: targetAyar.value
+        }
+      });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
       link.href = url;
@@ -471,13 +497,12 @@
   .asset-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
   .asset-card * { color: white !important; z-index: 2; position: relative; }
 
-  /* METALİK VE CANLI RENKLER */
-  .card-try { background: linear-gradient(135deg, #FF4500, #8B0000); } /* KAN KIRMIZISI */
-  .card-usd { background: linear-gradient(135deg, #32CD32, #006400); } /* DOLAR YEŞİLİ */
-  .card-eur { background: linear-gradient(135deg, #8B4513, #5D4037); } /* EURO KAHVE */
-  .card-btc { background: linear-gradient(135deg, #4F4F4F, #000000); } /* BULUT SİYAHI */
-  .card-silver { background: linear-gradient(135deg, #D3D3D3, #708090); } /* GÜMÜŞ GRİSİ */
-  .card-gold { background: linear-gradient(135deg, #FFD700, #B8860B); } /* ALTIN SARISI */
+  .card-try { background: linear-gradient(135deg, #FF4500, #8B0000); }
+  .card-usd { background: linear-gradient(135deg, #32CD32, #006400); }
+  .card-eur { background: linear-gradient(135deg, #8B4513, #5D4037); }
+  .card-btc { background: linear-gradient(135deg, #4F4F4F, #000000); }
+  .card-silver { background: linear-gradient(135deg, #D3D3D3, #708090); }
+  .card-gold { background: linear-gradient(135deg, #FFD700, #B8860B); }
 
   .card-left { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
   .card-symbol { font-size: 1.6rem; font-weight: 800; opacity: 0.9; line-height: 1; }
@@ -487,7 +512,6 @@
   .card-amount { font-size: 1.2rem; font-weight: 800; }
   .card-val { font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; margin-top: 4px; }
 
-  /* LIGHT MODE AYARI */
   [data-theme="light"] .asset-card { border: 1px solid #475569; }
 
   .floating-actions { position: fixed; bottom: 30px; inset-inline-end: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 110; }
