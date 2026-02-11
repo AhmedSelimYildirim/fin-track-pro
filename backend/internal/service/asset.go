@@ -344,7 +344,7 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", startRow), fmt.Sprintf("H%d", startRow), styleSubHeader)
 
 	headerRow := startRow + 1
-	headers := []string{"Varlik Tipi", "Miktar", "Birim", "Guncel Birim Fiyat", "Toplam Deger", "Portfoy Orani (%)"}
+	headers := []string{"Varlik Tipi", "Miktar", "Birim", fmt.Sprintf("Birim Fiyat (%s)", baseCurrency), fmt.Sprintf("Toplam Deger (%s)", baseCurrency), "Portfoy Orani (%)"}
 	for i, h := range headers {
 		cell, _ := excelize.CoordinatesToCellName(i+1, headerRow)
 		f.SetCellValue(sheetName, cell, h)
@@ -381,7 +381,7 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", txStartRow), fmt.Sprintf("H%d", txStartRow), styleSubHeader)
 
 	txHeaderRow := txStartRow + 1
-	txHeaders := []string{"Tarih", "Islem", "Varlik", "Miktar", "Islem Ani Fiyati (TRY)", "Islem Tutari (TRY)", "Secilen Kura Cevrilmis Tutar"}
+	txHeaders := []string{"Tarih", "Islem", "Varlik", "Miktar", "Islem Ani Fiyati (TRY)", "Islem Tutari (TRY)", fmt.Sprintf("Guncel Karsiligi (%s)", baseCurrency)}
 	for i, h := range txHeaders {
 		cell, _ := excelize.CoordinatesToCellName(i+1, txHeaderRow)
 		f.SetCellValue(sheetName, cell, h)

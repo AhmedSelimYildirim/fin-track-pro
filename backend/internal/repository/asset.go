@@ -47,7 +47,7 @@ func (r *AssetRepository) GetTransactionsByUserID(userID uint) ([]model.Transact
 	err := r.db.NewSelect().
 		Model(&txs).
 		Where("user_id = ?", userID).
-		Order("created_at DESC").
+		Order("transaction_date DESC").
 		Scan(context.Background())
 	return txs, err
 }
