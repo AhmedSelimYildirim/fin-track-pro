@@ -193,7 +193,15 @@
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
-    const colors = ['#EF4444', '#10B981', '#8B4513', '#1F2937', '#6B7280', '#F59E0B'];
+    // Metalik ve Canlı Renkler
+    const colors = [
+      '#E63946', // Canlı Kırmızı (TRY)
+      '#2A9D8F', // Dolar Yeşili (USD)
+      '#A0522D', // Kahve/Bronz (EUR)
+      '#1B1B1B', // Koyu Siyah/Antrasit (BTC)
+      '#A9A9A9', // Gümüş Gri (SILVER)
+      '#FFD700'  // Altın Sarısı (GOLD)
+    ];
     const data = labels.map(label => {
       const assets = summaryData.value?.assets || [];
       return assets.filter(a => a.type === label).reduce((sum, curr) => sum + (curr.allocation || 0), 0);
@@ -436,19 +444,18 @@
   .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 6px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
   .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
 
-  /* KARTLARI KÜÇÜLTTÜM VE ORTALADIM */
   .assets-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 25px;
     width: 100%;
-    max-width: 900px; /* Kenarlardan içeri çekmek için genişliği kıstım */
-    margin: 0 auto; /* Ortala */
+    max-width: 900px;
+    margin: 0 auto;
     padding-bottom: 80px;
   }
 
   .asset-card {
-    padding: 20px; /* Dolguyu azalttım */
+    padding: 20px;
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -458,18 +465,19 @@
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    min-height: 95px; /* Yüksekliği düşürdüm (narinleştirdim) */
+    min-height: 95px;
     border: 1px solid rgba(255,255,255,0.05);
   }
   .asset-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
   .asset-card * { color: white !important; z-index: 2; position: relative; }
 
-  .card-try { background: linear-gradient(135deg, #EF4444, #B91C1C); }
-  .card-usd { background: linear-gradient(135deg, #10B981, #047857); }
-  .card-eur { background: linear-gradient(135deg, #8B4513, #3E2723); }
-  .card-btc { background: linear-gradient(135deg, #374151, #111827); }
-  .card-silver { background: linear-gradient(135deg, #9CA3AF, #4B5563); }
-  .card-gold { background: linear-gradient(135deg, #F59E0B, #B45309); }
+  /* METALİK VE CANLI RENKLER */
+  .card-try { background: linear-gradient(135deg, #FF4500, #8B0000); } /* KAN KIRMIZISI */
+  .card-usd { background: linear-gradient(135deg, #32CD32, #006400); } /* DOLAR YEŞİLİ */
+  .card-eur { background: linear-gradient(135deg, #8B4513, #5D4037); } /* EURO KAHVE */
+  .card-btc { background: linear-gradient(135deg, #4F4F4F, #000000); } /* BULUT SİYAHI */
+  .card-silver { background: linear-gradient(135deg, #D3D3D3, #708090); } /* GÜMÜŞ GRİSİ */
+  .card-gold { background: linear-gradient(135deg, #FFD700, #B8860B); } /* ALTIN SARISI */
 
   .card-left { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
   .card-symbol { font-size: 1.6rem; font-weight: 800; opacity: 0.9; line-height: 1; }
@@ -479,10 +487,8 @@
   .card-amount { font-size: 1.2rem; font-weight: 800; }
   .card-val { font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; margin-top: 4px; }
 
-  /* AYDINLIK MODDA KART KENARLIĞI (KOYU İNCE ÇİZGİ) */
-  [data-theme="light"] .asset-card {
-    border: 1px solid #475569;
-  }
+  /* LIGHT MODE AYARI */
+  [data-theme="light"] .asset-card { border: 1px solid #475569; }
 
   .floating-actions { position: fixed; bottom: 30px; inset-inline-end: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 110; }
   .f-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; color: white; display: flex; align-items: center; justify-content: center; }
