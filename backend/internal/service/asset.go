@@ -319,10 +319,11 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		Border:    []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}},
 	})
 
+	fmtCode := "#,##0.00"
 	styleCurrency, _ := f.NewStyle(&excelize.Style{
-		NumFmt:    4,
-		Alignment: &excelize.Alignment{Horizontal: "right"},
-		Border:    []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}},
+		CustomNumFmt: &fmtCode,
+		Alignment:    &excelize.Alignment{Horizontal: "right"},
+		Border:       []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}},
 	})
 
 	f.MergeCell(sheetName, "A1", "H2")
@@ -330,12 +331,13 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	f.SetCellStyle(sheetName, "A1", "H2", styleTitle)
 
 	f.SetCellValue(sheetName, "A4", "TOPLAM VARLIK DEGERI")
-	f.SetCellValue(sheetName, "B4", fmt.Sprintf("%.2f %s", portfolio.TotalValue, baseCurrency))
+	f.SetCellValue(sheetName, "B4", portfolio.TotalValue)
 
 	f.SetCellValue(sheetName, "D4", "RAPOR TARIHI")
 	f.SetCellValue(sheetName, "E4", time.Now().Add(3*time.Hour).Format("02.01.2006 15:04"))
 
 	f.SetCellStyle(sheetName, "A4", "A4", styleSubHeader)
+	f.SetCellStyle(sheetName, "B4", "B4", styleCurrency)
 	f.SetCellStyle(sheetName, "D4", "D4", styleSubHeader)
 
 	startRow := 7
@@ -381,7 +383,7 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", txStartRow), fmt.Sprintf("H%d", txStartRow), styleSubHeader)
 
 	txHeaderRow := txStartRow + 1
-	txHeaders := []string{"Tarih", "Islem", "Varlik", "Miktar", "Islem Ani Fiyati (TRY)", "Islem Tutari (TRY)", fmt.Sprintf("Guncel Karsiligi (%s)", baseCurrency)}
+	txHeaders := []string{"Tarih", "Islem", "Varlik", "Miktar", fmt.Sprintf("Islem Ani Fiyati (%s)", baseCurrency), fmt.Sprintf("Islem Tutari (%s)", baseCurrency), fmt.Sprintf("Guncel Karsiligi (%s)", baseCurrency)}
 	for i, h := range txHeaders {
 		cell, _ := excelize.CoordinatesToCellName(i+1, txHeaderRow)
 		f.SetCellValue(sheetName, cell, h)
@@ -405,11 +407,13 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		f.SetCellValue(sheetName, fmt.Sprintf("C%d", txDataRow), assetName)
 		f.SetCellValue(sheetName, fmt.Sprintf("D%d", txDataRow), tx.Amount)
 
-		f.SetCellValue(sheetName, fmt.Sprintf("E%d", txDataRow), tx.Price)
-		f.SetCellValue(sheetName, fmt.Sprintf("F%d", txDataRow), tx.Price*tx.Amount)
+		convertedPrice := tx.Price / basePriceInTRY
+		convertedTotalTx := (tx.Price * tx.Amount) / basePriceInTRY
+		convertedTotalCurrent := (tx.Price * tx.Amount) / basePriceInTRY
 
-		convertedTotal := (tx.Price * tx.Amount) / basePriceInTRY
-		f.SetCellValue(sheetName, fmt.Sprintf("G%d", txDataRow), convertedTotal)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", txDataRow), convertedPrice)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", txDataRow), convertedTotalTx)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", txDataRow), convertedTotalCurrent)
 
 		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", txDataRow), fmt.Sprintf("D%d", txDataRow), styleDataCenter)
 		f.SetCellStyle(sheetName, fmt.Sprintf("E%d", txDataRow), fmt.Sprintf("G%d", txDataRow), styleCurrency)
@@ -419,7 +423,7 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	f.SetColWidth(sheetName, "A", "A", 20)
 	f.SetColWidth(sheetName, "B", "B", 15)
 	f.SetColWidth(sheetName, "C", "C", 15)
-	f.SetColWidth(sheetName, "D", "E", 20)
+	f.SetColWidth(sheetName, "D", "E", 25)
 	f.SetColWidth(sheetName, "F", "H", 25)
 
 	buf, err := f.WriteToBuffer()
