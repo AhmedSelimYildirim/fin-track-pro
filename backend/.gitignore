@@ -1,6 +1,55 @@
-# Binaries
-backend/cmd/api/main
-backend/internal/infrastructure/config/config.yaml # Şifrelerin olduğu dosya!
+# ------------------------------------
+# 🔐 GÜVENLİK VE GİZLİ DOSYALAR (ASLA SİLME)
+# ------------------------------------
 .env
+.env.local
+.env.*.local
+backend/internal/infrastructure/config/config.yaml
+
+# ------------------------------------
+# 🔙 BACKEND (GO)
+# ------------------------------------
+# Derlenmiş Binaries (Çalıştırılabilir dosyalar)
 *.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+
+# Spesifik Go çıktıları
+backend/cmd/api/main
+main
+
+# Bağımlılıklar (Eğer vendor modülü kullanmıyorsan)
 vendor/
+
+# ------------------------------------
+# 🎨 FRONTEND (VUE.JS / NODE)
+# ------------------------------------
+# Node Modülleri (Çok yer kaplar, yükleme!)
+node_modules/
+frontend/node_modules/
+
+# Build Çıktıları (Canlıya alınan dosyalar)
+dist/
+frontend/dist/
+
+# Loglar
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ------------------------------------
+# 💻 SİSTEM VE IDE DOSYALARI
+# ------------------------------------
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Editör Ayarları (Kişisel ayarlar gitmemeli)
+.vscode/
+.idea/
+*.swp
