@@ -1,5 +1,9 @@
 <template>
     <div class="settings-wrapper">
+        <div v-if="toast.show" :class="['toast-notification', toast.type]">
+            {{ toast.message }}
+        </div>
+
         <div class="animated-background">
             <div class="orb orb-1"></div>
             <div class="orb orb-2"></div>
@@ -79,7 +83,7 @@
 </template>
 
 <script setup>
-    import { ref, inject, onMounted } from 'vue';
+    import { ref, inject, onMounted, reactive } from 'vue';
     import { useRouter } from 'vue-router';
     import api from '../services/api';
     import { t, currentLang } from '../utils/translations';
@@ -92,6 +96,15 @@
     const selectedLang = ref(currentLang.value);
     const isLoading = ref(false);
 
+    const toast = reactive({ show: false, message: '', type: 'success' });
+
+    const showToast = (msg, type = 'success') => {
+        toast.message = msg;
+        toast.type = type;
+        toast.show = true;
+        setTimeout(() => { toast.show = false; }, 3000);
+    };
+
     const languages = [
         { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
         { code: 'en', name: 'English', flag: '🇬🇧' },
@@ -102,7 +115,7 @@
 
     onMounted(() => {
         username.value = localStorage.getItem('username') || '';
-        email.value = localStorage.getItem('email') || ''; // E-postayı otomatik doldur
+        email.value = localStorage.getItem('email') || '';
     });
 
     const changeLang = (code) => {
@@ -120,13 +133,13 @@
 
             await api.put('/user/update', payload);
             localStorage.setItem('username', username.value);
-            localStorage.setItem('email', email.value); // Güncellenen e-postayı kaydet
+            localStorage.setItem('email', email.value);
             password.value = '';
 
             window.dispatchEvent(new Event('storage'));
-            alert("Profil güncellendi!");
+            showToast("Bilgiler başarıyla güncellendi!", "success");
         } catch (e) {
-            alert('Hata: ' + (e.response?.data?.error || e.message));
+            showToast(e.response?.data?.error || "Güncelleme başarısız.", "error");
         } finally {
             isLoading.value = false;
         }
@@ -138,12 +151,17 @@
                 await api.delete('/user/delete');
                 localStorage.clear();
                 router.push('/login');
-            } catch (e) { alert('Silme işlemi başarısız.'); }
+            } catch (e) { showToast('Silme işlemi başarısız.', 'error'); }
         }
     };
 </script>
 
 <style scoped>
+    .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 25px; border-radius: 10px; color: white; font-weight: bold; z-index: 9999; animation: slideDown 0.4s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+    .toast-notification.success { background: #10b981; }
+    .toast-notification.error { background: #ef4444; }
+    @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+
     .settings-wrapper { position: relative; width: 100%; min-height: 100%; overflow-y: auto; }
     .animated-background { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
     .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; animation: floatOrb 15s infinite alternate ease-in-out; }

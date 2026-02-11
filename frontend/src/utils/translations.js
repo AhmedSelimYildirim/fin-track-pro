@@ -1,4 +1,4 @@
-import { reactive } from 'vue';
+import { reactive, watch } from 'vue';
 
 export const currentLang = reactive({ value: localStorage.getItem('lang') || 'tr' });
 
@@ -30,7 +30,7 @@ export const translations = {
         history: 'İşlem Geçmişi',
         receipt: 'Dekont',
         amount: 'Miktar',
-        date: 'Tarih',
+        date: 'Date',
         add: 'EKLE (+)',
         subtract: 'ÇIKAR (-)',
         username: 'Kullanıcı Adı',
@@ -198,3 +198,16 @@ export const translations = {
 export const t = (key) => {
     return translations[currentLang.value][key] || key;
 };
+
+const updatePageDirection = (lang) => {
+    const dir = lang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.setAttribute('dir', dir);
+    document.documentElement.setAttribute('lang', lang);
+};
+
+updatePageDirection(currentLang.value);
+
+watch(() => currentLang.value, (newLang) => {
+    localStorage.setItem('lang', newLang);
+    updatePageDirection(newLang);
+});

@@ -1,5 +1,9 @@
 <template>
   <div class="calendar-wrapper">
+    <div v-if="toast.show" :class="['toast-notification', toast.type]">
+      {{ toast.message }}
+    </div>
+
     <div class="animated-background">
       <div class="orb orb-1"></div>
       <div class="orb orb-2"></div>
@@ -66,11 +70,16 @@
       <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
         <div class="modal-content glass-modal">
           <div class="modal-header">
-            <h3>Not Ekle - {{ formatDate(selectedDate) }}</h3>
+            <h3>{{ t('add') }} - {{ formatDate(selectedDate) }}</h3>
             <button @click="showModal = false">✕</button>
           </div>
           <div class="modal-body">
-            <input v-model="newEventText" type="text" placeholder="Notunuzu buraya yazın..." class="big-input" />
+            <textarea
+                    v-model="newEventText"
+                    placeholder="Notunuzu buraya yazın..."
+                    class="big-textarea"
+                    rows="3"
+            ></textarea>
             <div class="actions">
               <button class="add" @click="addEvent">KAYDET</button>
             </div>
@@ -83,7 +92,7 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch } from 'vue';
+  import { ref, computed, onMounted, watch, reactive } from 'vue';
   import api from '../services/api';
   import { t, currentLang } from '../utils/translations';
 
@@ -93,9 +102,17 @@
   const showDatePicker = ref(false);
   const selectedDate = ref(null);
   const newEventText = ref('');
+  const toast = reactive({ show: false, message: '', type: 'success' });
 
   const targetMonth = ref(new Date().getMonth());
   const targetYear = ref(new Date().getFullYear());
+
+  const showToast = (msg, type = 'success') => {
+    toast.message = msg;
+    toast.type = type;
+    toast.show = true;
+    setTimeout(() => { toast.show = false; }, 3000);
+  };
 
   const currentYear = computed(() => currentDate.value.getFullYear());
   const currentMonth = computed(() => currentDate.value.getMonth());
@@ -208,7 +225,8 @@
       await api.post('/calendar/remind', { title: newEventText.value, target_date: targetDate.toISOString() });
       await fetchEvents();
       showModal.value = false;
-    } catch (e) { alert("Hata: " + (e.response?.data?.error || "Ekleme başarısız")); }
+      showToast("Not başarıyla kaydedildi!");
+    } catch (e) { showToast(e.response?.data?.error || "Ekleme başarısız", "error"); }
   };
 
   const deleteEvent = async (id) => {
@@ -216,7 +234,8 @@
       try {
         await api.delete(`/calendar/${id}`);
         await fetchEvents();
-      } catch (e) { alert("Silinemedi."); }
+        showToast("Not silindi.", "success");
+      } catch (e) { showToast("Silinemedi.", "error"); }
     }
   };
 
@@ -225,6 +244,11 @@
 </script>
 
 <style scoped>
+  .toast-notification { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); padding: 12px 25px; border-radius: 10px; color: white; font-weight: bold; z-index: 9999; animation: slideDown 0.4s ease; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+  .toast-notification.success { background: #10b981; }
+  .toast-notification.error { background: #ef4444; }
+  @keyframes slideDown { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+
   .calendar-wrapper { position: relative; width: 100%; min-height: 100%; overflow-y: auto; }
   .animated-background { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
   .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; animation: floatOrb 15s infinite alternate ease-in-out; }
@@ -235,7 +259,7 @@
 
   .calendar-page { position: relative; z-index: 10; padding: 30px; display: flex; justify-content: center; }
   .calendar-container { width: 100%; max-width: 1200px; padding: 25px; border-radius: 20px; border: 1px solid var(--border-color); backdrop-filter: blur(10px); }
-  .glass-effect { background: rgba(30, 41, 59, 0.7); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
+  .glass-effect { background: var(--card-bg); box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); }
 
   .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; position: relative; }
   .header-title-wrapper { position: relative; }
@@ -272,13 +296,15 @@
   .event-pill:hover { transform: scale(1.05); opacity: 0.9; text-decoration: line-through; }
 
   .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(8px); }
-  .modal-content.glass-modal { background: rgba(30, 41, 59, 0.9); padding: 30px; border-radius: 20px; width: 400px; border: 1px solid var(--accent-color); box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+  .modal-content.glass-modal { background: var(--card-bg); padding: 30px; border-radius: 20px; width: 450px; border: 1px solid var(--accent-color); box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
   .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
   .modal-header h3 { color: var(--text-color); margin: 0; }
   .modal-header button { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
   .modal-header button:hover { color: var(--danger-color); transform: rotate(90deg); }
-  .big-input { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: var(--text-color); margin-bottom: 15px; font-size: 1.1rem; border-radius: 10px; box-sizing: border-box; outline: none; }
-  .big-input:focus { border-color: var(--accent-color); }
+
+  .big-textarea { width: 100%; padding: 15px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); margin-bottom: 15px; font-size: 1.1rem; border-radius: 12px; box-sizing: border-box; outline: none; resize: vertical; min-height: 100px; font-family: inherit; }
+  .big-textarea:focus { border-color: var(--accent-color); box-shadow: 0 0 10px rgba(255, 215, 0, 0.1); }
+
   .actions button { width: 100%; padding: 15px; border: none; border-radius: 12px; color: white; font-weight: bold; cursor: pointer; transition: 0.2s; }
   .add { background: linear-gradient(135deg, var(--success-color), #059669); }
   .add:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
