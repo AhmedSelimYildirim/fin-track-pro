@@ -388,7 +388,7 @@
     position: absolute;
     top: 0;
     inset-inline-end: 100%;
-    margin-inline-end: -2px;
+    margin-inline-end: -1px;
     background: var(--sidebar-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -427,19 +427,28 @@
   .dropdown-anim-enter-from, .dropdown-anim-leave-to { opacity: 0; transform: translateY(-10px); }
 
   .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; position: relative; width: 100%; }
-  .chart-wrapper { width: 300px; height: 300px; position: relative; }
+  .chart-wrapper { width: 280px; height: 280px; position: relative; }
   .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
-  .center-balance h3 { font-size: 2rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; }
-  .center-balance small { color: var(--text-muted); font-size: 1rem; font-weight: bold; letter-spacing: 2px; }
-  .chart-line { width: 50px; height: 4px; background: var(--border-color); border-radius: 2px; margin-top: 30px; }
+  .center-balance h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; }
+  .center-balance small { color: var(--text-muted); font-size: 0.9rem; font-weight: bold; letter-spacing: 2px; }
+  .chart-line { width: 50px; height: 3px; background: var(--border-color); border-radius: 2px; margin-top: 25px; opacity: 0.7; }
 
   .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 6px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
   .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
 
-  .assets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; max-width: 1200px; margin: 0 auto; padding-bottom: 80px; }
+  /* KARTLARI KÜÇÜLTTÜM VE ORTALADIM */
+  .assets-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    width: 100%;
+    max-width: 900px; /* Kenarlardan içeri çekmek için genişliği kıstım */
+    margin: 0 auto; /* Ortala */
+    padding-bottom: 80px;
+  }
 
   .asset-card {
-    padding: 25px;
+    padding: 20px; /* Dolguyu azalttım */
     border-radius: 16px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -449,7 +458,7 @@
     position: relative;
     overflow: hidden;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    min-height: 120px;
+    min-height: 95px; /* Yüksekliği düşürdüm (narinleştirdim) */
     border: 1px solid rgba(255,255,255,0.05);
   }
   .asset-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
@@ -462,19 +471,17 @@
   .card-silver { background: linear-gradient(135deg, #9CA3AF, #4B5563); }
   .card-gold { background: linear-gradient(135deg, #F59E0B, #B45309); }
 
-  .card-left { display: flex; flex-direction: column; justify-content: center; gap: 6px; }
-  .card-symbol { font-size: 2rem; font-weight: 800; opacity: 0.9; line-height: 1; }
-  .card-name { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; font-weight: bold; }
+  .card-left { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+  .card-symbol { font-size: 1.6rem; font-weight: 800; opacity: 0.9; line-height: 1; }
+  .card-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; font-weight: bold; }
 
   .card-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
-  .card-amount { font-size: 1.5rem; font-weight: 800; }
-  .card-val { font-size: 0.9rem; font-weight: 600; background: rgba(255,255,255,0.2); padding: 3px 10px; border-radius: 8px; margin-top: 5px; }
+  .card-amount { font-size: 1.2rem; font-weight: 800; }
+  .card-val { font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; margin-top: 4px; }
 
-  /* LIGHT MODE BORDER FIX */
-  [data-theme="light"] .asset-card,
-  [data-theme="light"] .currency-dropdown,
-  [data-theme="light"] .currency-btn {
-    border: 1px solid #94a3b8;
+  /* AYDINLIK MODDA KART KENARLIĞI (KOYU İNCE ÇİZGİ) */
+  [data-theme="light"] .asset-card {
+    border: 1px solid #475569;
   }
 
   .floating-actions { position: fixed; bottom: 30px; inset-inline-end: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 110; }
@@ -507,7 +514,7 @@
 
   .big-input, .ayar-select, .date-input { width: 100%; padding: 15px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 12px; margin-bottom: 15px; font-size: 1rem; box-sizing: border-box; }
   .actions { display: flex; gap: 15px; margin-top: 10px; }
-  .actions button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+  .actions button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; font-size: 1rem; }
   .add { background: linear-gradient(135deg, #10B981, #047857); }
   .sub { background: linear-gradient(135deg, #EF4444, #B91C1C); }
   .add:hover, .sub:hover { opacity: 0.9; transform: translateY(-2px); }
