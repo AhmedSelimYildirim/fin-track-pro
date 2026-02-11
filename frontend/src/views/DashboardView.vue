@@ -32,13 +32,13 @@
                 <span class="symbol">₿</span> BTC
               </div>
               <div class="c-item" @click="changeCurrency('SILVER', 0, 'SILVER')">
-                <span class="symbol" style="font-size: 0.8rem">(Gr)</span> SILVER
+                <span class="symbol" style="font-size: 0.8rem">Gr</span> SILVER
               </div>
 
               <div class="c-item has-submenu">
                 <div class="gold-trigger">
                   <div style="display:flex; align-items:center; gap:12px;">
-                    <span class="symbol" style="font-size: 0.8rem">(Gr)</span> GOLD
+                    <span class="symbol" style="font-size: 0.8rem">Gr</span> GOLD
                   </div>
                   <span class="arrow-right">▶</span>
                 </div>
@@ -77,6 +77,7 @@
         <div v-for="asset in cardConfigs" :key="asset.type"
              class="asset-card" :class="'card-' + asset.type.toLowerCase()"
              @click="openModal(asset.type)">
+
           <div class="card-left">
             <div class="card-symbol">{{ asset.icon }}</div>
             <div class="card-name">{{ asset.label }}</div>
@@ -164,14 +165,13 @@
   const baseCurrencyLabel = ref('TRY');
   const targetAyar = ref(0);
 
-  // EMOJİLER KALDIRILDI, (Gr) Sol Taraf İçin İkon Olarak Eklendi
   const cardConfigs = [
     { type: 'TRY', label: 'TRY', icon: '₺', unit: '₺' },
     { type: 'USD', label: 'USD', icon: '$', unit: '$' },
     { type: 'EUR', label: 'EUR', icon: '€', unit: '€' },
     { type: 'BTC', label: 'BTC', icon: '₿', unit: 'BTC' },
-    { type: 'SILVER', label: 'SILVER', icon: '(Gr)', unit: 'Gr' },
-    { type: 'GOLD', label: 'GOLD', icon: '(Gr)', unit: 'Gr' }
+    { type: 'SILVER', label: 'SILVER', icon: 'Gr', unit: 'Gr' },
+    { type: 'GOLD', label: 'GOLD', icon: 'Gr', unit: 'Gr' }
   ];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
@@ -192,7 +192,6 @@
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
-    // Renkler Eski Solid Halinde
     const colors = ['#EF4444', '#10B981', '#8B4513', '#1F2937', '#6B7280', '#F59E0B'];
     const data = labels.map(label => {
       const assets = summaryData.value?.assets || [];
@@ -337,16 +336,16 @@
     cursor: pointer;
     font-weight: bold;
     color: var(--accent-color);
-    transition: 0.3s;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: space-between;
     min-width: 160px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   }
-  .currency-btn:hover { border-color: var(--accent-color); transform: translateY(-2px); }
+  .currency-btn:hover { border-color: var(--accent-color); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
   .currency-btn.active .arrow-icon { transform: rotate(180deg); }
-  .arrow-icon { transition: 0.3s; font-size: 0.8rem; }
+  .arrow-icon { font-size: 0.8rem; transition: 0.3s; }
 
   .currency-dropdown {
     position: absolute;
@@ -379,7 +378,6 @@
 
   .symbol { width: 24px; text-align: center; font-weight: bold; }
 
-  /* GOLD STICKY MENU */
   .has-submenu { position: relative; overflow: visible; }
   .gold-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; }
 
@@ -387,7 +385,7 @@
     position: absolute;
     top: 0;
     inset-inline-end: 100%;
-    margin-inline-end: -1px; /* Gapless connection */
+    margin-inline-end: -1px;
     background: var(--sidebar-bg);
     border: 1px solid var(--border-color);
     border-radius: 12px;
@@ -400,12 +398,9 @@
     transition: all 0.2s ease;
   }
 
-  /* LTR */
   html[dir="ltr"] .submenu { transform: translateX(-10px); }
-  /* RTL */
   html[dir="rtl"] .submenu { transform: translateX(10px); margin-inline-end: -1px; }
 
-  /* Bridge for Hover */
   .has-submenu::after { content: ''; position: absolute; top: 0; bottom: 0; width: 20px; inset-inline-end: 100%; z-index: 102; }
 
   .has-submenu:hover .submenu { opacity: 1; visibility: visible; transform: translateX(0); }
@@ -430,15 +425,14 @@
   .dropdown-anim-enter-from, .dropdown-anim-leave-to { opacity: 0; transform: translateY(-10px); }
 
   .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 50px; position: relative; width: 100%; }
-  .chart-wrapper { width: 300px; height: 300px; position: relative; }
+  .chart-wrapper { width: 320px; height: 320px; position: relative; }
   .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
-  .center-balance h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; }
-  .center-balance small { color: var(--text-muted); font-size: 0.9rem; }
+  .center-balance h3 { font-size: 2rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+  .center-balance small { color: var(--text-muted); font-size: 1rem; font-weight: bold; letter-spacing: 2px; }
 
   .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 6px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
   .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
 
-  /* 3 SÜTUNLU GRID - TAM İSTEDİĞİN GİBİ */
   .assets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; width: 100%; padding-bottom: 100px; }
 
   .asset-card {
@@ -456,7 +450,6 @@
   .asset-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); }
   .asset-card * { color: white !important; z-index: 2; position: relative; }
 
-  /* ESKİ SOLID RENKLER */
   .card-try { background: linear-gradient(135deg, #EF4444, #B91C1C); }
   .card-usd { background: linear-gradient(135deg, #10B981, #047857); }
   .card-eur { background: linear-gradient(135deg, #8B4513, #5D4037); }
