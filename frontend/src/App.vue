@@ -13,7 +13,7 @@
 
       <nav class="menu">
         <div class="menu-item" :class="{ active: currentRoute.includes('/dashboard') }" @click="navigate('/dashboard')">
-          <span class="nav-icon">📊</span> {{ t('dashboard') }}
+          <span class="nav-icon">📊</span> {{ t('home') }}
         </div>
         <div class="menu-item" :class="{ active: currentRoute.includes('/calendar') }" @click="navigate('/calendar')">
           <span class="nav-icon">📅</span> {{ t('calendar') }}
@@ -91,14 +91,14 @@
     z-index: 1000;
     transition: transform 0.3s ease-in-out;
     box-sizing: border-box;
-    inset-inline-start: 0;
+    inset-inline-start: 0; /* SİHİRLİ KOD BU */
   }
 
   .main-content {
     flex: 1;
     width: 100%;
     transition: 0.3s;
-    padding-inline-start: 260px;
+    padding-inline-start: 260px; /* İçeriği sidebar kadar ittir */
     box-sizing: border-box;
   }
 

@@ -252,9 +252,9 @@
   .calendar-wrapper { position: relative; width: 100%; min-height: 100%; overflow-y: auto; }
   .animated-background { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
   .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; animation: floatOrb 15s infinite alternate ease-in-out; }
-  .orb-1 { width: 60vw; height: 60vw; background: #4f46e5; top: -20%; left: -10%; }
-  .orb-2 { width: 50vw; height: 50vw; background: #ec4899; bottom: -20%; right: -10%; }
-  .orb-3 { width: 40vw; height: 40vw; background: #10b981; top: 40%; left: 40%; }
+  .orb-1 { width: 60vw; height: 60vw; background: #4f46e5; top: -20%; inset-inline-start: -10%; }
+  .orb-2 { width: 50vw; height: 50vw; background: #ec4899; bottom: -20%; inset-inline-end: -10%; }
+  .orb-3 { width: 40vw; height: 40vw; background: #10b981; top: 40%; inset-inline-start: 40%; }
   @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
 
   .calendar-page { position: relative; z-index: 10; padding: 30px; display: flex; justify-content: center; }
