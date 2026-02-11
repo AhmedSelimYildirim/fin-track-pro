@@ -93,11 +93,20 @@ func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 
 func (h *AssetHandler) GetExcel(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(uint)
-	excelBytes, err := h.service.GenerateExcelReport(userID)
+
+	currency := c.Get("X-Currency", "TRY")
+	ayarStr := c.Get("X-Ayar", "0")
+	ayar, _ := strconv.Atoi(ayarStr)
+
+	excelBytes, err := h.service.GenerateExcelReport(userID, currency, ayar)
+
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Excel raporu uretilemedi"})
 	}
+
+	fileName := fmt.Sprintf("FinTrack_Rapor_%s_%s.xlsx", currency, time.Now().Format("20060102"))
 	c.Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=islemler_%s.xlsx", time.Now().Format("20060102")))
+	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
+
 	return c.Send(excelBytes)
 }
