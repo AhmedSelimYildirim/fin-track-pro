@@ -12,24 +12,34 @@
           <h2>{{ t('portfolioSummary') }}</h2>
         </div>
         <div class="currency-wrapper">
-          <div class="currency-btn glass-panel" @click.stop="toggleDropdown" :class="{ 'active': showSelector }">
+          <div class="currency-btn" @click.stop="toggleDropdown" :class="{ 'active': showSelector }">
             <span class="curr-label">{{ displayCurrency }}</span>
             <span class="arrow-icon">▼</span>
           </div>
 
           <transition name="dropdown-anim">
-            <div v-if="showSelector" class="currency-dropdown glass-panel">
-              <div class="c-item" @click="changeCurrency('TRY', 0, 'TRY')">TRY</div>
-              <div class="c-item" @click="changeCurrency('USD', 0, 'USD')">USD</div>
-              <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">EUR</div>
-              <div class="c-item" @click="changeCurrency('BTC', 0, 'BTC')">BTC</div>
-              <div class="c-item" @click="changeCurrency('SILVER', 0, 'SILVER')">SILVER (Gr)</div>
+            <div v-if="showSelector" class="currency-dropdown">
+              <div class="c-item" @click="changeCurrency('TRY', 0, 'TRY')">
+                <span class="flag-icon">₺</span> TRY
+              </div>
+              <div class="c-item" @click="changeCurrency('USD', 0, 'USD')">
+                <span class="flag-icon">$</span> USD
+              </div>
+              <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">
+                <span class="flag-icon">€</span> EUR
+              </div>
+              <div class="c-item" @click="changeCurrency('BTC', 0, 'BTC')">
+                <span class="flag-icon">₿</span> BTC
+              </div>
+              <div class="c-item" @click="changeCurrency('SILVER', 0, 'SILVER')">
+                <span class="flag-icon">⚔️</span> SILVER (Gr)
+              </div>
 
               <div class="c-item has-submenu">
                 <div class="gold-trigger">
-                  GOLD (Gr) <span class="arrow-right">▶</span>
+                  <span class="flag-icon">👑</span> GOLD (Gr) <span class="arrow-right">▶</span>
                 </div>
-                <div class="submenu glass-panel">
+                <div class="submenu">
                   <div class="sub-item" style="--i:1" @click="changeCurrency('GOLD', 24, 'GOLD 24K')">24K</div>
                   <div class="sub-item" style="--i:2" @click="changeCurrency('GOLD', 22, 'GOLD 22K')">22K</div>
                   <div class="sub-item" style="--i:3" @click="changeCurrency('GOLD', 18, 'GOLD 18K')">18K</div>
@@ -62,7 +72,7 @@
 
       <div class="assets-grid">
         <div v-for="asset in cardConfigs" :key="asset.type"
-             class="asset-card glass-panel" :class="'card-' + asset.type.toLowerCase()"
+             class="asset-card" :class="'card-' + asset.type.toLowerCase()"
              @click="openModal(asset.type)">
           <div class="card-icon">{{ asset.icon }}</div>
           <div class="card-info">
@@ -74,7 +84,7 @@
       </div>
 
       <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-        <div class="modal-content large-modal glass-panel">
+        <div class="modal-content large-modal">
           <div class="modal-header">
             <h3>{{ activeAsset }} {{ t('newTransaction') }}</h3>
             <button @click="showModal = false">✕</button>
@@ -83,9 +93,9 @@
           <div class="modal-body-split">
             <div class="transaction-form">
               <h4>{{ t('newTransaction') }}</h4>
-              <input v-model="amount" type="number" :placeholder="t('amount')" class="big-input glass-input" />
+              <input v-model="amount" type="number" :placeholder="t('amount')" class="big-input" />
               <div v-if="activeAsset === 'GOLD'" class="ayar-wrapper">
-                <select v-model="modalAyar" class="ayar-select glass-input">
+                <select v-model="modalAyar" class="ayar-select">
                   <option :value="24">24K</option>
                   <option :value="22">22K</option>
                   <option :value="18">18K</option>
@@ -94,10 +104,10 @@
                   <option :value="4">4K</option>
                 </select>
               </div>
-              <input v-model="transactionDate" type="date" class="date-input glass-input" />
+              <input v-model="transactionDate" type="date" class="date-input" />
               <div class="actions">
-                <button class="add glow-btn" @click="handleTransaction('add')">{{ t('add') }}</button>
-                <button class="sub glow-btn-red" @click="handleTransaction('subtract')">{{ t('subtract') }}</button>
+                <button class="add" @click="handleTransaction('add')">{{ t('add') }}</button>
+                <button class="sub" @click="handleTransaction('subtract')">{{ t('subtract') }}</button>
               </div>
             </div>
 
@@ -105,7 +115,7 @@
               <h4>{{ t('history') }} & {{ t('receipt') }}</h4>
               <div class="history-list">
                 <div v-if="filteredTransactions.length === 0" class="no-history">{{ t('noData') }}</div>
-                <div v-for="tx in filteredTransactions" :key="tx.id" class="history-item glass-item">
+                <div v-for="tx in filteredTransactions" :key="tx.id" class="history-item">
                   <div class="tx-info">
                     <span class="tx-date">{{ formatDate(tx.transaction_date) }}</span>
                     <span class="tx-type" :class="tx.type">{{ tx.type === 'add' ? '+' : '-' }}</span>
@@ -120,8 +130,8 @@
       </div>
 
       <div class="floating-actions">
-        <button class="f-btn excel glow-btn" @click="downloadExcel" title="Excel">📊</button>
-        <button class="f-btn pdf glow-btn-blue" @click="downloadReceipt" title="PDF">📄</button>
+        <button class="f-btn excel" @click="downloadExcel" title="Excel">📊</button>
+        <button class="f-btn pdf" @click="downloadReceipt" title="PDF">📄</button>
       </div>
     </div>
   </div>
@@ -150,7 +160,7 @@
 
   const cardConfigs = [
     { type: 'TRY', label: 'TRY', icon: '₺', unit: '₺' },
-    { type: 'USD', label: 'USD', icon: '$', unit: '$' },
+    { type: 'USD', label: 'USD', icon: '' },
     { type: 'EUR', label: 'EUR', icon: '€', unit: '€' },
     { type: 'BTC', label: 'BTC', icon: '₿', unit: 'BTC' },
     { type: 'SILVER', label: 'SILVER', icon: '⚔️', unit: 'Gr' },
@@ -175,7 +185,7 @@
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
-    const colors = ['#EF4444', '#10B981', '#8B4513', '#1a1a1a', '#A0A0A0', '#FFD700'];
+    const colors = ['#EF4444', '#10B981', '#8B4513', '#1a1a1a', '#9CA3AF', '#F59E0B'];
     const data = labels.map(label => {
       const assets = summaryData.value?.assets || [];
       return assets.filter(a => a.type === label).reduce((sum, curr) => sum + (curr.allocation || 0), 0);
@@ -310,42 +320,36 @@
   .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 20px; }
   .page-title h2 { color: var(--text-color); margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -1px; text-shadow: 0 4px 10px rgba(0,0,0,0.3); }
 
-  .glass-panel {
-    background: rgba(30, 41, 59, 0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-  }
-
   .currency-wrapper { position: relative; z-index: 100; }
 
   .currency-btn {
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
     padding: 12px 25px;
     border-radius: 25px;
     cursor: pointer;
-    font-weight: 700;
+    font-weight: bold;
     color: var(--accent-color);
-    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: space-between;
     min-width: 160px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   }
-  .currency-btn:hover, .currency-btn.active {
-    border-color: var(--accent-color);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-    background: rgba(30, 41, 59, 0.9);
-  }
+  .currency-btn:hover, .currency-btn.active { border-color: var(--accent-color); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
   .arrow-icon { font-size: 0.8rem; transition: 0.3s; }
   .currency-btn.active .arrow-icon { transform: rotate(180deg); }
 
   .currency-dropdown {
     position: absolute;
-    top: calc(100% + 12px);
+    top: calc(100% + 10px);
     inset-inline-end: 0;
-    border-radius: 16px;
-    width: 220px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    width: 240px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     z-index: 101;
     padding: 8px;
     overflow: visible;
@@ -360,21 +364,29 @@
     color: var(--text-color);
     transition: 0.2s;
     font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
   .c-item:last-child { margin-bottom: 0; }
-  .c-item:hover { background: rgba(255, 255, 255, 0.1); color: var(--accent-color); transform: translateX(4px); }
+  .c-item:hover { background: var(--hover-bg); color: var(--accent-color); transform: translateX(4px); }
+
+  .flag-icon { width: 24px; text-align: center; display: inline-block; font-size: 1.1rem; }
 
   .has-submenu { position: relative; overflow: visible; }
-  .gold-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+  .gold-trigger { display: flex; align-items: center; width: 100%; justify-content: space-between; gap: 12px; }
 
   .submenu {
     position: absolute;
     top: -8px;
     inset-inline-end: 100%;
     margin-inline-end: -2px;
-    border-radius: 16px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
     min-width: 140px;
     padding: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     opacity: 0;
     visibility: hidden;
     transform: translateX(20px);
@@ -398,7 +410,7 @@
     animation: fadeSlideIn 0.3s forwards;
     animation-delay: calc(var(--i) * 0.05s);
   }
-  .sub-item:hover { background: rgba(255,215,0,0.15); color: #FFD700; padding-inline-start: 15px; }
+  .sub-item:hover { background: var(--hover-bg); color: var(--accent-color); padding-inline-start: 15px; }
 
   @keyframes fadeSlideIn {
     from { opacity: 0; transform: translateY(5px); }
@@ -409,57 +421,52 @@
   .dropdown-anim-enter-from, .dropdown-anim-leave-to { opacity: 0; transform: translateY(-10px); }
 
   .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 50px; position: relative; width: 100%; }
-  .chart-wrapper { width: 320px; height: 320px; position: relative; filter: drop-shadow(0 0 20px rgba(0,0,0,0.2)); }
+  .chart-wrapper { width: 340px; height: 340px; position: relative; filter: drop-shadow(0 0 20px rgba(0,0,0,0.2)); }
   .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
   .center-balance h3 { font-size: 2.2rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; text-shadow: 0 4px 10px rgba(0,0,0,0.5); }
   .center-balance small { color: var(--accent-color); font-size: 1rem; font-weight: bold; letter-spacing: 2px; }
 
-  .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 6px dashed rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; }
+  .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 6px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
   .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
 
-  .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; width: 100%; padding-bottom: 100px; }
+  .assets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; width: 100%; padding-bottom: 100px; }
   .asset-card {
     padding: 25px;
-    border-radius: 24px;
+    border-radius: 20px;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.05);
     display: flex;
     align-items: center;
     gap: 20px;
     position: relative;
     overflow: hidden;
   }
-  .asset-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--accent-color); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-  .asset-card::before {
-    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 100%);
-    opacity: 0; transition: 0.4s;
-  }
-  .asset-card:hover::before { opacity: 1; }
+  .asset-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.4); border-color: var(--accent-color); }
   .asset-card * { color: white !important; z-index: 2; position: relative; }
 
-  .card-btc { background: linear-gradient(145deg, #1a1a1a, #000); border-left: 4px solid #F7931A; }
-  .card-gold { background: linear-gradient(145deg, #443300, #1a1200); border-left: 4px solid #FFD700; }
-  .card-usd { background: linear-gradient(145deg, #064E3B, #022c22); border-left: 4px solid #10B981; }
-  .card-eur { background: linear-gradient(145deg, #451a03, #270e01); border-left: 4px solid #8B4513; }
-  .card-silver { background: linear-gradient(145deg, #374151, #111827); border-left: 4px solid #9CA3AF; }
-  .card-try { background: linear-gradient(145deg, #7f1d1d, #450a0a); border-left: 4px solid #EF4444; }
+  .card-try { background: linear-gradient(135deg, #EF4444, #B91C1C); }
+  .card-usd { background: linear-gradient(135deg, #10B981, #047857); }
+  .card-eur { background: linear-gradient(135deg, #8B4513, #5D4037); }
+  .card-btc { background: linear-gradient(135deg, #1F2937, #000000); }
+  .card-silver { background: linear-gradient(135deg, #9CA3AF, #4B5563); }
+  .card-gold { background: linear-gradient(135deg, #F59E0B, #D97706); }
 
-  .card-icon { font-size: 2.5rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+  .card-icon { font-size: 2.5rem; text-shadow: 0 2px 5px rgba(0,0,0,0.3); }
   .card-info { display: flex; flex-direction: column; }
-  .card-name { font-size: 0.9rem; opacity: 0.7; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
+  .card-name { font-size: 0.9rem; opacity: 0.8; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
   .card-amount { font-size: 1.5rem; font-weight: 800; margin: 4px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
   .card-val { font-size: 0.9rem; font-weight: 600; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 12px; align-self: flex-start; }
 
   .floating-actions { position: fixed; bottom: 30px; inset-inline-end: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 110; }
   .f-btn { width: 60px; height: 60px; border-radius: 20px; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: white; display: flex; align-items: center; justify-content: center; }
   .f-btn:hover { transform: scale(1.15) rotate(-5deg); }
-  .glow-btn { background: linear-gradient(135deg, #10B981, #059669); box-shadow: 0 0 15px rgba(16, 185, 129, 0.4); }
-  .glow-btn-blue { background: linear-gradient(135deg, #3B82F6, #2563EB); box-shadow: 0 0 15px rgba(59, 130, 246, 0.4); }
-  .glow-btn-red { background: linear-gradient(135deg, #EF4444, #B91C1C); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+  .excel { background: linear-gradient(135deg, #10B981, #059669); }
+  .pdf { background: linear-gradient(135deg, #3B82F6, #2563EB); }
 
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(8px); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px); }
   .large-modal { width: 800px !important; max-width: 95%; padding: 40px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); }
+  .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
   .modal-header { display: flex; justify-content: space-between; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
   .modal-header h3 { color: var(--text-color); margin: 0; font-size: 1.5rem; }
   .modal-header button { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; transition: 0.3s; }
@@ -469,27 +476,26 @@
   .transaction-form, .transaction-history { display: flex; flex-direction: column; gap: 15px; }
   .transaction-history { border-inline-start: 1px solid var(--border-color); padding-inline-start: 30px; }
   h4 { color: var(--accent-color); margin: 0 0 10px 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
-  .glass-input { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; border-radius: 12px; padding: 15px; font-size: 1rem; transition: 0.3s; }
-  .glass-input:focus { border-color: var(--accent-color); background: rgba(0,0,0,0.5); box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); outline: none; }
-
   .history-list { max-height: 350px; overflow-y: auto; padding-inline-end: 5px; }
-  .glass-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-  .glass-item:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.1); }
-
+  .history-item { background: var(--input-bg); padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
   .tx-info { display: flex; flex-direction: column; gap: 4px; }
   .tx-date { color: var(--text-muted); font-size: 0.8rem; }
-  .tx-type.add { color: #4ade80 !important; font-weight: bold; text-shadow: 0 0 10px rgba(74, 222, 128, 0.3); }
-  .tx-type.subtract { color: #f87171 !important; font-weight: bold; text-shadow: 0 0 10px rgba(248, 113, 113, 0.3); }
-  .tx-amount { color: white; font-weight: bold; font-size: 1.1rem; }
+  .tx-type.add { color: var(--success-color) !important; font-weight: bold; }
+  .tx-type.subtract { color: var(--danger-color) !important; font-weight: bold; }
+  .tx-amount { color: var(--text-color); font-weight: bold; font-size: 1.1rem; }
+  .receipt-download-btn { background: transparent; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; padding: 8px; transition: 0.2s; font-size: 1.2rem; }
+  .receipt-download-btn:hover { background: var(--hover-bg); }
 
-  .receipt-download-btn { background: rgba(255,255,255,0.1); border: none; border-radius: 8px; cursor: pointer; padding: 8px; transition: 0.2s; font-size: 1.2rem; }
-  .receipt-download-btn:hover { background: var(--accent-color); color: black; transform: scale(1.1); }
-
+  .big-input, .ayar-select, .date-input { width: 100%; padding: 15px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 12px; margin-bottom: 15px; font-size: 1rem; box-sizing: border-box; }
   .actions { display: flex; gap: 15px; margin-top: 10px; }
-  .actions button { flex: 1; padding: 16px; border-radius: 14px; border: none; font-weight: 800; cursor: pointer; color: white; transition: 0.3s; font-size: 1rem; letter-spacing: 1px; text-transform: uppercase; }
-  .actions button:hover { transform: translateY(-3px); filter: brightness(1.1); }
+  .actions button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+  .add { background: var(--success-color); }
+  .sub { background: var(--danger-color); }
+  .add:hover, .sub:hover { opacity: 0.9; transform: translateY(-2px); }
 
+  @media (max-width: 1024px) { .assets-grid { grid-template-columns: repeat(2, 1fr); } }
   @media (max-width: 768px) {
+    .assets-grid { grid-template-columns: 1fr; }
     .modal-body-split { grid-template-columns: 1fr; }
     .transaction-history { border-inline-start: none; border-top: 1px solid var(--border-color); padding-inline-start: 0; padding-top: 30px; }
     .chart-wrapper { width: 280px; height: 280px; }
