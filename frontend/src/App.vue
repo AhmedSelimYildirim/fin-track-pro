@@ -16,8 +16,7 @@
           <span class="nav-icon">📊</span> {{ t('home') }}
         </div>
         <div class="menu-item" :class="{ active: currentRoute.includes('/calendar') }" @click="navigate('/calendar')">
-          <img src="./assets/image_2b3783.png" class="custom-nav-icon" alt="calendar" />
-          {{ t('calendar') }}
+          <span class="nav-icon">📅</span> {{ t('calendar') }}
         </div>
         <div class="menu-item" :class="{ active: currentRoute.includes('/settings') }" @click="navigate('/settings')">
           <span class="nav-icon">⚙️</span> {{ t('settings') }}
@@ -26,8 +25,7 @@
 
       <div class="logout-wrapper">
         <div class="menu-item logout-btn" @click="logout">
-          <img src="./assets/image_2b3459.png" class="custom-nav-icon" alt="logout" />
-          {{ t('logout') }}
+          <span class="nav-icon"></span> {{ t('logout') }}
         </div>
       </div>
     </aside>
@@ -110,9 +108,7 @@
   .menu-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; color: var(--text-muted); display: flex; gap: 12px; align-items: center; transition: all 0.3s; font-weight: 500; }
   .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); transform: translateX(5px); }
 
-  /* Özel İkon Boyutlandırma */
-  .custom-nav-icon { width: 20px; height: 20px; object-fit: contain; filter: grayscale(100%); opacity: 0.7; transition: 0.3s; }
-  .menu-item:hover .custom-nav-icon, .menu-item.active .custom-nav-icon { filter: none; opacity: 1; }
+  .nav-icon { font-size: 1.2rem; }
 
   .logout-wrapper { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); }
   .logout-btn {
@@ -129,7 +125,6 @@
     gap: 10px;
   }
   .logout-btn:hover { background: var(--danger-color); color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
-  .logout-btn .custom-nav-icon { filter: none; opacity: 1; } /* Çıkış ikonu hep canlı kalsın */
 
   .mobile-menu-toggle { display: none; position: fixed; top: 15px; left: 15px; z-index: 1100; background: var(--accent-color); border: none; color: #000; font-size: 1.5rem; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
   .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 900; backdrop-filter: blur(3px); }
