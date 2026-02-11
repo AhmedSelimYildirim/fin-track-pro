@@ -1,8 +1,8 @@
-import { createRouter, createWebHashHistory } from 'vue-router'
-import LoginView from '../views/LoginView.vue'
-import DashboardView from '../views/DashboardView.vue'
-import CalendarView from '../views/CalendarView.vue'
-import SettingsView from '../views/SettingsView.vue'
+import { createRouter, createWebHashHistory } from 'vue-router';
+import LoginView from '../views/LoginView.vue';
+import DashboardView from '../views/DashboardView.vue';
+import CalendarView from '../views/CalendarView.vue';
+import SettingsView from '../views/SettingsView.vue';
 
 const router = createRouter({
     history: createWebHashHistory(),
@@ -28,18 +28,20 @@ const router = createRouter({
             meta: { requiresAuth: true }
         }
     ]
-})
+});
 
 router.beforeEach((to, from, next) => {
     const isAuthenticated = localStorage.getItem('token');
 
     if (to.meta.requiresAuth && !isAuthenticated) {
         next('/login');
-    } else if (to.path === '/login' && isAuthenticated) {
+    }
+    else if (to.path === '/login' && isAuthenticated) {
         next('/dashboard');
-    } else {
+    }
+    else {
         next();
     }
 });
 
-export default router
+export default router;
