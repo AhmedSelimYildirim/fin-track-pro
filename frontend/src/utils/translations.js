@@ -30,7 +30,7 @@ export const translations = {
         history: 'İşlem Geçmişi',
         receipt: 'Dekont',
         amount: 'Miktar',
-        date: 'Date',
+        date: 'Tarih',
         add: 'EKLE (+)',
         subtract: 'ÇIKAR (-)',
         username: 'Kullanıcı Adı',

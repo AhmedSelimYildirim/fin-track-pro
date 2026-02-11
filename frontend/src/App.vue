@@ -13,7 +13,7 @@
 
       <nav class="menu">
         <div class="menu-item" :class="{ active: currentRoute.includes('/dashboard') }" @click="navigate('/dashboard')">
-          <span class="nav-icon">📊</span> {{ t('home') }}
+          <span class="nav-icon">📊</span> {{ t('dashboard') }}
         </div>
         <div class="menu-item" :class="{ active: currentRoute.includes('/calendar') }" @click="navigate('/calendar')">
           <span class="nav-icon">📅</span> {{ t('calendar') }}
@@ -25,7 +25,7 @@
 
       <div class="logout-wrapper">
         <div class="menu-item logout-btn" @click="logout">
-          <span class="nav-icon"></span> {{ t('logout') }}
+          <span class="nav-icon">🚪</span> {{ t('logout') }}
         </div>
       </div>
     </aside>
@@ -76,10 +76,31 @@
   :root { --bg-color: #0F172A; --card-bg: #1E293B; --text-color: #FFFFFF; --text-muted: #94A3B8; --border-color: rgba(255, 255, 255, 0.1); --input-bg: #0F172A; --sidebar-bg: #1E293B; --hover-bg: #334155; --accent-color: #FFD700; --danger-color: #EF4444; --success-color: #10B981; }
   [data-theme="light"] { --bg-color: #F1F5F9; --card-bg: #FFFFFF; --text-color: #0F172A; --text-muted: #64748B; --border-color: #E2E8F0; --input-bg: #F8FAFC; --sidebar-bg: #FFFFFF; --hover-bg: #E2E8F0; --accent-color: #F59E0B; }
 
-  body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); }
+  body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); overflow-x: hidden; }
   .app-container { display: flex; min-height: 100vh; position: relative; }
-  .sidebar { width: 260px; background: var(--sidebar-bg); display: flex; flex-direction: column; padding: 25px; border-right: 1px solid var(--border-color); position: fixed; height: 100vh; z-index: 1000; transition: transform 0.3s; box-sizing: border-box; }
-  .main-content { flex: 1; width: 100%; transition: 0.3s; padding-left: 260px; }
+
+  .sidebar {
+    width: 260px;
+    background: var(--sidebar-bg);
+    display: flex;
+    flex-direction: column;
+    padding: 25px;
+    border-inline-end: 1px solid var(--border-color);
+    position: fixed;
+    height: 100vh;
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out;
+    box-sizing: border-box;
+    inset-inline-start: 0;
+  }
+
+  .main-content {
+    flex: 1;
+    width: 100%;
+    transition: 0.3s;
+    padding-inline-start: 260px;
+    box-sizing: border-box;
+  }
 
   .brand-container { margin-bottom: 40px; text-align: center; }
   .brand-title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
@@ -93,7 +114,7 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  .brand-pro { color: #FACC15; margin-left: 4px; text-shadow: 0 0 10px rgba(250, 204, 21, 0.3); }
+  .brand-pro { color: #FACC15; margin-inline-start: 4px; text-shadow: 0 0 10px rgba(250, 204, 21, 0.3); }
 
   .user-badge {
     margin-top: 8px;
@@ -106,7 +127,10 @@
   [data-theme="light"] .user-badge { color: #0F172A; }
 
   .menu-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; color: var(--text-muted); display: flex; gap: 12px; align-items: center; transition: all 0.3s; font-weight: 500; }
-  .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); transform: translateX(5px); }
+  .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); }
+
+  html[dir="ltr"] .menu-item:hover, html[dir="ltr"] .menu-item.active { transform: translateX(5px); }
+  html[dir="rtl"] .menu-item:hover, html[dir="rtl"] .menu-item.active { transform: translateX(-5px); }
 
   .nav-icon { font-size: 1.2rem; }
 
@@ -126,14 +150,19 @@
   }
   .logout-btn:hover { background: var(--danger-color); color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
 
-  .mobile-menu-toggle { display: none; position: fixed; top: 15px; left: 15px; z-index: 1100; background: var(--accent-color); border: none; color: #000; font-size: 1.5rem; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
+  .mobile-menu-toggle { display: none; position: fixed; top: 15px; inset-inline-start: 15px; z-index: 1100; background: var(--accent-color); border: none; color: #000; font-size: 1.5rem; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
   .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 900; backdrop-filter: blur(3px); }
 
   @media (max-width: 768px) {
     .mobile-menu-toggle { display: block; }
-    .sidebar { transform: translateX(-100%); width: 280px; }
-    .sidebar.mobile-open { transform: translateX(0); }
+    .sidebar { width: 280px; }
+
+    html[dir="ltr"] .sidebar { transform: translateX(-100%); }
+    html[dir="rtl"] .sidebar { transform: translateX(100%); }
+
+    .sidebar.mobile-open { transform: translateX(0) !important; }
+
     .mobile-overlay { display: block; }
-    .main-content { padding-left: 0; padding-top: 60px; }
+    .main-content { padding-inline-start: 0; padding-top: 60px; }
   }
 </style>
