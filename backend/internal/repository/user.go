@@ -48,6 +48,6 @@ func (r *UserRepository) Update(user *model.User) error {
 }
 
 func (r *UserRepository) Delete(id uint) error {
-	_, err := r.db.NewDelete().Model((*model.User)(nil)).Where("id = ?", id).Exec(context.Background())
+	_, err := r.db.NewDelete().Model((*model.User)(nil)).Where("id = ?", id).ForceDelete().Exec(context.Background())
 	return err
 }
