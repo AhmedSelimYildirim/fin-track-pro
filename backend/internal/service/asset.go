@@ -178,7 +178,7 @@ func (s *AssetService) GetUserTransactionsWithCurrency(userID uint, baseCurrency
 			Amount:          tx.Amount,
 			Price:           tx.Price / basePriceInTRY,
 			Ayar:            displayAyar,
-			TransactionDate: tx.TransactionDate,
+			TransactionDate: tx.TransactionDate.Add(3 * time.Hour),
 			CreatedAt:       tx.CreatedAt,
 		})
 	}
@@ -223,7 +223,7 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	pdf.Ln(8)
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Toplam Tutar: %.4f %s", tx.Amount*convertedPrice, baseCurrency)))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Islem Tarihi: %s", tx.TransactionDate.Format("02.01.2006"))))
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Islem Tarihi: %s", tx.TransactionDate.Add(3*time.Hour).Format("02.01.2006 15:04"))))
 	pdf.Ln(20)
 	pdf.SetFont("Arial", "I", 10)
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Bu belge %s tarafindan uretilmistir.", userName)))
@@ -270,7 +270,7 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("TOPLAM PORTFOY DEGERI: %.4f %s", summary.TotalValue, baseCurrency)))
 	pdf.Ln(15)
 	pdf.SetFont("Arial", "I", 10)
-	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Rapor Tarihi: %s | Kullanici: %s", time.Now().Format("02.01.2006 15:04"), userName)))
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Rapor Tarihi: %s | Kullanici: %s", time.Now().Add(3*time.Hour).Format("02.01.2006 15:04"), userName)))
 	var buf bytes.Buffer
 	pdf.Output(&buf)
 	return buf.Bytes(), nil
@@ -333,7 +333,7 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	f.SetCellValue(sheetName, "B4", fmt.Sprintf("%.2f %s", portfolio.TotalValue, baseCurrency))
 
 	f.SetCellValue(sheetName, "D4", "RAPOR TARIHI")
-	f.SetCellValue(sheetName, "E4", time.Now().Format("02.01.2006 15:04"))
+	f.SetCellValue(sheetName, "E4", time.Now().Add(3*time.Hour).Format("02.01.2006 15:04"))
 
 	f.SetCellStyle(sheetName, "A4", "A4", styleSubHeader)
 	f.SetCellStyle(sheetName, "D4", "D4", styleSubHeader)
@@ -390,7 +390,7 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 
 	txDataRow := txHeaderRow + 1
 	for _, tx := range txs {
-		f.SetCellValue(sheetName, fmt.Sprintf("A%d", txDataRow), tx.TransactionDate.Format("02.01.2006 15:04"))
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", txDataRow), tx.TransactionDate.Add(3*time.Hour).Format("02.01.2006 15:04"))
 
 		typeTr := "Ekleme (+)"
 		if tx.Type == "subtract" {

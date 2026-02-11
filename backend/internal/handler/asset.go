@@ -104,7 +104,7 @@ func (h *AssetHandler) GetExcel(c *fiber.Ctx) error {
 		return c.Status(500).JSON(fiber.Map{"error": "Excel raporu uretilemedi"})
 	}
 
-	fileName := fmt.Sprintf("FinTrack_Rapor_%s_%s.xlsx", currency, time.Now().Format("20060102"))
+	fileName := fmt.Sprintf("FinTrack_Rapor_%s_%s.xlsx", currency, time.Now().Add(3*time.Hour).Format("20060102"))
 	c.Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
 
