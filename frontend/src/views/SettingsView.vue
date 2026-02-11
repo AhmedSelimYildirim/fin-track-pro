@@ -14,6 +14,7 @@
             <div class="settings-grid">
                 <div class="section-card">
                     <h3>{{ t('appearance') }}</h3>
+
                     <div class="setting-item">
                         <div class="item-info">
                             <span class="icon">🌓</span>
@@ -29,13 +30,18 @@
                             </div>
                         </div>
                     </div>
-                    <div class="setting-item mt-20">
+
+                    <div class="separator"></div>
+
+                    <div class="setting-item">
                         <div class="item-info">
                             <span class="icon">🌍</span>
                             <span class="label">{{ t('language') }}</span>
                         </div>
                         <div class="lang-buttons">
-                            <button v-for="lang in languages" :key="lang.code" :class="{ active: selectedLang === lang.code }" @click="changeLang(lang.code)">
+                            <button v-for="lang in languages" :key="lang.code"
+                                    :class="{ active: selectedLang === lang.code }"
+                                    @click="changeLang(lang.code)">
                                 {{ lang.flag }} {{ lang.name }}
                             </button>
                         </div>
@@ -46,11 +52,11 @@
                     <h3>{{ t('profileSettings') }}</h3>
                     <div class="input-group">
                         <label>{{ t('username') }}</label>
-                        <input v-model="username" type="text" />
+                        <input v-model="username" type="text" placeholder="Kullanıcı Adı" />
                     </div>
                     <div class="input-group">
                         <label>{{ t('email') }}</label>
-                        <input v-model="email" type="email" />
+                        <input v-model="email" type="email" placeholder="E-Posta" />
                     </div>
                     <div class="input-group">
                         <label>{{ t('password') }}</label>
@@ -96,6 +102,7 @@
 
     onMounted(() => {
         username.value = localStorage.getItem('username') || '';
+        email.value = localStorage.getItem('email') || ''; // E-postayı otomatik doldur
     });
 
     const changeLang = (code) => {
@@ -110,9 +117,12 @@
         try {
             const payload = { username: username.value, email: email.value };
             if (password.value) payload.password = password.value;
+
             await api.put('/user/update', payload);
             localStorage.setItem('username', username.value);
+            localStorage.setItem('email', email.value); // Güncellenen e-postayı kaydet
             password.value = '';
+
             window.dispatchEvent(new Event('storage'));
             alert("Profil güncellendi!");
         } catch (e) {
@@ -147,16 +157,17 @@
     .settings-grid { display: grid; gap: 20px; }
     .section-card { background: var(--card-bg); padding: 25px; border-radius: 15px; border: 1px solid var(--border-color); backdrop-filter: blur(10px); }
     .section-card h3 { margin-top: 0; margin-bottom: 20px; color: var(--accent-color); font-size: 1.1rem; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-    .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; }
+    .setting-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; flex-wrap: wrap; gap: 10px; }
     .item-info { display: flex; align-items: center; gap: 15px; }
     .icon { font-size: 1.4rem; }
     .label { display: block; font-weight: bold; font-size: 1rem; }
     .sub-label { font-size: 0.8rem; color: var(--text-muted); }
+    .separator { height: 1px; background: rgba(255, 255, 255, 0.1); margin: 15px 0; width: 100%; }
     .theme-switch { width: 60px; height: 30px; background: #334155; border-radius: 20px; cursor: pointer; position: relative; transition: 0.3s; }
     .theme-switch.is-light { background: #FFD700; }
     .switch-handle { width: 24px; height: 24px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: 0.3s; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
     .is-light .switch-handle { left: 33px; }
-    .lang-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .lang-buttons { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 5px; }
     .lang-buttons button { background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 8px 12px; border-radius: 8px; cursor: pointer; transition: 0.2s; font-size: 0.9rem; }
     .lang-buttons button.active { background: var(--accent-color); color: #000; font-weight: bold; border-color: var(--accent-color); }
     .input-group { margin-bottom: 15px; }

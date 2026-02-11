@@ -11,7 +11,7 @@
 
     <div class="glass-card">
       <h1 class="brand-title">FinTrack <span class="highlight">Pro</span></h1>
-      <p class="brand-subtitle">Finansal Özgürlüğe Hoşgeldiniz</p>
+      <div class="gradient-line"></div>
 
       <div class="tab-container">
         <div class="tab-slider" :class="{ 'slide-right': activeTab === 'register' }"></div>
@@ -90,18 +90,13 @@
 
       localStorage.setItem('token', res.data.token)
 
-      const userData = res.data.user || {} // Backend'den user objesi gelmeli
+      // Backend'den username dönüyorsa al, yoksa e-posta başını kullan
+      const user = res.data.username || loginData.value.email.split('@')[0]
+      localStorage.setItem('username', user)
+      localStorage.setItem('email', loginData.value.email) // E-postayı da sakla
 
-      // Backend username dönmezse loginData'da username olmadığı için registerData'dan veya e-postadan üret
-      if (userData.username) {
-        localStorage.setItem('username', userData.username)
-      } else if (registerData.value.username) {
-        localStorage.setItem('username', registerData.value.username)
-      } else {
-        localStorage.setItem('username', loginData.value.email.split('@')[0])
-      }
-
-      localStorage.setItem('email', userData.email || loginData.value.email)
+      // Sidebar'ı güncellemesi için event fırlat
+      window.dispatchEvent(new Event('storage'))
 
       router.push('/dashboard')
     } catch (e) {
@@ -122,18 +117,19 @@
     try {
       await api.post('/auth/register', registerData.value)
 
-      showNotification('Kayıt başarılı! Giriş yapılıyor...', 'success')
+      showNotification('Kayıt başarılı! Giriş yapabilirsiniz.', 'success')
 
-      // Kayıttan gelen bilgileri Login formuna aktar
+      // Kayıt bilgilerini Login formuna aktar
       loginData.value.email = registerData.value.email
       loginData.value.password = registerData.value.password
 
-      // Otomatik giriş yap
-      await handleLogin()
+      // Login sekmesine geç
+      activeTab.value = 'login'
 
     } catch (e) {
       console.error(e)
       showNotification(e.response?.data?.message || 'Kayıt sırasında hata oluştu.', 'error')
+    } finally {
       isLoading.value = false
     }
   }
@@ -151,6 +147,7 @@
     align-items: center;
     overflow: hidden;
     z-index: 1000;
+    font-family: 'Inter', sans-serif;
   }
 
   .toast-notification {
@@ -194,6 +191,9 @@
     padding: 40px;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
     z-index: 10;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Her şeyi ortala */
   }
 
   .brand-title {
@@ -206,20 +206,29 @@
   }
 
   .highlight { color: #facc15; }
-  .brand-subtitle { text-align: center; color: #94a3b8; font-size: 0.9rem; margin-top: 5px; margin-bottom: 30px; }
+
+  .gradient-line {
+    width: 60px;
+    height: 4px;
+    background: linear-gradient(90deg, #22c55e, #3b82f6);
+    border-radius: 2px;
+    margin: 15px 0 30px 0;
+  }
 
   .tab-container {
+    width: 100%;
     background: rgba(15, 23, 42, 0.6);
     padding: 4px;
     border-radius: 12px;
     display: flex;
     position: relative;
     margin-bottom: 25px;
+    box-sizing: border-box; /* Taşmayı önler */
   }
 
   .tab-slider {
     position: absolute;
-    width: 50%;
+    width: calc(50% - 4px); /* Kenar boşluklarını hesaba kat */
     height: calc(100% - 8px);
     background: #334155;
     border-radius: 8px;
@@ -229,7 +238,7 @@
     z-index: 1;
   }
 
-  .tab-slider.slide-right { transform: translateX(96%); }
+  .tab-slider.slide-right { transform: translateX(100%); }
 
   .tab-btn {
     flex: 1;
@@ -242,15 +251,18 @@
     z-index: 2;
     transition: color 0.3s;
     font-size: 0.95rem;
+    text-align: center;
   }
 
   .tab-btn.active { color: white; }
 
-  .input-box { margin-bottom: 15px; }
+  .form-wrapper { width: 100%; }
+
+  .input-box { margin-bottom: 15px; width: 100%; }
 
   input {
     width: 100%;
-    padding: 16px;
+    padding: 14px 16px;
     background: rgba(2, 6, 23, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 12px;
@@ -258,6 +270,7 @@
     font-size: 1rem;
     outline: none;
     transition: all 0.3s;
+    box-sizing: border-box; /* Padding dahil genişlik */
   }
 
   input:focus {
@@ -268,7 +281,7 @@
 
   .action-btn {
     width: 100%;
-    padding: 16px;
+    padding: 14px;
     background: linear-gradient(135deg, #22c55e 0%, #15803d 100%);
     border: none;
     border-radius: 12px;
@@ -281,7 +294,8 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 56px;
+    min-height: 50px;
+    box-sizing: border-box;
   }
 
   .action-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(34, 197, 94, 0.4); }
