@@ -17,11 +17,11 @@
           </div>
           <div v-if="showSelector" class="currency-dropdown">
             <div class="c-item" @click="changeCurrency('TRY', 0, 'TRY')">TRY</div>
+            <div class="c-item" @click="changeCurrency('GOLD', 24, 'GOLD')">GOLD</div>
             <div class="c-item" @click="changeCurrency('USD', 0, 'USD')">USD</div>
-            <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">EUR</div>
             <div class="c-item" @click="changeCurrency('BTC', 0, 'BTC')">BTC</div>
             <div class="c-item" @click="changeCurrency('SILVER', 0, 'SILVER')">SILVER</div>
-
+            <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">EUR</div>
             <div class="c-item has-submenu">
               GOLD ▶
               <div class="submenu compact-gold-menu">
@@ -78,7 +78,6 @@
             <div class="transaction-form">
               <h4>{{ t('newTransaction') }}</h4>
               <input v-model="amount" type="number" :placeholder="t('amount')" class="big-input" />
-
               <div v-if="activeAsset === 'GOLD'" class="ayar-wrapper">
                 <select v-model="modalAyar" class="ayar-select">
                   <option :value="24">24K</option>
@@ -89,9 +88,7 @@
                   <option :value="4">4K</option>
                 </select>
               </div>
-
               <input v-model="transactionDate" type="date" class="date-input" />
-
               <div class="actions">
                 <button class="add" @click="handleTransaction('add')">{{ t('add') }}</button>
                 <button class="sub" @click="handleTransaction('subtract')">{{ t('subtract') }}</button>
@@ -150,8 +147,8 @@
     { type: 'USD', label: 'USD', icon: '$', unit: '$' },
     { type: 'EUR', label: 'EUR', icon: '€', unit: '€' },
     { type: 'BTC', label: 'BTC', icon: '₿', unit: 'BTC' },
-    { type: 'SILVER', label: 'SILVER', icon: '⚔️', unit: 'Gr' },
-    { type: 'GOLD', label: 'GOLD', icon: '👑', unit: 'Gr' }
+    { type: 'SILVER', label: 'SILVER (Gr)', icon: '⚔️', unit: 'Gr' },
+    { type: 'GOLD', label: 'GOLD (Gr)', icon: '👑', unit: 'Gr' }
   ];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
