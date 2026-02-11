@@ -25,7 +25,7 @@
 
       <div class="logout-wrapper">
         <div class="menu-item logout-btn" @click="logout">
-          <span class="nav-icon">🚪</span> {{ t('logout') }}
+          <span class="nav-icon"></span> {{ t('logout') }}
         </div>
       </div>
     </aside>
@@ -91,14 +91,14 @@
     z-index: 1000;
     transition: transform 0.3s ease-in-out;
     box-sizing: border-box;
-    inset-inline-start: 0; /* SİHİRLİ KOD BU */
+    inset-inline-start: 0;
   }
 
   .main-content {
     flex: 1;
     width: 100%;
     transition: 0.3s;
-    padding-inline-start: 260px; /* İçeriği sidebar kadar ittir */
+    padding-inline-start: 260px;
     box-sizing: border-box;
   }
 

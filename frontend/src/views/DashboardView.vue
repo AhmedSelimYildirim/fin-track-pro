@@ -18,34 +18,24 @@
           </div>
 
           <transition name="dropdown-anim">
-            <div v-if="showSelector" class="currency-dropdown glass-panel">
-              <div class="c-item" @click="changeCurrency('TRY', 0, 'TRY')">
-                <span class="flag-icon">₺</span> TRY
-              </div>
-              <div class="c-item" @click="changeCurrency('USD', 0, 'USD')">
-                <span class="flag-icon">$</span> USD
-              </div>
-              <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">
-                <span class="flag-icon">€</span> EUR
-              </div>
-              <div class="c-item" @click="changeCurrency('BTC', 0, 'BTC')">
-                <span class="flag-icon">₿</span> BTC
-              </div>
-              <div class="c-item" @click="changeCurrency('SILVER', 0, 'SILVER')">
-                <span class="flag-icon">⚔️</span> SILVER (Gr)
-              </div>
+            <div v-if="showSelector" class="currency-dropdown">
+              <div class="c-item" @click="changeCurrency('TRY', 0, 'TRY')">TRY</div>
+              <div class="c-item" @click="changeCurrency('USD', 0, 'USD')">USD</div>
+              <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">EUR</div>
+              <div class="c-item" @click="changeCurrency('BTC', 0, 'BTC')">BTC</div>
+              <div class="c-item" @click="changeCurrency('SILVER', 0, 'SILVER')">SILVER (Gr)</div>
 
               <div class="c-item has-submenu">
                 <div class="gold-trigger">
-                  <span class="flag-icon">👑</span> GOLD (Gr) <span class="arrow-right">▶</span>
+                  GOLD (Gr) <span class="arrow-right">▶</span>
                 </div>
-                <div class="submenu glass-panel">
-                  <div class="sub-item" style="--i:1" @click="changeCurrency('GOLD', 24, 'GOLD 24K')">24K Saf Altın</div>
-                  <div class="sub-item" style="--i:2" @click="changeCurrency('GOLD', 22, 'GOLD 22K')">22K Bilezik</div>
-                  <div class="sub-item" style="--i:3" @click="changeCurrency('GOLD', 18, 'GOLD 18K')">18K Altın</div>
-                  <div class="sub-item" style="--i:4" @click="changeCurrency('GOLD', 14, 'GOLD 14K')">14K Altın</div>
-                  <div class="sub-item" style="--i:5" @click="changeCurrency('GOLD', 8, 'GOLD 8K')">8K Altın</div>
-                  <div class="sub-item" style="--i:6" @click="changeCurrency('GOLD', 4, 'GOLD 4K')">4K Altın</div>
+                <div class="submenu">
+                  <div class="sub-item" style="--i:1" @click="changeCurrency('GOLD', 24, 'GOLD 24K')">24K</div>
+                  <div class="sub-item" style="--i:2" @click="changeCurrency('GOLD', 22, 'GOLD 22K')">22K</div>
+                  <div class="sub-item" style="--i:3" @click="changeCurrency('GOLD', 18, 'GOLD 18K')">18K</div>
+                  <div class="sub-item" style="--i:4" @click="changeCurrency('GOLD', 14, 'GOLD 14K')">14K</div>
+                  <div class="sub-item" style="--i:5" @click="changeCurrency('GOLD', 8, 'GOLD 8K')">8K</div>
+                  <div class="sub-item" style="--i:6" @click="changeCurrency('GOLD', 4, 'GOLD 4K')">4K</div>
                 </div>
               </div>
             </div>
@@ -318,108 +308,88 @@
   .dashboard-content { position: relative; z-index: 10; width: 100%; height: 100%; overflow-y: auto; padding: 30px; box-sizing: border-box; }
 
   .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; flex-wrap: wrap; gap: 20px; }
-  .page-title h2 { color: var(--text-color); margin: 0; font-size: 2rem; font-weight: 800; letter-spacing: -1px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+  .page-title h2 { color: var(--text-color); margin: 0; font-size: 1.8rem; font-weight: 700; }
 
-  .currency-wrapper { position: relative; z-index: 100; perspective: 1000px; }
+  .currency-wrapper { position: relative; z-index: 100; }
 
   .currency-btn {
-    background: rgba(30, 41, 59, 0.7);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 14px 28px;
-    border-radius: 16px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    padding: 12px 25px;
+    border-radius: 25px;
     cursor: pointer;
-    font-weight: 700;
+    font-weight: bold;
     color: var(--accent-color);
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-width: 180px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    gap: 15px;
+    min-width: 160px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   }
-  .currency-btn:hover, .currency-btn.active {
-    border-color: var(--accent-color);
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 15px 30px rgba(255, 215, 0, 0.15);
-    background: rgba(30, 41, 59, 0.9);
-  }
+  .currency-btn:hover, .currency-btn.active { border-color: var(--accent-color); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }
   .arrow-icon { font-size: 0.8rem; transition: 0.3s; }
   .currency-btn.active .arrow-icon { transform: rotate(180deg); }
 
-  .glass-panel {
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.6), inset 0 0 20px rgba(255,255,255,0.02);
-  }
-
   .currency-dropdown {
     position: absolute;
-    top: calc(100% + 12px);
+    top: calc(100% + 10px);
     inset-inline-end: 0;
-    border-radius: 16px;
-    width: 240px;
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    width: 220px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     z-index: 101;
-    overflow: visible;
     padding: 8px;
-    transform-origin: top right;
+    overflow: visible;
   }
 
   .c-item {
-    padding: 14px 18px;
+    padding: 12px 20px;
     cursor: pointer;
     border-radius: 10px;
     margin-bottom: 4px;
     position: relative;
     color: var(--text-color);
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 12px;
+    transition: 0.2s;
     font-weight: 600;
   }
   .c-item:last-child { margin-bottom: 0; }
-  .c-item:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: var(--accent-color);
-    transform: translateX(4px);
-  }
+  .c-item:hover { background: var(--hover-bg); color: var(--accent-color); transform: translateX(4px); }
 
-  .flag-icon { width: 24px; text-align: center; display: inline-block; font-size: 1.1rem; }
-
-  /* SUBMENU MAGIC */
-  .has-submenu { overflow: visible; }
-  .gold-trigger { display: flex; align-items: center; width: 100%; justify-content: space-between; gap: 12px; }
-  .arrow-right { font-size: 0.7rem; opacity: 0.7; }
+  /* GOLD SUBMENU STYLE */
+  .has-submenu { position: relative; overflow: visible; }
+  .gold-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; }
 
   .submenu {
     position: absolute;
     top: -8px;
-    /* RTL/LTR Logic Handled by logical properties mostly, but strict positioning needed */
     inset-inline-end: 100%;
-    margin-inline-end: 0px; /* SIFIR BOŞLUK */
-    border-radius: 16px;
-    min-width: 200px;
+    margin-inline-end: -2px; /* NO GAP */
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    min-width: 140px;
     padding: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     opacity: 0;
     visibility: hidden;
-    transform: translateX(20px) scale(0.95);
+    transform: translateX(20px);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  /* LTR Specific fix for transform direction */
-  html[dir="ltr"] .submenu { transform: translateX(-20px) scale(0.95); }
-  html[dir="rtl"] .submenu { transform: translateX(20px) scale(0.95); }
+  /* RTL specific fix for transform */
+  html[dir="ltr"] .submenu { transform: translateX(-20px); }
+  html[dir="rtl"] .submenu { transform: translateX(20px); }
 
-  /* The Bridge - Keeps hover active */
+  /* Bridge for gapless hover */
   .has-submenu::after {
     content: '';
     position: absolute;
     top: 0;
     bottom: 0;
-    width: 20px; /* Safe zone */
+    width: 20px;
     inset-inline-end: 100%;
     z-index: 102;
   }
@@ -427,26 +397,21 @@
   .has-submenu:hover .submenu {
     opacity: 1;
     visibility: visible;
-    transform: translateX(0) scale(1);
-    margin-inline-end: 4px; /* Slight push on hover for visual separation */
+    transform: translateX(0);
   }
 
   .sub-item {
-    padding: 12px 16px;
+    padding: 10px 15px;
     font-size: 0.9rem;
-    color: rgba(255,255,255,0.8);
     border-radius: 8px;
+    color: var(--text-color);
     cursor: pointer;
     transition: 0.2s;
     opacity: 0;
     animation: fadeSlideIn 0.3s forwards;
     animation-delay: calc(var(--i) * 0.05s);
   }
-  .sub-item:hover {
-    background: linear-gradient(90deg, rgba(255, 215, 0, 0.2), transparent);
-    color: #FFD700;
-    padding-inline-start: 22px;
-  }
+  .sub-item:hover { background: var(--hover-bg); color: var(--accent-color); padding-inline-start: 20px; }
 
   @keyframes fadeSlideIn {
     from { opacity: 0; transform: translateY(5px); }
@@ -454,91 +419,82 @@
   }
 
   .dropdown-anim-enter-active, .dropdown-anim-leave-active { transition: all 0.3s ease; }
-  .dropdown-anim-enter-from, .dropdown-anim-leave-to { opacity: 0; transform: translateY(-10px) scale(0.95); }
+  .dropdown-anim-enter-from, .dropdown-anim-leave-to { opacity: 0; transform: translateY(-10px); }
 
   .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 50px; position: relative; width: 100%; }
-  .chart-wrapper { width: 340px; height: 340px; position: relative; filter: drop-shadow(0 0 20px rgba(0,0,0,0.3)); }
+  .chart-wrapper { width: 320px; height: 320px; position: relative; }
   .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
-  .center-balance h3 { font-size: 2.2rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; text-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-  .center-balance small { color: var(--accent-color); font-weight: bold; letter-spacing: 2px; font-size: 1rem; }
+  .center-balance h3 { font-size: 2rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; }
+  .center-balance small { color: var(--text-muted); font-size: 1rem; font-weight: bold; }
 
-  .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 4px dashed rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; }
+  .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 6px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
   .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
 
-  .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; width: 100%; padding-bottom: 100px; }
+  .assets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; width: 100%; }
   .asset-card {
     padding: 25px;
-    border-radius: 24px;
+    border-radius: 20px;
     cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 1px solid rgba(255,255,255,0.05);
+    transition: all 0.3s ease;
+    border: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     gap: 20px;
     position: relative;
     overflow: hidden;
-    background: rgba(30, 41, 59, 0.4);
+    background: rgba(30, 41, 59, 0.6);
     backdrop-filter: blur(10px);
   }
-  .asset-card::before {
-    content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
-    opacity: 0; transition: 0.4s;
-  }
-  .asset-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--accent-color); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-  .asset-card:hover::before { opacity: 1; }
-  .asset-card * { color: white !important; position: relative; z-index: 2; }
+  .asset-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(0,0,0,0.3); border-color: var(--accent-color); }
+  .asset-card * { color: white !important; }
 
-  .card-btc { background: linear-gradient(145deg, #1a1a1a, #000); border-left: 4px solid #F7931A; }
-  .card-gold { background: linear-gradient(145deg, #443300, #1a1200); border-left: 4px solid #FFD700; }
-  .card-usd { background: linear-gradient(145deg, #064E3B, #022c22); border-left: 4px solid #10B981; }
-  .card-eur { background: linear-gradient(145deg, #451a03, #270e01); border-left: 4px solid #8B4513; }
-  .card-silver { background: linear-gradient(145deg, #374151, #111827); border-left: 4px solid #9CA3AF; }
-  .card-try { background: linear-gradient(145deg, #7f1d1d, #450a0a); border-left: 4px solid #EF4444; }
+  .card-btc { background: linear-gradient(135deg, rgba(26,26,26,0.8), rgba(68,68,68,0.8)); }
+  .card-gold { background: linear-gradient(135deg, rgba(218,165,32,0.8), rgba(255,215,0,0.8)); }
+  .card-usd { background: linear-gradient(135deg, rgba(5,150,105,0.8), rgba(16,185,129,0.8)); }
+  .card-eur { background: linear-gradient(135deg, rgba(93,64,55,0.8), rgba(141,110,99,0.8)); }
+  .card-silver { background: linear-gradient(135deg, rgba(117,117,117,0.8), rgba(158,158,158,0.8)); }
+  .card-try { background: linear-gradient(135deg, rgba(153,27,27,0.8), rgba(239,68,68,0.8)); }
 
-  .card-icon { font-size: 2.5rem; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+  .card-icon { font-size: 2.5rem; }
   .card-info { display: flex; flex-direction: column; }
-  .card-name { font-size: 0.8rem; opacity: 0.7; text-transform: uppercase; font-weight: 800; letter-spacing: 1px; }
-  .card-amount { font-size: 1.5rem; font-weight: 800; margin: 4px 0; text-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-  .card-val { font-size: 0.9rem; font-weight: 600; padding: 2px 8px; background: rgba(255,255,255,0.1); border-radius: 12px; align-self: flex-start; }
+  .card-name { font-size: 0.9rem; opacity: 0.9; text-transform: uppercase; font-weight: bold; letter-spacing: 1px; }
+  .card-amount { font-size: 1.5rem; font-weight: 800; margin: 2px 0; }
+  .card-val { font-size: 0.85rem; opacity: 0.8; font-weight: 600; }
 
   .floating-actions { position: fixed; bottom: 30px; inset-inline-end: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 110; }
-  .f-btn { width: 60px; height: 60px; border-radius: 20px; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 10px 25px rgba(0,0,0,0.4); transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); color: white; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
-  .f-btn:hover { transform: scale(1.15) rotate(-5deg); }
-  .excel { background: linear-gradient(135deg, #10B981, #059669); }
-  .pdf { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+  .f-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; color: white; display: flex; align-items: center; justify-content: center; }
+  .f-btn:hover { transform: scale(1.1); }
+  .excel { background: #10B981; }
+  .pdf { background: #3B82F6; }
 
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(8px); }
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px); }
   .large-modal { width: 800px !important; max-width: 95%; }
-  .modal-content { background: var(--card-bg); padding: 35px; border-radius: 30px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 60px rgba(0,0,0,0.7); }
+  .modal-content { background: var(--card-bg); padding: 35px; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
   .modal-header { display: flex; justify-content: space-between; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
   .modal-header h3 { color: var(--text-color); margin: 0; font-size: 1.5rem; }
-  .modal-header button { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; transition: 0.3s; }
+  .modal-header button { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
   .modal-header button:hover { color: var(--danger-color); transform: rotate(90deg); }
 
   .modal-body-split { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; margin-top: 20px; }
   .transaction-form, .transaction-history { display: flex; flex-direction: column; gap: 15px; }
   .transaction-history { border-inline-start: 1px solid var(--border-color); padding-inline-start: 30px; }
-  h4 { color: var(--accent-color); margin: 0 0 10px 0; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1px; }
+  h4 { color: var(--text-muted); margin: 0 0 10px 0; font-size: 1.1rem; }
   .history-list { max-height: 350px; overflow-y: auto; padding-inline-end: 5px; }
-  .history-item { background: rgba(0,0,0,0.2); padding: 15px; border-radius: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid transparent; transition: 0.2s; }
-  .history-item:hover { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+  .history-item { background: var(--input-bg); padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
   .tx-info { display: flex; flex-direction: column; gap: 4px; }
   .tx-date { color: var(--text-muted); font-size: 0.8rem; }
-  .tx-type.add { color: #4ade80 !important; font-weight: bold; text-shadow: 0 0 10px rgba(74, 222, 128, 0.3); }
-  .tx-type.subtract { color: #f87171 !important; font-weight: bold; text-shadow: 0 0 10px rgba(248, 113, 113, 0.3); }
-  .tx-amount { color: white; font-weight: bold; font-size: 1.1rem; }
-  .receipt-download-btn { background: rgba(255,255,255,0.1); border: none; border-radius: 8px; cursor: pointer; padding: 8px; transition: 0.2s; font-size: 1.2rem; }
-  .receipt-download-btn:hover { background: var(--accent-color); color: black; transform: scale(1.1); }
+  .tx-type.add { color: var(--success-color) !important; font-weight: bold; }
+  .tx-type.subtract { color: var(--danger-color) !important; font-weight: bold; }
+  .tx-amount { color: var(--text-color); font-weight: bold; font-size: 1.1rem; }
+  .receipt-download-btn { background: transparent; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; padding: 8px; transition: 0.2s; font-size: 1.2rem; }
+  .receipt-download-btn:hover { background: var(--hover-bg); }
 
-  .big-input, .ayar-select, .date-input { width: 100%; padding: 16px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); color: white; border-radius: 14px; margin-bottom: 15px; font-size: 1.1rem; box-sizing: border-box; transition: 0.3s; outline: none; }
-  .big-input:focus, .ayar-select:focus, .date-input:focus { border-color: var(--accent-color); background: rgba(0,0,0,0.5); box-shadow: 0 0 15px rgba(255, 215, 0, 0.1); }
-
+  .big-input, .ayar-select, .date-input { width: 100%; padding: 15px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 12px; margin-bottom: 15px; font-size: 1rem; box-sizing: border-box; }
   .actions { display: flex; gap: 15px; margin-top: 10px; }
-  .actions button { flex: 1; padding: 18px; border-radius: 14px; border: none; font-weight: 800; cursor: pointer; color: white; transition: 0.3s; font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
-  .add { background: linear-gradient(135deg, #10B981, #047857); box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3); }
-  .sub { background: linear-gradient(135deg, #EF4444, #B91C1C); box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3); }
-  .add:hover, .sub:hover { transform: translateY(-3px); filter: brightness(1.1); }
+  .actions button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; font-size: 1rem; }
+  .add { background: var(--success-color); }
+  .sub { background: var(--danger-color); }
+  .add:hover, .sub:hover { opacity: 0.9; transform: translateY(-2px); }
 
   @media (max-width: 768px) {
     .modal-body-split { grid-template-columns: 1fr; }
