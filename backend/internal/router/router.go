@@ -19,10 +19,15 @@ func SetupRoutes(app *fiber.App) {
 
 	app.Use(cors.New(cors.Config{
 		AllowOrigins:     "https://fin-track-pro-1.onrender.com, https://fin-track-pro.onrender.com, http://localhost:5173",
-		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
+		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS,HEAD",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Currency, X-Ayar",
 		AllowCredentials: true,
 	}))
+
+	app.All("/", func(c *fiber.Ctx) error {
+		return c.Status(200).SendString("FinTrack Pro Backend is Running!")
+	})
+	// --------------------------------------
 
 	cfg := config.LoadConfig()
 
