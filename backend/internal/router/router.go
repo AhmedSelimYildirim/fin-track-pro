@@ -18,7 +18,7 @@ func SetupRoutes(app *fiber.App) {
 	app.Use(logger.New())
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "https://fin-track-pro-1.onrender.com, https://fin-track-pro.onrender.com",
+		AllowOrigins:     "https://fin-track-pro-1.onrender.com, https://fin-track-pro.onrender.com, http://localhost:5173",
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Currency, X-Ayar",
 		AllowCredentials: true,
@@ -44,21 +44,23 @@ func SetupRoutes(app *fiber.App) {
 	api := app.Group("/api")
 
 	api.Get("/ping", func(c *fiber.Ctx) error {
-		return c.Status(200).JSON(fiber.Map{"message": "Sistem hazir ve iliskisel!"})
+		return c.Status(200).JSON(fiber.Map{"message": "Pong! Backend is live."})
 	})
 
-	auth := api.Group("/v1/auth")
+	v1 := api.Group("/v1")
+
+	auth := v1.Group("/auth")
 	auth.Post("/register", userHandler.Register)
 	auth.Post("/login", userHandler.Login)
 
-	market := api.Group("/market")
+	market := v1.Group("/market")
 	market.Get("/rates", marketHandler.GetRates)
 
-	protected := api.Group("/v1", middleware.Protected(cfg.JWTSecret))
+	protected := v1.Group("/", middleware.Protected(cfg.JWTSecret))
 
-	u := protected.Group("/user")
-	u.Put("/update", userHandler.Update)
-	u.Delete("/delete", userHandler.Delete)
+	user := protected.Group("/user")
+	user.Put("/update", userHandler.Update)
+	user.Delete("/delete", userHandler.Delete)
 
 	assets := protected.Group("/assets")
 	assets.Post("/update", assetHandler.UpdateBalance)

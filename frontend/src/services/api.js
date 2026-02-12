@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'https://fin-track-pro.onrender.com/api',
+    baseURL: 'https://fin-track-pro.onrender.com/api/v1',
     headers: {
         'Content-Type': 'application/json'
     }
