@@ -281,12 +281,10 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	if err != nil {
 		return nil, err
 	}
-
 	portfolio, err := s.GetPortfolioSummary(userID, baseCurrency, targetAyar)
 	if err != nil {
 		return nil, err
 	}
-
 	basePriceInTRY, _ := s.getCurrentPriceInTRY(baseCurrency)
 	if baseCurrency == "GOLD" && targetAyar > 0 {
 		basePriceInTRY *= (float64(targetAyar) / 24.0)
@@ -306,25 +304,21 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#1F4E78"}, Pattern: 1},
 		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
 	})
-
 	styleSubHeader, _ := f.NewStyle(&excelize.Style{
 		Font:      &excelize.Font{Bold: true, Size: 12, Color: "000000"},
 		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#BDD7EE"}, Pattern: 1},
 		Alignment: &excelize.Alignment{Horizontal: "left", Vertical: "center"},
 		Border:    []excelize.Border{{Type: "bottom", Color: "000000", Style: 1}},
 	})
-
 	styleDataCenter, _ := f.NewStyle(&excelize.Style{
 		Alignment: &excelize.Alignment{Horizontal: "center"},
 		Border:    []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}},
 	})
 
-	fmtCode := "#,##0.00"
-	styleCurrency, _ := f.NewStyle(&excelize.Style{
-		CustomNumFmt: &fmtCode,
-		Alignment:    &excelize.Alignment{Horizontal: "right"},
-		Border:       []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}},
-	})
+	fmtStd := "#,##0.00"
+	fmtCrypto := "#,##0.00000000"
+	styleCurrency, _ := f.NewStyle(&excelize.Style{CustomNumFmt: &fmtStd, Alignment: &excelize.Alignment{Horizontal: "right"}, Border: []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}}})
+	styleCrypto, _ := f.NewStyle(&excelize.Style{CustomNumFmt: &fmtCrypto, Alignment: &excelize.Alignment{Horizontal: "right"}, Border: []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}}})
 
 	f.MergeCell(sheetName, "A1", "H2")
 	f.SetCellValue(sheetName, "A1", fmt.Sprintf("FINTRACK PRO - PORTFOY RAPORU (%s Bazli)", baseCurrency))
@@ -332,7 +326,6 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 
 	f.SetCellValue(sheetName, "A4", "TOPLAM VARLIK DEGERI")
 	f.SetCellValue(sheetName, "B4", portfolio.TotalValue)
-
 	f.SetCellValue(sheetName, "D4", "RAPOR TARIHI")
 	f.SetCellValue(sheetName, "E4", time.Now().Add(3*time.Hour).Format("02.01.2006 15:04"))
 
@@ -351,11 +344,7 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		cell, _ := excelize.CoordinatesToCellName(i+1, headerRow)
 		f.SetCellValue(sheetName, cell, h)
 	}
-	styleTableHead, _ := f.NewStyle(&excelize.Style{
-		Font:      &excelize.Font{Bold: true, Color: "FFFFFF"},
-		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#595959"}, Pattern: 1},
-		Alignment: &excelize.Alignment{Horizontal: "center"},
-	})
+	styleTableHead, _ := f.NewStyle(&excelize.Style{Font: &excelize.Font{Bold: true, Color: "FFFFFF"}, Fill: excelize.Fill{Type: "pattern", Color: []string{"#595959"}, Pattern: 1}, Alignment: &excelize.Alignment{Horizontal: "center"}})
 	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", headerRow), fmt.Sprintf("F%d", headerRow), styleTableHead)
 
 	dataRow := headerRow + 1
@@ -372,7 +361,13 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		f.SetCellValue(sheetName, fmt.Sprintf("F%d", dataRow), asset.Allocation)
 
 		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", dataRow), fmt.Sprintf("C%d", dataRow), styleDataCenter)
-		f.SetCellStyle(sheetName, fmt.Sprintf("D%d", dataRow), fmt.Sprintf("E%d", dataRow), styleCurrency)
+
+		curStyle := styleCurrency
+		if asset.CurrentPrice < 0.0001 {
+			curStyle = styleCrypto
+		}
+		f.SetCellStyle(sheetName, fmt.Sprintf("D%d", dataRow), fmt.Sprintf("E%d", dataRow), curStyle)
+
 		f.SetCellStyle(sheetName, fmt.Sprintf("F%d", dataRow), fmt.Sprintf("F%d", dataRow), styleDataCenter)
 		dataRow++
 	}
@@ -393,7 +388,6 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	txDataRow := txHeaderRow + 1
 	for _, tx := range txs {
 		f.SetCellValue(sheetName, fmt.Sprintf("A%d", txDataRow), tx.TransactionDate.Add(3*time.Hour).Format("02.01.2006 15:04"))
-
 		typeTr := "Ekleme (+)"
 		if tx.Type == "subtract" {
 			typeTr = "Cikarma (-)"
@@ -405,18 +399,23 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 			assetName = fmt.Sprintf("GOLD (%dK)", tx.Ayar)
 		}
 		f.SetCellValue(sheetName, fmt.Sprintf("C%d", txDataRow), assetName)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", txDataRow), typeTr)
 		f.SetCellValue(sheetName, fmt.Sprintf("D%d", txDataRow), tx.Amount)
 
-		convertedPrice := tx.Price / basePriceInTRY
-		convertedTotalTx := (tx.Price * tx.Amount) / basePriceInTRY
-		convertedTotalCurrent := (tx.Price * tx.Amount) / basePriceInTRY
+		priceInBase := tx.Price / basePriceInTRY
+		totalInBase := (tx.Price * tx.Amount) / basePriceInTRY
 
-		f.SetCellValue(sheetName, fmt.Sprintf("E%d", txDataRow), convertedPrice)
-		f.SetCellValue(sheetName, fmt.Sprintf("F%d", txDataRow), convertedTotalTx)
-		f.SetCellValue(sheetName, fmt.Sprintf("G%d", txDataRow), convertedTotalCurrent)
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", txDataRow), priceInBase)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", txDataRow), totalInBase)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", txDataRow), totalInBase)
 
 		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", txDataRow), fmt.Sprintf("D%d", txDataRow), styleDataCenter)
-		f.SetCellStyle(sheetName, fmt.Sprintf("E%d", txDataRow), fmt.Sprintf("G%d", txDataRow), styleCurrency)
+
+		txStyle := styleCurrency
+		if priceInBase < 0.0001 || totalInBase < 0.0001 {
+			txStyle = styleCrypto
+		}
+		f.SetCellStyle(sheetName, fmt.Sprintf("E%d", txDataRow), fmt.Sprintf("G%d", txDataRow), txStyle)
 		txDataRow++
 	}
 
