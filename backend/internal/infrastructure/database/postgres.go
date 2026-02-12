@@ -51,14 +51,18 @@ func ConnectDB() {
 		(*model.Asset)(nil),
 		(*model.Transaction)(nil),
 		(*model.Reminder)(nil),
+		(*model.MarketHistory)(nil),
 	}
 
-	for _, model := range modelsToCreate {
-		_, err := DB.NewCreateTable().Model(model).IfNotExists().Exec(ctx)
+	for _, m := range modelsToCreate {
+		_, err := DB.NewCreateTable().Model(m).IfNotExists().Exec(ctx)
 		if err != nil {
-			log.Printf("Tablo oluşturma hatası: %v", err)
+			log.Printf("Tablo kontrol hatasi: %v", err)
 		}
 	}
 
-	fmt.Println("PostgreSQL baglantisi ve tablolar hazir")
+	_, _ = DB.ExecContext(ctx, "ALTER TABLE assets ALTER COLUMN ayar SET DEFAULT 0")
+	_, _ = DB.ExecContext(ctx, "UPDATE assets SET ayar = 0 WHERE ayar IS NULL")
+
+	fmt.Println("✅ PostgreSQL baglantisi ve iliskisel tablolar hazir")
 }

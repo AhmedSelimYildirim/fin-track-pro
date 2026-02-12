@@ -11,6 +11,7 @@ type Transaction struct {
 
 	ID              int64     `bun:",pk,autoincrement" json:"id"`
 	AssetID         int64     `bun:"asset_id,notnull" json:"asset_id"`
+	UserID          int64     `bun:"user_id,notnull" json:"user_id"` // BURAYI GERİ EKLEDİK
 	Type            string    `bun:"type,notnull" json:"type"`
 	Amount          float64   `bun:"amount,notnull" json:"amount"`
 	Price           float64   `bun:"price,notnull" json:"price"`

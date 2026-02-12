@@ -82,6 +82,7 @@ func (r *AssetRepository) UpdateWithLog(asset *model.Asset, tx *model.Transactio
 		}
 
 		tx.AssetID = asset.ID
+		tx.UserID = asset.UserID
 
 		if _, err := bunTx.NewInsert().Model(tx).Exec(ctx); err != nil {
 			return err
