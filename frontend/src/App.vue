@@ -8,7 +8,14 @@
         <div class="brand-title">
           <span class="brand-gradient">FinTrack</span> <span class="brand-pro">Pro</span>
         </div>
-        <div class="user-badge">{{ currentUser }}</div>
+
+        <div class="user-info-box">
+          <div class="user-avatar">{{ userInitial }}</div>
+          <div class="user-details">
+            <span class="user-name">{{ currentUser }}</span>
+            <span class="user-role">Premium</span>
+          </div>
+        </div>
       </div>
 
       <nav class="menu">
@@ -25,7 +32,7 @@
 
       <div class="logout-wrapper">
         <div class="menu-item logout-btn" @click="logout">
-          <span class="nav-icon"></span> {{ t('logout') }}
+          <span class="nav-icon">🚪</span> {{ t('logout') }}
         </div>
       </div>
     </aside>
@@ -44,11 +51,15 @@
   const route = useRoute();
   const router = useRouter();
   const theme = ref('dark');
-  const currentUser = ref(localStorage.getItem('username') || '');
+  const currentUser = ref(localStorage.getItem('username') || 'Kullanıcı');
   const isMobileMenuOpen = ref(false);
 
   const isLoginPage = computed(() => route.name === 'login');
   const currentRoute = computed(() => route.path);
+
+  const userInitial = computed(() => {
+    return currentUser.value ? currentUser.value.charAt(0).toUpperCase() : 'U';
+  });
 
   const toggleTheme = () => {
     theme.value = theme.value === 'dark' ? 'light' : 'dark';
@@ -60,31 +71,70 @@
   const closeMobileMenu = () => { isMobileMenuOpen.value = false; };
 
   const navigate = (path) => { router.push(path); closeMobileMenu(); };
-  const logout = () => { localStorage.clear(); router.push('/login'); closeMobileMenu(); };
+
+  const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('username');
+    localStorage.removeItem('email');
+    currentUser.value = '';
+    router.push('/login');
+    closeMobileMenu();
+  };
 
   onMounted(() => {
     const savedTheme = localStorage.getItem('theme');
     if (savedTheme) theme.value = savedTheme;
     document.documentElement.setAttribute('data-theme', theme.value);
-    window.addEventListener('storage', () => { currentUser.value = localStorage.getItem('username') || ''; });
+
+    window.addEventListener('storage', () => {
+      currentUser.value = localStorage.getItem('username') || 'Kullanıcı';
+    });
+
+    if (!localStorage.getItem('username')) {
+      currentUser.value = 'Misafir';
+    }
   });
 
   provide('theme', { theme, toggleTheme });
 </script>
 
 <style>
-  :root { --bg-color: #0F172A; --card-bg: #1E293B; --text-color: #FFFFFF; --text-muted: #94A3B8; --border-color: rgba(255, 255, 255, 0.1); --input-bg: #0F172A; --sidebar-bg: #1E293B; --hover-bg: #334155; --accent-color: #FFD700; --danger-color: #EF4444; --success-color: #10B981; }
-  [data-theme="light"] { --bg-color: #F1F5F9; --card-bg: #FFFFFF; --text-color: #0F172A; --text-muted: #64748B; --border-color: #E2E8F0; --input-bg: #F8FAFC; --sidebar-bg: #FFFFFF; --hover-bg: #E2E8F0; --accent-color: #F59E0B; }
+  :root {
+    --bg-color: #0F172A;
+    --card-bg: #1E293B;
+    --text-color: #FFFFFF;
+    --text-muted: #94A3B8;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --input-bg: #0F172A;
+    --sidebar-bg: #1E293B;
+    --hover-bg: #334155;
+    --accent-color: #FFD700;
+    --danger-color: #EF4444;
+    --success-color: #10B981;
+  }
 
-  body { margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); overflow-x: hidden; }
+  [data-theme="light"] {
+    --bg-color: #F1F5F9;
+    --card-bg: #FFFFFF;
+    --text-color: #0F172A;
+    --text-muted: #64748B;
+    --border-color: #E2E8F0;
+    --input-bg: #F8FAFC;
+    --sidebar-bg: #FFFFFF;
+    --hover-bg: #E2E8F0;
+    --accent-color: #F59E0B;
+  }
+
+  body { margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); overflow-x: hidden; }
+
   .app-container { display: flex; min-height: 100vh; position: relative; }
 
   .sidebar {
-    width: 260px;
+    width: 280px;
     background: var(--sidebar-bg);
     display: flex;
     flex-direction: column;
-    padding: 25px;
+    padding: 30px 20px;
     border-inline-end: 1px solid var(--border-color);
     position: fixed;
     height: 100vh;
@@ -98,12 +148,12 @@
     flex: 1;
     width: 100%;
     transition: 0.3s;
-    padding-inline-start: 260px;
+    padding-inline-start: 280px;
     box-sizing: border-box;
   }
 
   .brand-container { margin-bottom: 40px; text-align: center; }
-  .brand-title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; }
+  .brand-title { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 20px; }
   .brand-gradient {
     background: linear-gradient(135deg, #fff 30%, #cbd5e1 100%);
     -webkit-background-clip: text;
@@ -114,55 +164,90 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-  .brand-pro { color: #FACC15; margin-inline-start: 4px; text-shadow: 0 0 10px rgba(250, 204, 21, 0.3); }
+  .brand-pro { color: #FACC15; margin-inline-start: 4px; text-shadow: 0 0 15px rgba(250, 204, 21, 0.4); }
 
-  .user-badge {
-    margin-top: 8px;
-    font-weight: bold;
-    font-size: 1.1rem;
-    border-top: 1px solid var(--border-color);
-    padding-top: 10px;
-    color: white;
+  .user-info-box {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--input-bg);
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
   }
-  [data-theme="light"] .user-badge { color: #0F172A; }
 
-  .menu-item { padding: 15px; margin-bottom: 10px; border-radius: 12px; cursor: pointer; color: var(--text-muted); display: flex; gap: 12px; align-items: center; transition: all 0.3s; font-weight: 500; }
-  .menu-item:hover, .menu-item.active { background: var(--hover-bg); color: var(--text-color); }
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--accent-color), #f59e0b);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-weight: 800;
+    font-size: 1.2rem;
+  }
 
-  html[dir="ltr"] .menu-item:hover, html[dir="ltr"] .menu-item.active { transform: translateX(5px); }
-  html[dir="rtl"] .menu-item:hover, html[dir="rtl"] .menu-item.active { transform: translateX(-5px); }
+  .user-details { display: flex; flex-direction: column; align-items: flex-start; overflow: hidden; }
+  .user-name { font-weight: 700; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; color: var(--text-color); }
+  .user-role { font-size: 0.75rem; color: var(--accent-color); font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
 
-  .nav-icon { font-size: 1.2rem; }
+  .menu { display: flex; flex-direction: column; gap: 8px; margin-top: 20px; }
+
+  .menu-item {
+    padding: 14px 16px;
+    border-radius: 12px;
+    cursor: pointer;
+    color: var(--text-muted);
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    transition: all 0.2s ease;
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .menu-item:hover, .menu-item.active {
+    background: var(--hover-bg);
+    color: var(--text-color);
+    transform: translateX(5px);
+  }
+
+  .menu-item.active {
+    background: rgba(250, 204, 21, 0.1);
+    color: var(--accent-color);
+    border-inline-start: 3px solid var(--accent-color);
+  }
+
+  .nav-icon { font-size: 1.2rem; min-width: 24px; text-align: center; }
 
   .logout-wrapper { margin-top: auto; padding-top: 20px; border-top: 1px solid var(--border-color); }
   .logout-btn {
     background: rgba(239, 68, 68, 0.1);
     color: var(--danger-color);
     justify-content: center;
-    font-weight: bold;
-    padding: 12px;
-    transition: 0.2s;
-    border-radius: 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 10px;
   }
-  .logout-btn:hover { background: var(--danger-color); color: white; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3); }
+  .logout-btn:hover {
+    background: var(--danger-color);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  }
 
-  .mobile-menu-toggle { display: none; position: fixed; top: 15px; inset-inline-start: 15px; z-index: 1100; background: var(--accent-color); border: none; color: #000; font-size: 1.5rem; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
-  .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 900; backdrop-filter: blur(3px); }
+  .mobile-menu-toggle { display: none; position: fixed; top: 15px; inset-inline-start: 15px; z-index: 1100; background: var(--accent-color); border: none; color: #000; font-size: 1.5rem; padding: 8px 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+  .mobile-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 900; backdrop-filter: blur(4px); }
 
   @media (max-width: 768px) {
     .mobile-menu-toggle { display: block; }
-    .sidebar { width: 280px; }
 
-    html[dir="ltr"] .sidebar { transform: translateX(-100%); }
+    .sidebar { width: 280px; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    .sidebar.mobile-open { transform: translateX(0); }
+
     html[dir="rtl"] .sidebar { transform: translateX(100%); }
-
-    .sidebar.mobile-open { transform: translateX(0) !important; }
+    html[dir="rtl"] .sidebar.mobile-open { transform: translateX(0); }
 
     .mobile-overlay { display: block; }
-    .main-content { padding-inline-start: 0; padding-top: 60px; }
+    .main-content { padding-inline-start: 0; padding-top: 70px; }
   }
 </style>
