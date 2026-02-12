@@ -19,19 +19,19 @@
 
           <transition name="dropdown-anim">
             <div v-if="showSelector" class="currency-dropdown">
-              <div class="c-item" @click="changeCurrency('TRY', 0, 'TRY')">
+              <div class="c-item" @click="changeCurrency('TRY', 'STANDARD', 'TRY')">
                 <span class="symbol">₺</span> TRY
               </div>
-              <div class="c-item" @click="changeCurrency('USD', 0, 'USD')">
+              <div class="c-item" @click="changeCurrency('USD', 'STANDARD', 'USD')">
                 <span class="symbol">$</span> USD
               </div>
-              <div class="c-item" @click="changeCurrency('EUR', 0, 'EUR')">
+              <div class="c-item" @click="changeCurrency('EUR', 'STANDARD', 'EUR')">
                 <span class="symbol">€</span> EUR
               </div>
-              <div class="c-item" @click="changeCurrency('BTC', 0, 'BTC')">
+              <div class="c-item" @click="changeCurrency('BTC', 'STANDARD', 'BTC')">
                 <span class="symbol">₿</span> BTC
               </div>
-              <div class="c-item" @click="changeCurrency('SILVER', 0, 'SILVER')">
+              <div class="c-item" @click="changeCurrency('SILVER', 'STANDARD', 'SILVER')">
                 <span class="symbol text-icon">Gr</span> SILVER
               </div>
 
@@ -43,12 +43,12 @@
                   <span class="arrow-right">▶</span>
                 </div>
                 <div class="submenu">
-                  <div class="sub-item" style="--i:1" @click="changeCurrency('GOLD', 24, 'GOLD 24K')">24K</div>
-                  <div class="sub-item" style="--i:2" @click="changeCurrency('GOLD', 22, 'GOLD 22K')">22K</div>
-                  <div class="sub-item" style="--i:3" @click="changeCurrency('GOLD', 18, 'GOLD 18K')">18K</div>
-                  <div class="sub-item" style="--i:4" @click="changeCurrency('GOLD', 14, 'GOLD 14K')">14K</div>
-                  <div class="sub-item" style="--i:5" @click="changeCurrency('GOLD', 8, 'GOLD 8K')">8K</div>
-                  <div class="sub-item" style="--i:6" @click="changeCurrency('GOLD', 4, 'GOLD 4K')">4K</div>
+                  <div class="sub-item" style="--i:1" @click="changeCurrency('GOLD', 'GRAM_24', 'GOLD 24K')">24K</div>
+                  <div class="sub-item" style="--i:2" @click="changeCurrency('GOLD', 'GRAM_22', 'GOLD 22K')">22K</div>
+                  <div class="sub-item" style="--i:3" @click="changeCurrency('GOLD', 'GRAM_18', 'GOLD 18K')">18K</div>
+                  <div class="sub-item" style="--i:4" @click="changeCurrency('GOLD', 'CEYREK', 'CEYREK')">Çeyrek</div>
+                  <div class="sub-item" style="--i:5" @click="changeCurrency('GOLD', 'TAM', 'TAM')">Tam</div>
+                  <div class="sub-item" style="--i:6" @click="changeCurrency('GOLD', 'CUMHURIYET', 'CUMHURIYET')">Cumhuriyet</div>
                 </div>
               </div>
             </div>
@@ -101,18 +101,17 @@
           <div class="modal-body-split">
             <div class="transaction-form">
               <h4>{{ t('newTransaction') }}</h4>
-              <input v-model="amount" type="number" :placeholder="t('amount')" class="big-input" />
+
               <div v-if="activeAsset === 'GOLD'" class="ayar-wrapper">
-                <select v-model="modalAyar" class="ayar-select">
-                  <option :value="24">24K</option>
-                  <option :value="22">22K</option>
-                  <option :value="18">18K</option>
-                  <option :value="14">14K</option>
-                  <option :value="8">8K</option>
-                  <option :value="4">4K</option>
+                <label style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 5px; display: block;">Altın Tipi</label>
+                <select v-model="selectedVariant" class="ayar-select">
+                  <option v-for="v in goldVariants" :key="v.value" :value="v.value">{{ v.label }}</option>
                 </select>
               </div>
+
+              <input v-model="amount" type="number" :placeholder="activeAsset === 'GOLD' ? 'Adet' : t('amount')" class="big-input" />
               <input v-model="transactionDate" type="date" class="date-input" />
+
               <div class="actions">
                 <button class="add" @click="handleTransaction('add')">{{ t('add') }}</button>
                 <button class="sub" @click="handleTransaction('subtract')">{{ t('subtract') }}</button>
@@ -126,8 +125,13 @@
                 <div v-for="tx in filteredTransactions" :key="tx.id" class="history-item">
                   <div class="tx-info">
                     <span class="tx-date">{{ formatDate(tx.transaction_date) }}</span>
-                    <span class="tx-type" :class="tx.type">{{ tx.type === 'add' ? '+' : '-' }}</span>
-                    <span class="tx-amount">{{ tx.amount }} <span v-if="tx.ayar > 0">({{ tx.ayar }}K)</span></span>
+                    <span class="tx-type" :class="tx.type">
+                      {{ tx.type === 'add' ? '+' : '-' }}
+                      <span v-if="tx.variant && tx.variant !== 'STANDARD'" style="font-size: 0.8em; opacity: 0.8; margin-left: 5px;">
+                        ({{ formatVariant(tx.variant) }})
+                      </span>
+                    </span>
+                    <span class="tx-amount">{{ tx.amount }}</span>
                   </div>
                   <button class="receipt-download-btn" @click="downloadSingleReceipt(tx.id)">📄</button>
                 </div>
@@ -159,12 +163,22 @@
   const activeAsset = ref('');
   const amount = ref('');
   const transactionDate = ref(new Date().toISOString().split('T')[0]);
-  const modalAyar = ref(24);
+  const selectedVariant = ref('GRAM_24');
   const summaryData = ref(null);
   const allTransactions = ref([]);
   const baseCurrency = ref('TRY');
   const baseCurrencyLabel = ref('TRY');
-  const targetAyar = ref(0);
+
+  const goldVariants = [
+    { label: 'Gram Altın (24 Ayar)', value: 'GRAM_24' },
+    { label: 'Gram Altın (22 Ayar)', value: 'GRAM_22' },
+    { label: 'Gram Altın (18 Ayar)', value: 'GRAM_18' },
+    { label: 'Çeyrek Altın', value: 'CEYREK' },
+    { label: 'Yarım Altın', value: 'YARIM' },
+    { label: 'Tam Altın', value: 'TAM' },
+    { label: 'Cumhuriyet Altını', value: 'CUMHURIYET' },
+    { label: 'Gremse Altın', value: 'GREMSE' }
+  ];
 
   const cardConfigs = [
     { type: 'TRY', label: 'TRY', icon: '₺', unit: '₺' },
@@ -193,14 +207,7 @@
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
-    const colors = [
-      '#E63946',
-      '#2A9D8F',
-      '#A0522D',
-      '#1B1B1B',
-      '#A9A9A9',
-      '#FFD700'
-    ];
+    const colors = ['#E63946', '#2A9D8F', '#A0522D', '#1B1B1B', '#A9A9A9', '#FFD700'];
     const data = labels.map(label => {
       const assets = summaryData.value?.assets || [];
       return assets.filter(a => a.type === label).reduce((sum, curr) => sum + (curr.allocation || 0), 0);
@@ -212,32 +219,23 @@
 
   const fetchData = async () => {
     try {
-      const res = await api.get('/assets/summary', {
-        params: {
-          currency: baseCurrency.value,
-          ayar: targetAyar.value
-        }
-      });
+      const res = await api.get('/assets/summary', { params: { currency: baseCurrency.value } });
       summaryData.value = res.data;
     } catch(e) { console.error(e); }
   };
 
   const fetchTransactions = async () => {
     try {
-      const res = await api.get('/assets/transactions', {
-        params: {
-          currency: baseCurrency.value,
-          ayar: targetAyar.value
-        }
-      });
+      const res = await api.get('/assets/transactions', { params: { currency: baseCurrency.value } });
       allTransactions.value = res.data || [];
     } catch (e) { console.error(e); }
   };
 
   const filteredTransactions = computed(() => {
     if (!activeAsset.value) return [];
-    // Backend'den 'asset_type' olarak geliyor (snake_case)
-    return allTransactions.value.filter(tx => tx.asset_type === activeAsset.value).sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+    return allTransactions.value
+            .filter(tx => tx.asset_type === activeAsset.value)
+            .sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
   });
 
   const getAmount = (type) => {
@@ -252,10 +250,15 @@
     return total.toFixed(1);
   };
 
+  const formatVariant = (variant) => {
+    const found = goldVariants.find(v => v.value === variant);
+    return found ? found.label : variant;
+  };
+
   const openModal = (asset) => {
     activeAsset.value = asset;
     amount.value = '';
-    modalAyar.value = 24;
+    selectedVariant.value = 'GRAM_24';
     transactionDate.value = new Date().toISOString().split('T')[0];
     showModal.value = true;
     fetchTransactions();
@@ -266,10 +269,10 @@
     try {
       await api.post('/assets/update', {
         type: activeAsset.value,
+        variant: activeAsset.value === 'GOLD' ? selectedVariant.value : 'STANDARD',
         amount: parseFloat(amount.value),
         action,
-        transaction_date: new Date(transactionDate.value).toISOString(),
-        ayar: activeAsset.value === 'GOLD' ? parseInt(modalAyar.value) : 0
+        transaction_date: new Date(transactionDate.value).toISOString()
       });
       showModal.value = false;
       fetchData();
@@ -278,9 +281,8 @@
     } catch(e) { alert("Hata: " + (e.response?.data?.error || e.message)); }
   };
 
-  const changeCurrency = (code, ayar, label) => {
+  const changeCurrency = (code, variant, label) => {
     baseCurrency.value = code;
-    targetAyar.value = ayar;
     baseCurrencyLabel.value = label;
     showSelector.value = false;
     fetchData();
@@ -291,10 +293,7 @@
     try {
       const res = await api.get('/assets/receipt/full', {
         responseType: 'blob',
-        params: {
-          currency: baseCurrency.value,
-          ayar: targetAyar.value
-        }
+        params: { currency: baseCurrency.value }
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
@@ -302,17 +301,14 @@
       link.setAttribute('download', 'Genel_Rapor.pdf');
       document.body.appendChild(link);
       link.click();
-    } catch (e) { alert('PDF İndirilemedi. Sunucu hatası.'); }
+    } catch (e) { alert('PDF İndirilemedi.'); }
   };
 
   const downloadExcel = async () => {
     try {
       const res = await api.get('/assets/export/excel', {
         responseType: 'blob',
-        params: {
-          currency: baseCurrency.value,
-          ayar: targetAyar.value
-        }
+        params: { currency: baseCurrency.value }
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
@@ -320,17 +316,14 @@
       link.setAttribute('download', `FinTrack_Export_${new Date().toLocaleDateString()}.xlsx`);
       document.body.appendChild(link);
       link.click();
-    } catch (e) { alert('Excel İndirilemedi. Sunucu hatası.'); }
+    } catch (e) { alert('Excel İndirilemedi.'); }
   };
 
   const downloadSingleReceipt = async (id) => {
     try {
       const res = await api.get(`/assets/receipt/${id}`, {
         responseType: 'blob',
-        params: {
-          currency: baseCurrency.value,
-          ayar: targetAyar.value
-        }
+        params: { currency: baseCurrency.value }
       });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const link = document.createElement('a');
@@ -338,7 +331,7 @@
       link.setAttribute('download', `Islem_Dekontu_${id}.pdf`);
       document.body.appendChild(link);
       link.click();
-    } catch (e) { alert('PDF Hatası. İşlem bulunamadı.'); }
+    } catch (e) { alert('PDF Hatası.'); }
   };
 
   const formatDate = (dateString) => {
