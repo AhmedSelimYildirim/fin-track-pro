@@ -11,23 +11,8 @@
         <div class="page-title">
           <h2>{{ t('portfolioSummary') }}</h2>
         </div>
-
-        <div class="currency-wrapper">
-          <div class="currency-btn" @click.stop="toggleDropdown" :class="{ 'active': showSelector }">
-            <span class="curr-label">{{ totalValue }} {{ displayCurrency }}</span>
-            <span class="arrow-icon">▼</span>
-          </div>
-
-          <transition name="dropdown-anim">
-            <div v-if="showSelector" class="currency-dropdown">
-              <div class="c-item" @click="changeCurrency('TRY', 'TRY')">₺ TRY</div>
-              <div class="c-item" @click="changeCurrency('USD', 'USD')">$ USD</div>
-              <div class="c-item" @click="changeCurrency('EUR', 'EUR')">€ EUR</div>
-              <div class="c-item" @click="changeCurrency('BTC', 'BTC')">₿ BTC</div>
-              <div class="c-item" @click="changeCurrency('SILVER', 'SILVER')">Gr Gümüş</div>
-              <div class="c-item" @click="changeCurrency('GOLD', 'GOLD 24K')">Gr Altın</div>
-            </div>
-          </transition>
+        <div class="total-badge">
+          {{ totalValueTRY }} ₺
         </div>
       </header>
 
@@ -36,8 +21,8 @@
           <template v-if="hasData">
             <Doughnut :data="chartData" :options="chartOptions" />
             <div class="center-balance">
-              <h3>{{ totalValue }}</h3>
-              <small>{{ baseCurrencyLabel }}</small>
+              <h3>{{ totalValueTRY }}</h3>
+              <small>TRY</small>
             </div>
           </template>
           <div v-else class="no-data-circle">
@@ -76,10 +61,7 @@
 
   ChartJS.register(ArcElement, Tooltip, Legend);
   const router = useRouter();
-  const showSelector = ref(false);
   const summaryData = ref(null);
-  const baseCurrency = ref('TRY');
-  const baseCurrencyLabel = ref('TRY');
 
   const cardConfigs = [
     { type: 'TRY', label: 'TRY', icon: '₺' },
@@ -87,23 +69,14 @@
     { type: 'EUR', label: 'EUR', icon: '€' },
     { type: 'BTC', label: 'BTC', icon: '₿' },
     { type: 'SILVER', label: 'SILVER', icon: 'Gr' },
-    { type: 'GOLD', label: 'GOLD', icon: '🥇' }
+    { type: 'GOLD', label: 'GOLD', icon: '🥇' } // "Gr" yazısı kalktı
   ];
 
-  const toggleDropdown = () => { showSelector.value = !showSelector.value; };
-  window.addEventListener('click', () => { if(showSelector.value) showSelector.value = false; });
-
-  const displayCurrency = computed(() => baseCurrencyLabel.value);
-
-  const totalValue = computed(() => {
-    if (summaryData.value && summaryData.value.total_value) {
-      const decimals = ['GOLD', 'SILVER', 'BTC'].includes(baseCurrency.value) ? 3 : 2;
-      return summaryData.value.total_value.toLocaleString('tr-TR', { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
-    }
-    return '0,00';
-  });
-
   const hasData = computed(() => summaryData.value?.assets?.length > 0);
+
+  const totalValueTRY = computed(() => {
+    return summaryData.value?.total_value?.toLocaleString('tr-TR', { maximumFractionDigits: 2 }) || '0,00';
+  });
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
@@ -119,16 +92,18 @@
 
   const fetchData = async () => {
     try {
-      const res = await api.get('/assets/summary', { params: { currency: baseCurrency.value } });
+      // Ana sayfa her zaman TRY bazlı özet çeksin
+      const res = await api.get('/assets/summary', { params: { currency: 'TRY' } });
       summaryData.value = res.data;
     } catch(e) { console.error(e); }
   };
 
   const getAmount = (type) => {
     const assets = summaryData.value?.assets || [];
-    const total = assets.filter(a => a.type === type).reduce((sum, curr) => sum + curr.value_in_base, 0);
-    const decimals = 2;
-    return total.toLocaleString('tr-TR', { maximumFractionDigits: decimals }) + ' ' + baseCurrency.value;
+    const total = assets.filter(a => a.type === type).reduce((sum, curr) => sum + curr.amount, 0);
+    // Altın, Gümüş, BTC ise 3 basamak
+    const decimals = ['GOLD', 'SILVER', 'BTC'].includes(type) ? 3 : 2;
+    return total.toLocaleString('tr-TR', { maximumFractionDigits: decimals });
   };
 
   const getAllocation = (type) => {
@@ -137,42 +112,24 @@
     return total.toFixed(1);
   };
 
-  const changeCurrency = (code, label) => {
-    baseCurrency.value = code;
-    baseCurrencyLabel.value = label;
-    showSelector.value = false;
-    fetchData();
-  };
-
   const navigateToDetail = (type) => {
     router.push({ name: 'asset-detail', params: { type } });
   };
 
-  onMounted(() => { fetchData(); });
+  onMounted(fetchData);
 </script>
 
 <style scoped>
   .dashboard-wrapper { position: relative; min-height: 100%; width: 100%; overflow: hidden; }
-  .animated-background { position: fixed; inset: 0; overflow: hidden; z-index: 0; pointer-events: none; }
-  .orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.3; animation: floatOrb 15s infinite alternate ease-in-out; }
-  .orb-1 { width: 60vw; height: 60vw; background: #4f46e5; top: -20%; inset-inline-start: -10%; }
-  .orb-2 { width: 50vw; height: 50vw; background: #ec4899; bottom: -20%; inset-inline-end: -10%; }
-  .orb-3 { width: 40vw; height: 40vw; background: #10b981; top: 40%; inset-inline-start: 40%; }
-  @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
-
-  .dashboard-content { position: relative; z-index: 10; width: 100%; height: 100%; overflow-y: auto; padding: 30px; box-sizing: border-box; }
+  .dashboard-content { position: relative; z-index: 10; padding: 30px; }
   .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
   .page-title h2 { color: var(--text-color); margin: 0; font-size: 1.8rem; font-weight: 700; }
-
-  .currency-btn { background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; color: var(--accent-color); display: flex; align-items: center; gap: 10px; min-width: 180px; justify-content: space-between; position: relative; z-index: 100; }
-  .currency-dropdown { position: absolute; top: 100%; right: 0; background: var(--sidebar-bg); border: 1px solid var(--border-color); border-radius: 12px; width: 100%; z-index: 101; margin-top: 10px; overflow: hidden; }
-  .c-item { padding: 12px; cursor: pointer; color: var(--text-color); transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); }
-  .c-item:hover { background: var(--hover-bg); }
+  .total-badge { background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 12px; font-weight: bold; font-size: 1.2rem; color: #fff; }
 
   .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; }
-  .chart-wrapper { width: 280px; height: 280px; position: relative; }
+  .chart-wrapper { width: 260px; height: 260px; position: relative; }
   .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
-  .center-balance h3 { font-size: 1.8rem; margin: 0; color: var(--text-color); }
+  .center-balance h3 { font-size: 1.6rem; margin: 0; color: var(--text-color); }
   .center-balance small { color: var(--text-muted); }
 
   .assets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; max-width: 900px; margin: 0 auto; }

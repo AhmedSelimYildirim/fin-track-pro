@@ -1,7 +1,9 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import LoginView from '../views/LoginView.vue';
 import DashboardView from '../views/DashboardView.vue';
-import AssetDetailView from '../views/AssetDetailView.vue';
+import CalendarView from '../views/CalendarView.vue';
+import SettingsView from '../views/SettingsView.vue';
+import AssetDetailView from '../views/AssetDetailView.vue'; // Yeni dosya
 
 const router = createRouter({
     history: createWebHashHistory(),
@@ -20,6 +22,18 @@ const router = createRouter({
             component: AssetDetailView,
             meta: { requiresAuth: true },
             props: true
+        },
+        {
+            path: '/calendar',
+            name: 'calendar',
+            component: CalendarView,
+            meta: { requiresAuth: true }
+        },
+        {
+            path: '/settings',
+            name: 'settings',
+            component: SettingsView,
+            meta: { requiresAuth: true }
         }
     ]
 });
