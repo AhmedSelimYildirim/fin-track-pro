@@ -35,18 +35,13 @@ func (s *AssetService) tr(text string) string {
 	return replacer.Replace(text)
 }
 
-func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) error {
+func (s *AssetService) ManageBalance(userID int64, req dto.AssetCreateRequest) error {
 	ayar := 0
 	if req.Type == "GOLD" {
 		ayar = 24
 		if req.Ayar > 0 {
 			ayar = req.Ayar
 		}
-	}
-
-	asset, err := s.repo.GetAsset(int64(userID), req.Type, ayar)
-	if err != nil {
-		asset = &model.Asset{UserID: int64(userID), Type: req.Type, Amount: 0, Ayar: ayar}
 	}
 
 	rawPrice, err := s.getCurrentPriceInTRY(req.Type)
@@ -57,6 +52,11 @@ func (s *AssetService) ManageBalance(userID uint, req dto.AssetCreateRequest) er
 	unitPrice := rawPrice
 	if req.Type == "GOLD" && ayar < 24 {
 		unitPrice = rawPrice * (float64(ayar) / 24.0)
+	}
+
+	asset, err := s.repo.GetAsset(userID, req.Type, ayar)
+	if err != nil {
+		asset = &model.Asset{UserID: userID, Type: req.Type, Amount: 0, Ayar: ayar}
 	}
 
 	if req.Action == "add" {
@@ -110,7 +110,7 @@ func (s *AssetService) getCurrentPriceInTRY(assetType string) (float64, error) {
 	}
 }
 
-func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, targetAyar int) (*dto.PortfolioResponse, error) {
+func (s *AssetService) GetPortfolioSummary(userID int64, baseCurrency string, targetAyar int) (*dto.PortfolioResponse, error) {
 	assets, err := s.repo.GetByUserID(userID)
 	if err != nil {
 		return nil, err
@@ -138,6 +138,7 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 		val := a.Amount * rate
 		totalValue += val
 		details = append(details, dto.AssetResponse{
+			ID:           a.ID,
 			Type:         a.Type,
 			Amount:       a.Amount,
 			Ayar:         displayAyar,
@@ -157,7 +158,7 @@ func (s *AssetService) GetPortfolioSummary(userID uint, baseCurrency string, tar
 	}, nil
 }
 
-func (s *AssetService) GetUserTransactionsWithCurrency(userID uint, baseCurrency string, targetAyar int) ([]dto.TransactionResponse, error) {
+func (s *AssetService) GetUserTransactionsWithCurrency(userID int64, baseCurrency string, targetAyar int) ([]dto.TransactionResponse, error) {
 	txs, err := s.repo.GetTransactionsByUserID(userID)
 	if err != nil {
 		return nil, err
@@ -174,13 +175,13 @@ func (s *AssetService) GetUserTransactionsWithCurrency(userID uint, baseCurrency
 		if tx.Asset == nil {
 			continue
 		}
-
 		displayAyar := 0
 		if tx.Asset.Type == "GOLD" {
 			displayAyar = tx.Asset.Ayar
 		}
 		response = append(response, dto.TransactionResponse{
 			ID:              tx.ID,
+			AssetID:         tx.AssetID,
 			Type:            tx.Type,
 			AssetType:       tx.Asset.Type,
 			Amount:          tx.Amount,
@@ -194,6 +195,9 @@ func (s *AssetService) GetUserTransactionsWithCurrency(userID uint, baseCurrency
 }
 
 func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCurrency string, targetAyar int) ([]byte, error) {
+	if tx.Asset == nil {
+		return nil, errors.New("islem detayi eksik")
+	}
 	basePriceInTRY, _ := s.getCurrentPriceInTRY(baseCurrency)
 	if baseCurrency == "GOLD" && targetAyar > 0 {
 		basePriceInTRY *= (float64(targetAyar) / 24.0)
@@ -202,9 +206,7 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 		basePriceInTRY = 1
 	}
 	convertedPrice := tx.Price / basePriceInTRY
-
 	userName, _ := s.repo.GetUserName(tx.Asset.UserID)
-
 	txTypeTr := "Ekleme"
 	if tx.Type == "subtract" {
 		txTypeTr = "Cikarma"
@@ -242,12 +244,12 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	return buf.Bytes(), nil
 }
 
-func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency string, targetAyar int) ([]byte, error) {
+func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency string, targetAyar int) ([]byte, error) {
 	summary, err := s.GetPortfolioSummary(userID, baseCurrency, targetAyar)
 	if err != nil {
 		return nil, err
 	}
-	userName, _ := s.repo.GetUserName(int64(userID))
+	userName, _ := s.repo.GetUserName(userID)
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 18)
@@ -286,7 +288,7 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID uint, baseCurrency st
 	return buf.Bytes(), nil
 }
 
-func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, targetAyar int) ([]byte, error) {
+func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, targetAyar int) ([]byte, error) {
 	txs, err := s.repo.GetTransactionsByUserID(userID)
 	if err != nil {
 		return nil, err
@@ -302,13 +304,11 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	if basePriceInTRY <= 0 {
 		basePriceInTRY = 1
 	}
-
 	f := excelize.NewFile()
 	sheetName := "FinTrack Ozet"
 	index, _ := f.NewSheet(sheetName)
 	f.SetActiveSheet(index)
 	f.DeleteSheet("Sheet1")
-
 	styleTitle, _ := f.NewStyle(&excelize.Style{
 		Font:      &excelize.Font{Bold: true, Size: 18, Color: "FFFFFF"},
 		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#1F4E78"}, Pattern: 1},
@@ -324,30 +324,24 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		Alignment: &excelize.Alignment{Horizontal: "center"},
 		Border:    []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}},
 	})
-
 	fmtStd := "#,##0.00"
 	fmtPrecise := "#,##0.00000000"
 	styleCurrency, _ := f.NewStyle(&excelize.Style{CustomNumFmt: &fmtStd, Alignment: &excelize.Alignment{Horizontal: "right"}, Border: []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}}})
 	styleCrypto, _ := f.NewStyle(&excelize.Style{CustomNumFmt: &fmtPrecise, Alignment: &excelize.Alignment{Horizontal: "right"}, Border: []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}}})
-
 	f.MergeCell(sheetName, "A1", "H2")
 	f.SetCellValue(sheetName, "A1", fmt.Sprintf("FINTRACK PRO - PORTFOY RAPORU (%s Bazli)", baseCurrency))
 	f.SetCellStyle(sheetName, "A1", "H2", styleTitle)
-
 	f.SetCellValue(sheetName, "A4", "TOPLAM VARLIK DEGERI")
 	f.SetCellValue(sheetName, "B4", portfolio.TotalValue)
 	f.SetCellValue(sheetName, "D4", "RAPOR TARIHI")
 	f.SetCellValue(sheetName, "E4", time.Now().Add(3*time.Hour).Format("02.01.2006 15:04"))
-
 	f.SetCellStyle(sheetName, "A4", "A4", styleSubHeader)
 	f.SetCellStyle(sheetName, "B4", "B4", styleCurrency)
 	f.SetCellStyle(sheetName, "D4", "D4", styleSubHeader)
-
 	startRow := 7
 	f.SetCellValue(sheetName, fmt.Sprintf("A%d", startRow), "GUNCEL VARLIK DAGILIMI")
 	f.MergeCell(sheetName, fmt.Sprintf("A%d", startRow), fmt.Sprintf("H%d", startRow))
 	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", startRow), fmt.Sprintf("H%d", startRow), styleSubHeader)
-
 	headerRow := startRow + 1
 	headers := []string{"Varlik Tipi", "Miktar", "Birim", fmt.Sprintf("Birim Fiyat (%s)", baseCurrency), fmt.Sprintf("Toplam Deger (%s)", baseCurrency), "Portfoy Orani (%)"}
 	for i, h := range headers {
@@ -356,7 +350,6 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	}
 	styleTableHead, _ := f.NewStyle(&excelize.Style{Font: &excelize.Font{Bold: true, Color: "FFFFFF"}, Fill: excelize.Fill{Type: "pattern", Color: []string{"#595959"}, Pattern: 1}, Alignment: &excelize.Alignment{Horizontal: "center"}})
 	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", headerRow), fmt.Sprintf("F%d", headerRow), styleTableHead)
-
 	dataRow := headerRow + 1
 	for _, asset := range portfolio.Assets {
 		name := asset.Type
@@ -369,7 +362,6 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		f.SetCellValue(sheetName, fmt.Sprintf("D%d", dataRow), asset.CurrentPrice)
 		f.SetCellValue(sheetName, fmt.Sprintf("E%d", dataRow), asset.ValueInBase)
 		f.SetCellValue(sheetName, fmt.Sprintf("F%d", dataRow), asset.Allocation)
-
 		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", dataRow), fmt.Sprintf("C%d", dataRow), styleDataCenter)
 		curStyle := styleCurrency
 		if asset.CurrentPrice < 0.0001 {
@@ -379,12 +371,10 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		f.SetCellStyle(sheetName, fmt.Sprintf("F%d", dataRow), fmt.Sprintf("F%d", dataRow), styleDataCenter)
 		dataRow++
 	}
-
 	txStartRow := dataRow + 4
 	f.SetCellValue(sheetName, fmt.Sprintf("A%d", txStartRow), "DETAYLI ISLEM GECMISI")
 	f.MergeCell(sheetName, fmt.Sprintf("A%d", txStartRow), fmt.Sprintf("H%d", txStartRow))
 	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", txStartRow), fmt.Sprintf("H%d", txStartRow), styleSubHeader)
-
 	txHeaderRow := txStartRow + 1
 	txHeaders := []string{"Tarih", "Islem", "Varlik", "Miktar", fmt.Sprintf("Islem Ani Fiyati (%s)", baseCurrency), fmt.Sprintf("Islem Tutari (%s)", baseCurrency), fmt.Sprintf("Guncel Karsiligi (%s)", baseCurrency)}
 	for i, h := range txHeaders {
@@ -392,7 +382,6 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		f.SetCellValue(sheetName, cell, h)
 	}
 	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", txHeaderRow), fmt.Sprintf("G%d", txHeaderRow), styleTableHead)
-
 	txDataRow := txHeaderRow + 1
 	for _, tx := range txs {
 		if tx.Asset == nil {
@@ -404,21 +393,17 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 			typeTr = "Cikarma (-)"
 		}
 		f.SetCellValue(sheetName, fmt.Sprintf("B%d", txDataRow), typeTr)
-
 		assetName := tx.Asset.Type
 		if tx.Asset.Type == "GOLD" && tx.Asset.Ayar > 0 {
 			assetName = fmt.Sprintf("GOLD (%dK)", tx.Asset.Ayar)
 		}
 		f.SetCellValue(sheetName, fmt.Sprintf("C%d", txDataRow), assetName)
 		f.SetCellValue(sheetName, fmt.Sprintf("D%d", txDataRow), tx.Amount)
-
 		priceInBase := tx.Price / basePriceInTRY
 		totalInBase := (tx.Price * tx.Amount) / basePriceInTRY
-
 		f.SetCellValue(sheetName, fmt.Sprintf("E%d", txDataRow), priceInBase)
 		f.SetCellValue(sheetName, fmt.Sprintf("F%d", txDataRow), totalInBase)
 		f.SetCellValue(sheetName, fmt.Sprintf("G%d", txDataRow), totalInBase)
-
 		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", txDataRow), fmt.Sprintf("D%d", txDataRow), styleDataCenter)
 		txStyle := styleCurrency
 		if priceInBase < 0.0001 || totalInBase < 0.0001 {
@@ -427,13 +412,11 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		f.SetCellStyle(sheetName, fmt.Sprintf("E%d", txDataRow), fmt.Sprintf("G%d", txDataRow), txStyle)
 		txDataRow++
 	}
-
 	f.SetColWidth(sheetName, "A", "A", 22)
 	f.SetColWidth(sheetName, "B", "B", 18)
 	f.SetColWidth(sheetName, "C", "C", 18)
 	f.SetColWidth(sheetName, "D", "E", 28)
 	f.SetColWidth(sheetName, "F", "H", 30)
-
 	buf, err := f.WriteToBuffer()
 	if err != nil {
 		return nil, err
@@ -441,10 +424,10 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	return buf.Bytes(), nil
 }
 
-func (s *AssetService) GetUserTransactions(userID uint) ([]model.Transaction, error) {
+func (s *AssetService) GetUserTransactions(userID int64) ([]model.Transaction, error) {
 	return s.repo.GetTransactionsByUserID(userID)
 }
 
-func (s *AssetService) GetTransactionByID(userID uint, txID int64) (*model.Transaction, error) {
-	return s.repo.GetTransactionByID(txID, int64(userID))
+func (s *AssetService) GetTransactionByID(userID int64, txID int64) (*model.Transaction, error) {
+	return s.repo.GetTransactionByID(txID, userID)
 }

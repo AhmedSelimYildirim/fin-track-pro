@@ -32,7 +32,7 @@ func (r *AssetRepository) GetAsset(userID int64, assetType string, ayar int) (*m
 	return asset, nil
 }
 
-func (r *AssetRepository) GetByUserID(userID uint) ([]model.Asset, error) {
+func (r *AssetRepository) GetByUserID(userID int64) ([]model.Asset, error) {
 	var assets []model.Asset
 	err := r.db.NewSelect().
 		Model(&assets).
@@ -42,7 +42,7 @@ func (r *AssetRepository) GetByUserID(userID uint) ([]model.Asset, error) {
 	return assets, err
 }
 
-func (r *AssetRepository) GetTransactionsByUserID(userID uint) ([]model.Transaction, error) {
+func (r *AssetRepository) GetTransactionsByUserID(userID int64) ([]model.Transaction, error) {
 	var txs []model.Transaction
 	err := r.db.NewSelect().
 		Model(&txs).
@@ -53,7 +53,6 @@ func (r *AssetRepository) GetTransactionsByUserID(userID uint) ([]model.Transact
 	return txs, err
 }
 
-// Tek bir işlemi detaylı getirir
 func (r *AssetRepository) GetTransactionByID(txID int64, userID int64) (*model.Transaction, error) {
 	tx := new(model.Transaction)
 	err := r.db.NewSelect().
@@ -76,13 +75,14 @@ func (r *AssetRepository) UpdateWithLog(asset *model.Asset, tx *model.Transactio
 			On("CONFLICT (user_id, type, ayar) DO UPDATE").
 			Set("amount = EXCLUDED.amount").
 			Set("total_cost = EXCLUDED.total_cost").
-			Returning("id"). // ID'yi geri döndür ki Transaction'a verebilelim
+			Returning("id").
 			Exec(ctx)
 		if err != nil {
 			return err
 		}
 
-		tx.AssetID = asset.ID // Asset ID'yi set et
+		tx.AssetID = asset.ID
+
 		if _, err := bunTx.NewInsert().Model(tx).Exec(ctx); err != nil {
 			return err
 		}

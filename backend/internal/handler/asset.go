@@ -19,7 +19,7 @@ func NewAssetHandler(s *service.AssetService) *AssetHandler {
 }
 
 func (h *AssetHandler) UpdateBalance(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(int64)
 	var req dto.AssetCreateRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "gecersiz format"})
@@ -31,7 +31,7 @@ func (h *AssetHandler) UpdateBalance(c *fiber.Ctx) error {
 }
 
 func (h *AssetHandler) GetSummary(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency")
 	if currency == "" {
 		currency = c.Get("X-Currency", "TRY")
@@ -49,7 +49,7 @@ func (h *AssetHandler) GetSummary(c *fiber.Ctx) error {
 }
 
 func (h *AssetHandler) GetTransactions(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency")
 	if currency == "" {
 		currency = c.Get("X-Currency", "TRY")
@@ -68,7 +68,7 @@ func (h *AssetHandler) GetTransactions(c *fiber.Ctx) error {
 
 func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 	id, _ := strconv.ParseInt(c.Params("id"), 10, 64)
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency")
 	if currency == "" {
 		currency = c.Get("X-Currency", "TRY")
@@ -92,7 +92,7 @@ func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 }
 
 func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency")
 	if currency == "" {
 		currency = c.Get("X-Currency", "TRY")
@@ -112,7 +112,7 @@ func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 }
 
 func (h *AssetHandler) GetExcel(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency")
 	if currency == "" {
 		currency = c.Get("X-Currency", "TRY")
