@@ -7,10 +7,11 @@ import (
 	"fin-track-pro/internal/model"
 	"fin-track-pro/internal/repository"
 	"fmt"
-	"github.com/jung-kurt/gofpdf"
-	"github.com/xuri/excelize/v2"
 	"strings"
 	"time"
+
+	"github.com/jung-kurt/gofpdf"
+	"github.com/xuri/excelize/v2"
 )
 
 var GoldFactors = map[string]float64{
@@ -67,7 +68,7 @@ func (s *AssetService) ManageBalance(userID int64, req dto.AssetCreateRequest) e
 		asset.Amount += req.Amount
 	} else if req.Action == "subtract" {
 		if asset.Amount < req.Amount {
-			return fmt.Errorf("yetersiz bakiye: %.2f mevcut", asset.Amount)
+			return fmt.Errorf("yetersiz bakiye: %.2f adet/gr %s mevcut", asset.Amount, variant)
 		}
 		asset.Amount -= req.Amount
 	}
@@ -100,6 +101,8 @@ func (s *AssetService) getCurrentPriceInTRY(assetType string) (float64, error) {
 		return s.marketService.GetMetalPrice("SILVER")
 	case "BTC":
 		return s.marketService.GetCryptoPrice("BTC")
+	case "TRY":
+		return 1.0, nil
 	default:
 		return 1.0, nil
 	}
@@ -144,7 +147,11 @@ func (s *AssetService) GetPortfolioSummary(userID int64, baseCurrency string) (*
 			details[i].Allocation = (details[i].ValueInBase / totalValue) * 100
 		}
 	}
-	return &dto.PortfolioResponse{Assets: details, TotalValue: totalValue, BaseAsset: baseCurrency}, nil
+	return &dto.PortfolioResponse{
+		Assets:     details,
+		TotalValue: totalValue,
+		BaseAsset:  baseCurrency,
+	}, nil
 }
 
 func (s *AssetService) GetUserTransactionsWithCurrency(userID int64, baseCurrency string) ([]dto.TransactionResponse, error) {
