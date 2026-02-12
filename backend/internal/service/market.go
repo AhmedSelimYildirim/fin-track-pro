@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fin-track-pro/internal/infrastructure/config"
+	"fin-track-pro/internal/model"
+	"fin-track-pro/internal/repository"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,12 +15,36 @@ import (
 )
 
 type MarketService struct {
-	cfg *config.Config
-	rdb *redis.Client
+	cfg        *config.Config
+	rdb        *redis.Client
+	marketRepo *repository.MarketRepository
 }
 
-func NewMarketService(cfg *config.Config, rdb *redis.Client) *MarketService {
-	return &MarketService{cfg: cfg, rdb: rdb}
+func NewMarketService(cfg *config.Config, rdb *redis.Client, repo *repository.MarketRepository) *MarketService {
+	return &MarketService{cfg: cfg, rdb: rdb, marketRepo: repo}
+}
+
+// Cron Job tarafindan cagrilacak fonksiyon
+func (s *MarketService) SaveDailyRates() error {
+	rates, err := s.GetCurrencyRates()
+	if err != nil {
+		return err
+	}
+
+	gold, _ := s.GetMetalPrice("GOLD")
+	silver, _ := s.GetMetalPrice("SILVER")
+	btc, _ := s.GetCryptoPrice("BTC")
+
+	rates["GOLD"] = gold
+	rates["SILVER"] = silver
+	rates["BTC"] = btc
+
+	history := &model.MarketHistory{
+		Date:  time.Now(),
+		Rates: rates,
+	}
+
+	return s.marketRepo.SaveRates(history)
 }
 
 func (s *MarketService) GetCurrencyRates() (map[string]float64, error) {
@@ -56,11 +82,11 @@ func (s *MarketService) GetCurrencyRates() (map[string]float64, error) {
 	if eurRate, ok := data.Rates["EUR"]; ok && eurRate != 0 {
 		finalRates["EUR"] = tryRate / eurRate
 	} else {
-		finalRates["EUR"] = tryRate * 1.08 // Fallback kabaca parite
+		finalRates["EUR"] = tryRate * 1.08
 	}
 
 	cacheData, _ := json.Marshal(finalRates)
-	s.rdb.Set(ctx, "rates:currency", cacheData, 6*time.Hour) // 24 saat cok uzun, 6 saat daha ideal
+	s.rdb.Set(ctx, "rates:currency", cacheData, 6*time.Hour)
 	return finalRates, nil
 }
 
@@ -96,11 +122,10 @@ func (s *MarketService) GetMetalPrice(metalCode string) (float64, error) {
 		return 0, err
 	}
 
-	// Ounce to Gram conversion
 	priceInUSD := 1 / data.Rates[symbol]
 	gramPriceTRY := (priceInUSD * rates["USD"]) / 31.1035
 
-	s.rdb.Set(ctx, cacheKey, gramPriceTRY, 1*time.Hour) // Altin fiyati saatlik guncellenmeli
+	s.rdb.Set(ctx, cacheKey, gramPriceTRY, 1*time.Hour)
 	return gramPriceTRY, nil
 }
 
@@ -138,6 +163,6 @@ func (s *MarketService) GetCryptoPrice(coinID string) (float64, error) {
 	}
 
 	priceTRY := priceUSD * rates["USD"]
-	s.rdb.Set(ctx, cacheKey, priceTRY, 5*time.Minute) // Kripto cok oynak, 5 dk ideal
+	s.rdb.Set(ctx, cacheKey, priceTRY, 5*time.Minute)
 	return priceTRY, nil
 }

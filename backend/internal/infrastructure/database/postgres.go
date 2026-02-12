@@ -45,6 +45,7 @@ func ConnectDB() {
 	}
 
 	ctx := context.Background()
+
 	modelsToCreate := []interface{}{
 		(*model.User)(nil),
 		(*model.Asset)(nil),
@@ -55,9 +56,9 @@ func ConnectDB() {
 	for _, model := range modelsToCreate {
 		_, err := DB.NewCreateTable().Model(model).IfNotExists().Exec(ctx)
 		if err != nil {
-			log.Printf("Error: %v", err)
+			log.Printf("Tablo oluşturma hatası: %v", err)
 		}
 	}
 
-	fmt.Println("PostgreSQL baglantisi basarili")
+	fmt.Println("PostgreSQL baglantisi ve tablolar hazir")
 }

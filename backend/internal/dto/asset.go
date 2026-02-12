@@ -11,6 +11,7 @@ type AssetCreateRequest struct {
 }
 
 type AssetResponse struct {
+	ID           int64   `json:"id"`
 	Type         string  `json:"type"`
 	Amount       float64 `json:"amount"`
 	Ayar         int     `json:"ayar,omitempty"`

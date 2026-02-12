@@ -28,9 +28,11 @@ func SetupRoutes(app *fiber.App) {
 	userRepo := repository.NewUserRepository(database.DB)
 	assetRepo := repository.NewAssetRepository(database.DB)
 	calendarRepo := repository.NewCalendarRepository(database.DB)
+	marketRepo := repository.NewMarketRepository(database.DB) // Yeni Repo
 
 	userService := service.NewUserService(userRepo, cfg.JWTSecret)
-	marketService := service.NewMarketService(cfg, redis.Client)
+	// Market Service artık Repo alıyor
+	marketService := service.NewMarketService(cfg, redis.Client, marketRepo)
 	assetService := service.NewAssetService(assetRepo, marketService)
 	calendarService := service.NewCalendarService(calendarRepo)
 
@@ -46,7 +48,7 @@ func SetupRoutes(app *fiber.App) {
 	auth.Post("/login", userHandler.Login)
 
 	api.Get("/ping", func(c *fiber.Ctx) error {
-		return c.Status(200).JSON(fiber.Map{"message": "Sistem hazir Ahmed Selim! 🚀"})
+		return c.Status(200).JSON(fiber.Map{"message": "Sistem hazir ve iliskisel!"})
 	})
 
 	market := api.Group("/market")

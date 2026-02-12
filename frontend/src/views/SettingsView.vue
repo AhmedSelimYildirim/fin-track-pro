@@ -137,7 +137,7 @@
             password.value = '';
 
             window.dispatchEvent(new Event('storage'));
-            showToast(t('save') + "!", "success"); // Basit feedback
+            showToast(t('save') + "!", "success");
         } catch (e) {
             showToast(e.response?.data?.error || "Güncelleme başarısız.", "error");
         } finally {
@@ -151,7 +151,7 @@
                 await api.delete('/user/delete');
                 localStorage.clear();
                 router.push('/login');
-            } catch (e) { showToast('Silme işlemi başarısız.', 'error'); }
+            } catch (e) { showToast(e.response?.data?.error || 'Silme işlemi başarısız.', 'error'); }
         }
     };
 </script>

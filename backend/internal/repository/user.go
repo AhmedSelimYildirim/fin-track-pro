@@ -33,7 +33,7 @@ func (r *UserRepository) ExistsByEmail(email string) (bool, error) {
 	return r.db.NewSelect().Model((*model.User)(nil)).Where("email = ?", email).Exists(context.Background())
 }
 
-func (r *UserRepository) GetByID(id uint) (*model.User, error) {
+func (r *UserRepository) GetByID(id int64) (*model.User, error) {
 	var user model.User
 	err := r.db.NewSelect().Model(&user).Where("id = ?", id).Scan(context.Background())
 	if err != nil {
@@ -47,7 +47,7 @@ func (r *UserRepository) Update(user *model.User) error {
 	return err
 }
 
-func (r *UserRepository) Delete(id uint) error {
+func (r *UserRepository) Delete(id int64) error {
 	_, err := r.db.NewDelete().Model((*model.User)(nil)).Where("id = ?", id).ForceDelete().Exec(context.Background())
 	return err
 }

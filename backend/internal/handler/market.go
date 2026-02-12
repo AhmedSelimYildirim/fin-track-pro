@@ -15,9 +15,23 @@ func NewMarketHandler(s *service.MarketService) *MarketHandler {
 }
 
 func (h *MarketHandler) GetRates(c *fiber.Ctx) error {
-	price, err := h.marketService.GetMetalPrice("XAU")
+	rates, err := h.marketService.GetCurrencyRates()
 	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		return c.Status(500).JSON(fiber.Map{"error": "Doviz kurlari alinamadi"})
 	}
-	return c.JSON(fiber.Map{"gold_gram_try": price})
+
+	goldPrice, _ := h.marketService.GetMetalPrice("GOLD")
+	silverPrice, _ := h.marketService.GetMetalPrice("SILVER")
+	btcPrice, _ := h.marketService.GetCryptoPrice("BTC")
+
+	response := fiber.Map{
+		"USD":    rates["USD"],
+		"EUR":    rates["EUR"],
+		"GOLD":   goldPrice,
+		"SILVER": silverPrice,
+		"BTC":    btcPrice,
+		"TRY":    1.0,
+	}
+
+	return c.JSON(response)
 }

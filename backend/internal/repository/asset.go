@@ -46,17 +46,21 @@ func (r *AssetRepository) GetTransactionsByUserID(userID uint) ([]model.Transact
 	var txs []model.Transaction
 	err := r.db.NewSelect().
 		Model(&txs).
-		Where("user_id = ?", userID).
+		Relation("Asset").
+		Where("asset.user_id = ?", userID).
 		Order("transaction_date DESC").
 		Scan(context.Background())
 	return txs, err
 }
 
+// Tek bir işlemi detaylı getirir
 func (r *AssetRepository) GetTransactionByID(txID int64, userID int64) (*model.Transaction, error) {
 	tx := new(model.Transaction)
 	err := r.db.NewSelect().
 		Model(tx).
-		Where("id = ? AND user_id = ?", txID, userID).
+		Relation("Asset").
+		Where("t.id = ?", txID).
+		Where("asset.user_id = ?", userID).
 		Scan(context.Background())
 	if err != nil {
 		return nil, err
@@ -72,10 +76,13 @@ func (r *AssetRepository) UpdateWithLog(asset *model.Asset, tx *model.Transactio
 			On("CONFLICT (user_id, type, ayar) DO UPDATE").
 			Set("amount = EXCLUDED.amount").
 			Set("total_cost = EXCLUDED.total_cost").
+			Returning("id"). // ID'yi geri döndür ki Transaction'a verebilelim
 			Exec(ctx)
 		if err != nil {
 			return err
 		}
+
+		tx.AssetID = asset.ID // Asset ID'yi set et
 		if _, err := bunTx.NewInsert().Model(tx).Exec(ctx); err != nil {
 			return err
 		}

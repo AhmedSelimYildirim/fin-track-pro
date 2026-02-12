@@ -24,8 +24,22 @@ func (s *CalendarService) CreateReminder(userID int64, req dto.CreateReminderReq
 	return s.calendarRepo.SaveReminder(context.Background(), reminder)
 }
 
-func (s *CalendarService) GetUserReminders(userID int64) ([]model.Reminder, error) {
-	return s.calendarRepo.GetRemindersByUserID(context.Background(), userID)
+func (s *CalendarService) GetUserReminders(userID int64) ([]dto.ReminderResponse, error) {
+	reminders, err := s.calendarRepo.GetRemindersByUserID(context.Background(), userID)
+	if err != nil {
+		return nil, err
+	}
+
+	var response []dto.ReminderResponse
+	for _, r := range reminders {
+		response = append(response, dto.ReminderResponse{
+			ID:         r.ID,
+			Title:      r.Title,
+			TargetDate: r.TargetDate,
+			CreatedAt:  r.CreatedAt,
+		})
+	}
+	return response, nil
 }
 
 func (s *CalendarService) DeleteReminder(userID int64, reminderID int64) error {

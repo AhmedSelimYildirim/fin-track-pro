@@ -41,11 +41,11 @@ func (s *UserService) Login(email, password string) (string, *model.User, error)
 	if !utils.CheckPasswordHash(password, user.Password) {
 		return "", nil, errors.New("Hatali sifre girdiniz. Lutfen tekrar deneyin.")
 	}
-	token, err := utils.GenerateToken(uint(user.ID), s.jwtSecret)
+	token, err := utils.GenerateToken(user.ID, s.jwtSecret)
 	return token, user, err
 }
 
-func (s *UserService) Update(userID uint, username, email, password string) error {
+func (s *UserService) Update(userID int64, username, email, password string) error {
 	if !utils.IsValidEmail(email) {
 		return errors.New("Gecersiz e-posta formati.")
 	}
@@ -53,14 +53,12 @@ func (s *UserService) Update(userID uint, username, email, password string) erro
 	if err != nil {
 		return err
 	}
-
 	if user.Email != email {
 		exists, _ := s.repo.ExistsByEmail(email)
 		if exists {
 			return errors.New("Bu e-posta adresi zaten kullanimda.")
 		}
 	}
-
 	user.Username = username
 	user.Email = email
 	if password != "" {
@@ -70,6 +68,6 @@ func (s *UserService) Update(userID uint, username, email, password string) erro
 	return s.repo.Update(user)
 }
 
-func (s *UserService) Delete(userID uint) error {
+func (s *UserService) Delete(userID int64) error {
 	return s.repo.Delete(userID)
 }

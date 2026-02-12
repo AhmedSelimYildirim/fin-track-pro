@@ -43,16 +43,7 @@ func (h *UserHandler) Login(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) Update(c *fiber.Ctx) error {
-	val := c.Locals("user_id")
-	var userID uint
-	switch v := val.(type) {
-	case float64:
-		userID = uint(v)
-	case uint:
-		userID = v
-	default:
-		return c.Status(401).JSON(fiber.Map{"error": "Yetkisiz erisim."})
-	}
+	userID := c.Locals("user_id").(int64)
 	var req dto.UserUpdateRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Gecersiz veri."})
@@ -64,16 +55,7 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) Delete(c *fiber.Ctx) error {
-	val := c.Locals("user_id")
-	var userID uint
-	switch v := val.(type) {
-	case float64:
-		userID = uint(v)
-	case uint:
-		userID = v
-	default:
-		return c.Status(401).JSON(fiber.Map{"error": "Yetkisiz erisim."})
-	}
+	userID := c.Locals("user_id").(int64)
 	if err := h.userService.Delete(userID); err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Silme islemi basarisiz."})
 	}

@@ -90,18 +90,16 @@
 
       localStorage.setItem('token', res.data.token)
 
-      // Backend'den username dönüyorsa al, yoksa e-posta başını kullan
       const user = res.data.username || loginData.value.email.split('@')[0]
       localStorage.setItem('username', user)
-      localStorage.setItem('email', loginData.value.email) // E-postayı da sakla
+      localStorage.setItem('email', loginData.value.email)
 
-      // Sidebar'ı güncellemesi için event fırlat
       window.dispatchEvent(new Event('storage'))
 
       router.push('/dashboard')
     } catch (e) {
       console.error(e)
-      showNotification(e.response?.data?.message || 'Giriş başarısız. Bilgileri kontrol edin.', 'error')
+      showNotification(e.response?.data?.error || e.response?.data?.message || 'Giriş başarısız.', 'error')
     } finally {
       isLoading.value = false
     }
@@ -119,16 +117,14 @@
 
       showNotification('Kayıt başarılı! Giriş yapabilirsiniz.', 'success')
 
-      // Kayıt bilgilerini Login formuna aktar
       loginData.value.email = registerData.value.email
       loginData.value.password = registerData.value.password
 
-      // Login sekmesine geç
       activeTab.value = 'login'
 
     } catch (e) {
       console.error(e)
-      showNotification(e.response?.data?.message || 'Kayıt sırasında hata oluştu.', 'error')
+      showNotification(e.response?.data?.error || e.response?.data?.message || 'Kayıt sırasında hata oluştu.', 'error')
     } finally {
       isLoading.value = false
     }
@@ -193,7 +189,7 @@
     z-index: 10;
     display: flex;
     flex-direction: column;
-    align-items: center; /* Her şeyi ortala */
+    align-items: center;
   }
 
   .brand-title {
@@ -223,12 +219,12 @@
     display: flex;
     position: relative;
     margin-bottom: 25px;
-    box-sizing: border-box; /* Taşmayı önler */
+    box-sizing: border-box;
   }
 
   .tab-slider {
     position: absolute;
-    width: calc(50% - 4px); /* Kenar boşluklarını hesaba kat */
+    width: calc(50% - 4px);
     height: calc(100% - 8px);
     background: #334155;
     border-radius: 8px;
@@ -270,7 +266,7 @@
     font-size: 1rem;
     outline: none;
     transition: all 0.3s;
-    box-sizing: border-box; /* Padding dahil genişlik */
+    box-sizing: border-box;
   }
 
   input:focus {
