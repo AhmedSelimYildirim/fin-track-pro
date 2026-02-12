@@ -20,11 +20,11 @@ func (r *AssetRepository) Create(asset *model.Asset) error {
 	return err
 }
 
-func (r *AssetRepository) GetAsset(userID int64, assetType string, ayar int) (*model.Asset, error) {
+func (r *AssetRepository) GetAsset(userID int64, assetType string, variant string) (*model.Asset, error) {
 	asset := new(model.Asset)
 	err := r.db.NewSelect().
 		Model(asset).
-		Where("user_id = ? AND type = ? AND ayar = ?", userID, assetType, ayar).
+		Where("user_id = ? AND type = ? AND variant = ?", userID, assetType, variant).
 		Scan(context.Background())
 	if err != nil {
 		return nil, err
@@ -72,18 +72,15 @@ func (r *AssetRepository) UpdateWithLog(asset *model.Asset, tx *model.Transactio
 	return r.db.RunInTx(ctx, nil, func(ctx context.Context, bunTx bun.Tx) error {
 		_, err := bunTx.NewInsert().
 			Model(asset).
-			On("CONFLICT (user_id, type, ayar) DO UPDATE").
+			On("CONFLICT (user_id, type, variant) DO UPDATE").
 			Set("amount = EXCLUDED.amount").
-			Set("total_cost = EXCLUDED.total_cost").
 			Returning("id").
 			Exec(ctx)
 		if err != nil {
 			return err
 		}
-
 		tx.AssetID = asset.ID
 		tx.UserID = asset.UserID
-
 		if _, err := bunTx.NewInsert().Model(tx).Exec(ctx); err != nil {
 			return err
 		}

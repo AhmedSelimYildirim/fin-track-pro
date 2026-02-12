@@ -7,7 +7,7 @@ type TransactionResponse struct {
 	AssetID         int64     `json:"asset_id"`
 	Type            string    `json:"type"`
 	AssetType       string    `json:"asset_type"`
-	Ayar            int       `json:"ayar,omitempty"`
+	Variant         string    `json:"variant"`
 	Amount          float64   `json:"amount"`
 	Price           float64   `json:"price"`
 	TransactionDate time.Time `json:"transaction_date"`

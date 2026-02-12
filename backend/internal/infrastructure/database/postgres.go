@@ -20,10 +20,6 @@ var DB *bun.DB
 func ConnectDB() {
 	cfg := config.LoadConfig()
 
-	if cfg.DBUser == "" {
-		log.Fatal("DB_USER bos")
-	}
-
 	isInsecure := true
 	if os.Getenv("RENDER") == "true" || os.Getenv("DB_SSLMODE") == "require" {
 		isInsecure = false
@@ -46,6 +42,16 @@ func ConnectDB() {
 
 	ctx := context.Background()
 
+	queries := []string{
+		`DROP TABLE IF EXISTS transactions CASCADE;`,
+		`DROP TABLE IF EXISTS assets CASCADE;`,
+		`DROP TABLE IF EXISTS market_histories CASCADE;`,
+	}
+
+	for _, q := range queries {
+		_, _ = DB.ExecContext(ctx, q)
+	}
+
 	modelsToCreate := []interface{}{
 		(*model.User)(nil),
 		(*model.Asset)(nil),
@@ -57,25 +63,11 @@ func ConnectDB() {
 	for _, m := range modelsToCreate {
 		_, err := DB.NewCreateTable().Model(m).IfNotExists().Exec(ctx)
 		if err != nil {
-			log.Printf("Tablo kontrol uyarisi: %v", err)
+			log.Printf("Tablo hatasi: %v", err)
 		}
 	}
 
-	queries := []string{
-		`CREATE UNIQUE INDEX IF NOT EXISTS idx_assets_user_type_ayar ON assets (user_id, type, ayar);`,
+	_, _ = DB.ExecContext(ctx, `CREATE UNIQUE INDEX IF NOT EXISTS idx_assets_user_type_variant ON assets (user_id, type, variant);`)
 
-		`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS asset_id BIGINT;`,
-
-		`ALTER TABLE assets ALTER COLUMN ayar SET DEFAULT 0;`,
-		`UPDATE assets SET ayar = 0 WHERE ayar IS NULL;`,
-	}
-
-	for _, q := range queries {
-		if _, err := DB.ExecContext(ctx, q); err != nil {
-
-			log.Printf("Veritabani onarim notu: %v", err)
-		}
-	}
-
-	fmt.Println("✅ Veritabani baglantisi, tablolar ve indeksler hazir (Repair Mode)")
+	fmt.Println("✅ Veritabani Altin Donusumune Hazir!")
 }
