@@ -57,12 +57,25 @@ func ConnectDB() {
 	for _, m := range modelsToCreate {
 		_, err := DB.NewCreateTable().Model(m).IfNotExists().Exec(ctx)
 		if err != nil {
-			log.Printf("Tablo kontrol hatasi: %v", err)
+			log.Printf("Tablo kontrol uyarisi: %v", err)
 		}
 	}
 
-	_, _ = DB.ExecContext(ctx, "ALTER TABLE assets ALTER COLUMN ayar SET DEFAULT 0")
-	_, _ = DB.ExecContext(ctx, "UPDATE assets SET ayar = 0 WHERE ayar IS NULL")
+	queries := []string{
+		`CREATE UNIQUE INDEX IF NOT EXISTS idx_assets_user_type_ayar ON assets (user_id, type, ayar);`,
 
-	fmt.Println("✅ PostgreSQL baglantisi ve iliskisel tablolar hazir")
+		`ALTER TABLE transactions ADD COLUMN IF NOT EXISTS asset_id BIGINT;`,
+
+		`ALTER TABLE assets ALTER COLUMN ayar SET DEFAULT 0;`,
+		`UPDATE assets SET ayar = 0 WHERE ayar IS NULL;`,
+	}
+
+	for _, q := range queries {
+		if _, err := DB.ExecContext(ctx, q); err != nil {
+
+			log.Printf("Veritabani onarim notu: %v", err)
+		}
+	}
+
+	fmt.Println("✅ Veritabani baglantisi, tablolar ve indeksler hazir (Repair Mode)")
 }
