@@ -2,14 +2,10 @@
     <div class="detail-container" :style="pageTheme">
         <header class="detail-header">
             <div class="left">
-                <button class="back-btn" @click="$router.push('/dashboard')">← {{ t('home') }}</button>
-                <h1>{{ type }} {{ t('details') }}</h1>
+                <button class="back-btn" @click="$router.push('/dashboard')">← Geri Dön</button>
+                <h1>{{ type }} Portföyü</h1>
             </div>
             <div class="right">
-                <div class="action-group">
-                    <button class="icon-btn excel" @click="downloadExcel" title="Excel">📊</button>
-                    <button class="icon-btn pdf" @click="downloadFullPDF" title="PDF">📄</button>
-                </div>
                 <div class="total-box">
                     <span class="label">Toplam Değer</span>
                     <span class="value">{{ totalInSelectedCurrency }} {{ displayCurrency }}</span>
@@ -24,7 +20,7 @@
                     <button class="add-btn" @click="openModal">İşlem Yap</button>
                 </div>
                 <div class="holding-items">
-                    <div v-if="filteredAssets.length === 0" class="no-data">Veri bulunamadı.</div>
+                    <div v-if="filteredAssets.length === 0" class="no-data">Henüz varlık eklenmedi.</div>
                     <div v-for="asset in filteredAssets" :key="asset.variant" class="h-item">
                         <div class="h-name">
                             <span class="variant-tag">{{ formatVariant(asset.variant) }}</span>
@@ -38,9 +34,9 @@
             </section>
 
             <section class="history-card">
-                <h3>Son İşlemler</h3>
+                <h3>İşlem Geçmişi</h3>
                 <div class="history-list">
-                    <div v-if="filteredTransactions.length === 0" class="no-data">İşlem geçmişi boş.</div>
+                    <div v-if="filteredTransactions.length === 0" class="no-data">İşlem yok.</div>
                     <div v-for="tx in filteredTransactions" :key="tx.id" class="tx-item">
                         <div class="tx-date">{{ new Date(tx.transaction_date).toLocaleDateString('tr-TR') }}</div>
                         <div class="tx-main">
@@ -56,23 +52,43 @@
 
         <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
             <div class="modal-content">
-                <h3>{{ type }} İşlemi</h3>
-                <div v-if="type === 'GOLD'" class="input-group">
-                    <label>Birim Seçin</label>
-                    <select v-model="form.variant" class="modal-input">
-                        <option value="GRAM_24">Gram 24K</option>
-                        <option value="CEYREK">Çeyrek</option>
-                        <option value="TAM">Tam</option>
-                        <option value="CUMHURIYET">Cumhuriyet</option>
-                    </select>
+                <div class="modal-header">
+                    <h3>{{ type }} İşlemi</h3>
+                    <button class="close-icon" @click="showModal = false">✕</button>
                 </div>
-                <div class="input-group">
-                    <label>Miktar (Adet/Gr)</label>
-                    <input v-model="form.amount" type="number" placeholder="0.00" class="modal-input">
-                </div>
-                <div class="modal-actions">
-                    <button class="btn-add" @click="submitTx('add')">Ekle (+)</button>
-                    <button class="btn-sub" @click="submitTx('subtract')">Çıkar (-)</button>
+
+                <div class="modal-body">
+                    <div v-if="type === 'GOLD'" class="input-group">
+                        <label>Altın Tipi</label>
+                        <select v-model="form.variant" class="modal-input">
+                            <option value="GRAM_24">Gram (24 Ayar)</option>
+                            <option value="GRAM_22">Gram (22 Ayar)</option>
+                            <option value="GRAM_18">Gram (18 Ayar)</option>
+                            <option value="GRAM_14">Gram (14 Ayar)</option>
+                            <option value="GRAM_8">Gram (8 Ayar)</option>
+                            <option value="GRAM_4">Gram (4 Ayar)</option>
+                            <option value="CEYREK">Çeyrek Altın</option>
+                            <option value="YARIM">Yarım Altın</option>
+                            <option value="TAM">Tam Altın</option>
+                            <option value="CUMHURIYET">Cumhuriyet</option>
+                            <option value="GREMSE">Gremse</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label>Miktar</label>
+                        <input v-model="form.amount" type="number" placeholder="0.00" class="modal-input">
+                    </div>
+
+                    <div class="input-group">
+                        <label>Tarih</label>
+                        <input v-model="form.date" type="date" class="modal-input">
+                    </div>
+
+                    <div class="modal-actions">
+                        <button class="btn-add" @click="submitTx('add')">EKLE (+)</button>
+                        <button class="btn-sub" @click="submitTx('subtract')">ÇIKAR (-)</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -82,19 +98,18 @@
 <script setup>
     import { ref, computed, onMounted } from 'vue';
     import api from '../services/api';
-    import { t } from '../utils/translations';
 
     const props = defineProps(['type']);
     const assets = ref([]);
     const transactions = ref([]);
     const showModal = ref(false);
-    const displayCurrency = ref(localStorage.getItem('preferredCurrency') || 'TRY');
-    const form = ref({ amount: '', variant: 'STANDARD' });
+    const displayCurrency = ref('TRY'); // Bu detay sayfasında varsayılan görüntüleme birimi
+    const form = ref({ amount: '', variant: 'STANDARD', date: new Date().toISOString().split('T')[0] });
 
     const themeMap = {
         TRY: 'linear-gradient(135deg, #1e0505 0%, #450a0a 100%)',
         USD: 'linear-gradient(135deg, #051e0f 0%, #064e3b 100%)',
-        GOLD: 'linear-gradient(135deg, #1e1b05 0%, #451a03 100%)',
+        GOLD: 'linear-gradient(135deg, #2A1C05 0%, #713F12 100%)',
         EUR: 'linear-gradient(135deg, #050b1e 0%, #1e3a8a 100%)',
         BTC: 'linear-gradient(135deg, #1e1305 0%, #78350f 100%)',
         SILVER: 'linear-gradient(135deg, #111827 0%, #374151 100%)'
@@ -109,7 +124,10 @@
         return total.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
     });
 
-    const formatVariant = (v) => v === 'STANDARD' ? props.type : v.replace('_', ' ');
+    const formatVariant = (v) => {
+        if (v === 'STANDARD') return props.type;
+        return v.replace('GRAM_', 'Gr ').replace('_', ' ');
+    }
 
     const fetchData = async () => {
         try {
@@ -119,9 +137,7 @@
             ]);
             assets.value = resSum.data.assets || [];
             transactions.value = resTx.data || [];
-        } catch (err) {
-            console.error("Veri çekme hatası:", err);
-        }
+        } catch (err) { console.error(err); }
     };
 
     const openModal = () => {
@@ -131,20 +147,18 @@
     };
 
     const submitTx = async (action) => {
-        if (!form.value.amount || form.value.amount <= 0) return alert("Geçerli bir miktar girin.");
+        if (!form.value.amount) return alert("Miktar giriniz");
         try {
             await api.post('/assets/update', {
-                ...form.value,
                 type: props.type,
                 action,
+                variant: props.type === 'GOLD' ? form.value.variant : 'STANDARD',
                 amount: parseFloat(form.value.amount),
-                transaction_date: new Date().toISOString()
+                transaction_date: new Date(form.value.date).toISOString()
             });
             showModal.value = false;
             await fetchData();
-        } catch (err) {
-            alert("İşlem başarısız: " + (err.response?.data?.error || "Sunucu hatası"));
-        }
+        } catch (err) { alert(err.message); }
     };
 
     const downloadSingleReceipt = async (id) => {
@@ -154,50 +168,38 @@
         link.href = url; link.setAttribute('download', `Dekont_${id}.pdf`); link.click();
     };
 
-    const downloadFullPDF = async () => {
-        const res = await api.get('/assets/receipt/full', { responseType: 'blob', params: { currency: displayCurrency.value } });
-        const url = window.URL.createObjectURL(new Blob([res.data]));
-        const link = document.createElement('a');
-        link.href = url; link.setAttribute('download', `${props.type}_Raporu.pdf`); link.click();
-    };
-
-    const downloadExcel = async () => {
-        const res = await api.get('/assets/export/excel', { responseType: 'blob', params: { currency: displayCurrency.value } });
-        const url = window.URL.createObjectURL(new Blob([res.data]));
-        const link = document.createElement('a');
-        link.href = url; link.setAttribute('download', `${props.type}_Export.xlsx`); link.click();
-    };
-
     onMounted(fetchData);
 </script>
 
 <style scoped>
     .detail-container { min-height: 100vh; padding: 40px; color: white; font-family: 'Inter', sans-serif; }
     .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-    .back-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 25px; border-radius: 30px; cursor: pointer; transition: 0.3s; }
-    .back-btn:hover { background: rgba(255,255,255,0.2); }
-    .action-group { display: flex; gap: 10px; margin-bottom: 10px; justify-content: flex-end; }
-    .icon-btn { background: rgba(255,255,255,0.1); border: none; border-radius: 10px; width: 40px; height: 40px; cursor: pointer; color: white; transition: 0.2s; }
-    .icon-btn:hover { transform: scale(1.1); background: rgba(255,255,255,0.2); }
-    .total-box { text-align: right; background: rgba(255,255,255,0.1); padding: 15px 25px; border-radius: 15px; backdrop-filter: blur(10px); }
+    .back-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 25px; border-radius: 30px; cursor: pointer; font-weight: bold; }
+    .total-box { text-align: right; background: rgba(255,255,255,0.1); padding: 15px 30px; border-radius: 16px; backdrop-filter: blur(10px); }
     .total-box .value { display: block; font-size: 2.2rem; font-weight: 800; color: #FFD700; }
+
     .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
-    .holdings-card, .history-card { background: rgba(0,0,0,0.3); backdrop-filter: blur(100px); padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-    .h-item, .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .variant-tag { background: #FFD700; color: black; padding: 5px 12px; border-radius: 8px; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; margin-right: 15px; }
-    .add-btn { background: #FFD700; border: none; padding: 12px 24px; border-radius: 12px; font-weight: 800; cursor: pointer; color: black; transition: 0.3s; }
-    .add-btn:hover { transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255,215,0,0.4); }
-    .type-dot { margin-right: 8px; font-size: 0.8rem; }
-    .type-dot.add { color: #10B981; }
-    .type-dot.subtract { color: #EF4444; }
-    .no-data { color: var(--text-muted); text-align: center; padding: 40px; opacity: 0.5; }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-    .modal-content { background: #1e293b; padding: 40px; border-radius: 24px; width: 420px; border: 1px solid #334155; }
+    .holdings-card, .history-card { background: rgba(0,0,0,0.3); backdrop-filter: blur(20px); padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); min-height: 400px; }
+    .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .add-btn { background: #FFD700; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; color: #000; }
+
+    .h-item, .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .variant-tag { background: #FFD700; color: black; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; margin-right: 10px; }
+    .type-dot { margin-right: 8px; font-size: 1.2rem; }
+    .type-dot.add { color: #10B981; } .type-dot.subtract { color: #EF4444; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 2000; }
+    .modal-content { background: #1E293B; padding: 30px; border-radius: 24px; width: 450px; box-shadow: 0 20px 60px rgba(0,0,0,0.5); border: 1px solid #334155; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .close-icon { background: none; border: none; color: #94A3B8; font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
+    .close-icon:hover { color: #EF4444; }
+
     .input-group { margin-bottom: 20px; }
-    .input-group label { display: block; font-size: 0.85rem; color: #94A3B8; margin-bottom: 8px; }
-    .modal-input { width: 100%; padding: 15px; background: #0f172a; border: 1px solid #334155; color: white; border-radius: 12px; font-size: 1rem; box-sizing: border-box; }
+    .input-group label { display: block; margin-bottom: 8px; color: #94A3B8; font-size: 0.9rem; }
+    .modal-input { width: 100%; padding: 14px; background: #0F172A; border: 1px solid #334155; color: white; border-radius: 10px; font-size: 1rem; box-sizing: border-box; }
     .modal-actions { display: flex; gap: 15px; margin-top: 30px; }
-    .btn-add { flex: 1; background: #10B981; border: none; padding: 16px; border-radius: 12px; color: white; font-weight: 800; cursor: pointer; transition: 0.2s; }
-    .btn-sub { flex: 1; background: #EF4444; border: none; padding: 16px; border-radius: 12px; color: white; font-weight: 800; cursor: pointer; transition: 0.2s; }
-    .btn-add:hover, .btn-sub:hover { opacity: 0.9; transform: scale(1.02); }
+    .btn-add { flex: 1; background: #10B981; border: none; padding: 16px; border-radius: 10px; font-weight: 800; cursor: pointer; color: white; }
+    .btn-sub { flex: 1; background: #EF4444; border: none; padding: 16px; border-radius: 10px; font-weight: 800; cursor: pointer; color: white; }
+
+    @media (max-width: 768px) { .detail-grid { grid-template-columns: 1fr; } }
 </style>
