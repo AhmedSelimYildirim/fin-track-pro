@@ -236,6 +236,7 @@
 
   const filteredTransactions = computed(() => {
     if (!activeAsset.value) return [];
+    // Backend'den 'asset_type' olarak geliyor (snake_case)
     return allTransactions.value.filter(tx => tx.asset_type === activeAsset.value).sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
   });
 
@@ -274,7 +275,7 @@
       fetchData();
       fetchTransactions();
       amount.value = '';
-    } catch(e) { alert("Error: " + (e.response?.data?.error || e.message)); }
+    } catch(e) { alert("Hata: " + (e.response?.data?.error || e.message)); }
   };
 
   const changeCurrency = (code, ayar, label) => {
@@ -301,7 +302,7 @@
       link.setAttribute('download', 'Genel_Rapor.pdf');
       document.body.appendChild(link);
       link.click();
-    } catch (e) { alert('PDF Error'); }
+    } catch (e) { alert('PDF İndirilemedi. Sunucu hatası.'); }
   };
 
   const downloadExcel = async () => {
@@ -319,7 +320,7 @@
       link.setAttribute('download', `FinTrack_Export_${new Date().toLocaleDateString()}.xlsx`);
       document.body.appendChild(link);
       link.click();
-    } catch (e) { alert('Excel Error'); }
+    } catch (e) { alert('Excel İndirilemedi. Sunucu hatası.'); }
   };
 
   const downloadSingleReceipt = async (id) => {
@@ -337,7 +338,7 @@
       link.setAttribute('download', `Islem_Dekontu_${id}.pdf`);
       document.body.appendChild(link);
       link.click();
-    } catch (e) { alert('PDF Error'); }
+    } catch (e) { alert('PDF Hatası. İşlem bulunamadı.'); }
   };
 
   const formatDate = (dateString) => {

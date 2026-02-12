@@ -99,6 +99,7 @@
       router.push('/dashboard')
     } catch (e) {
       console.error(e)
+      // Backend { "error": "mesaj" } formatında dönüyor, bunu yakalıyoruz
       showNotification(e.response?.data?.error || e.response?.data?.message || 'Giriş başarısız.', 'error')
     } finally {
       isLoading.value = false
