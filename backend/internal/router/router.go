@@ -27,7 +27,6 @@ func SetupRoutes(app *fiber.App) {
 	app.All("/", func(c *fiber.Ctx) error {
 		return c.Status(200).SendString("FinTrack Pro Backend is Running!")
 	})
-	// --------------------------------------
 
 	cfg := config.LoadConfig()
 
@@ -53,6 +52,13 @@ func SetupRoutes(app *fiber.App) {
 	})
 
 	v1 := api.Group("/v1")
+
+	// --- ACİL DURUM BUTONU: Veritabanını Sıfırla ---
+	v1.Get("/admin/reset-db", func(c *fiber.Ctx) error {
+		database.ConnectDB()
+		return c.SendString("Veritabani sifirlandi ve tablolar yeniden olusturuldu.")
+	})
+	// ------------------------------------------------
 
 	auth := v1.Group("/auth")
 	auth.Post("/register", userHandler.Register)
