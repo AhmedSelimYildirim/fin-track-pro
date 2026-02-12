@@ -299,6 +299,7 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	f.SetActiveSheet(index)
 	f.DeleteSheet("Sheet1")
 
+	// --- STYLES ---
 	styleTitle, _ := f.NewStyle(&excelize.Style{
 		Font:      &excelize.Font{Bold: true, Size: 18, Color: "FFFFFF"},
 		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#1F4E78"}, Pattern: 1},
@@ -315,11 +316,23 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		Border:    []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}},
 	})
 
+	// Format: 324.324.325,27 (Standard Money)
 	fmtStd := "#,##0.00"
-	fmtCrypto := "#,##0.00000000"
-	styleCurrency, _ := f.NewStyle(&excelize.Style{CustomNumFmt: &fmtStd, Alignment: &excelize.Alignment{Horizontal: "right"}, Border: []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}}})
-	styleCrypto, _ := f.NewStyle(&excelize.Style{CustomNumFmt: &fmtCrypto, Alignment: &excelize.Alignment{Horizontal: "right"}, Border: []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}}})
+	// Format: 0,00000002 (Precise for Crypto/Small values)
+	fmtPrecise := "#,##0.00000000"
 
+	styleCurrency, _ := f.NewStyle(&excelize.Style{
+		CustomNumFmt: &fmtStd,
+		Alignment:    &excelize.Alignment{Horizontal: "right"},
+		Border:       []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}},
+	})
+	styleCrypto, _ := f.NewStyle(&excelize.Style{
+		CustomNumFmt: &fmtPrecise,
+		Alignment:    &excelize.Alignment{Horizontal: "right"},
+		Border:       []excelize.Border{{Type: "left", Color: "E0E0E0", Style: 1}, {Type: "right", Color: "E0E0E0", Style: 1}, {Type: "bottom", Color: "E0E0E0", Style: 1}},
+	})
+
+	// --- HEADER AREA ---
 	f.MergeCell(sheetName, "A1", "H2")
 	f.SetCellValue(sheetName, "A1", fmt.Sprintf("FINTRACK PRO - PORTFOY RAPORU (%s Bazli)", baseCurrency))
 	f.SetCellStyle(sheetName, "A1", "H2", styleTitle)
@@ -333,6 +346,7 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 	f.SetCellStyle(sheetName, "B4", "B4", styleCurrency)
 	f.SetCellStyle(sheetName, "D4", "D4", styleSubHeader)
 
+	// --- TABLE 1: SUMMARY ---
 	startRow := 7
 	f.SetCellValue(sheetName, fmt.Sprintf("A%d", startRow), "GUNCEL VARLIK DAGILIMI")
 	f.MergeCell(sheetName, fmt.Sprintf("A%d", startRow), fmt.Sprintf("H%d", startRow))
@@ -362,8 +376,16 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 
 		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", dataRow), fmt.Sprintf("C%d", dataRow), styleDataCenter)
 
+		// Miktar için stil (küçük miktarlar için hassas format)
+		amtStyle := styleCurrency
+		if asset.Amount < 0.01 && asset.Amount > 0 {
+			amtStyle = styleCrypto
+		}
+		f.SetCellStyle(sheetName, fmt.Sprintf("B%d", dataRow), fmt.Sprintf("B%d", dataRow), amtStyle)
+
+		// Fiyat ve Toplam için stil
 		curStyle := styleCurrency
-		if asset.CurrentPrice < 0.0001 {
+		if asset.CurrentPrice < 0.01 {
 			curStyle = styleCrypto
 		}
 		f.SetCellStyle(sheetName, fmt.Sprintf("D%d", dataRow), fmt.Sprintf("E%d", dataRow), curStyle)
@@ -372,6 +394,7 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		dataRow++
 	}
 
+	// --- TABLE 2: TRANSACTIONS ---
 	txStartRow := dataRow + 4
 	f.SetCellValue(sheetName, fmt.Sprintf("A%d", txStartRow), "DETAYLI ISLEM GECMISI")
 	f.MergeCell(sheetName, fmt.Sprintf("A%d", txStartRow), fmt.Sprintf("H%d", txStartRow))
@@ -399,7 +422,6 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 			assetName = fmt.Sprintf("GOLD (%dK)", tx.Ayar)
 		}
 		f.SetCellValue(sheetName, fmt.Sprintf("C%d", txDataRow), assetName)
-		f.SetCellValue(sheetName, fmt.Sprintf("B%d", txDataRow), typeTr)
 		f.SetCellValue(sheetName, fmt.Sprintf("D%d", txDataRow), tx.Amount)
 
 		priceInBase := tx.Price / basePriceInTRY
@@ -409,21 +431,30 @@ func (s *AssetService) GenerateExcelReport(userID uint, baseCurrency string, tar
 		f.SetCellValue(sheetName, fmt.Sprintf("F%d", txDataRow), totalInBase)
 		f.SetCellValue(sheetName, fmt.Sprintf("G%d", txDataRow), totalInBase)
 
-		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", txDataRow), fmt.Sprintf("D%d", txDataRow), styleDataCenter)
+		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", txDataRow), fmt.Sprintf("C%d", txDataRow), styleDataCenter)
 
+		// Miktar Stili
+		tAmtStyle := styleCurrency
+		if tx.Amount < 0.01 {
+			tAmtStyle = styleCrypto
+		}
+		f.SetCellStyle(sheetName, fmt.Sprintf("D%d", txDataRow), fmt.Sprintf("D%d", txDataRow), tAmtStyle)
+
+		// Parasal Stil
 		txStyle := styleCurrency
-		if priceInBase < 0.0001 || totalInBase < 0.0001 {
+		if priceInBase < 0.01 || totalInBase < 0.01 {
 			txStyle = styleCrypto
 		}
 		f.SetCellStyle(sheetName, fmt.Sprintf("E%d", txDataRow), fmt.Sprintf("G%d", txDataRow), txStyle)
 		txDataRow++
 	}
 
-	f.SetColWidth(sheetName, "A", "A", 20)
-	f.SetColWidth(sheetName, "B", "B", 15)
-	f.SetColWidth(sheetName, "C", "C", 15)
-	f.SetColWidth(sheetName, "D", "E", 25)
-	f.SetColWidth(sheetName, "F", "H", 25)
+	// Sütun Genişliklerini Arttırdım (Detaylı Görünüm İçin)
+	f.SetColWidth(sheetName, "A", "A", 22)
+	f.SetColWidth(sheetName, "B", "B", 18)
+	f.SetColWidth(sheetName, "C", "C", 18)
+	f.SetColWidth(sheetName, "D", "E", 28) // Miktar ve Birim Fiyat Genişletildi
+	f.SetColWidth(sheetName, "F", "H", 30) // Toplamlar Genişletildi
 
 	buf, err := f.WriteToBuffer()
 	if err != nil {
