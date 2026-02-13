@@ -17,52 +17,53 @@
                     <transition name="dd-anim">
                         <div v-if="showDd" class="dd-menu">
 
-                            <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')">
-                                <span class="sym">₺</span> TRY
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')">
-                                <span class="sym">$</span> USD
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')">
-                                <span class="sym">€</span> EUR
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('BTC', 'STANDARD', 'BTC')">
-                                <span class="sym">₿</span> BTC
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('SILVER', 'STANDARD', 'SILVER')">
-                                <span class="sym">Ag</span> SILVER
-                            </div>
+                            <template v-if="type !== 'GOLD'">
+                                <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')">
+                                    <span class="sym">₺</span> TRY
+                                </div>
+                                <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')">
+                                    <span class="sym">$</span> USD
+                                </div>
+                                <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')">
+                                    <span class="sym">€</span> EUR
+                                </div>
+                                <div class="dd-item" @click="changeViewUnit('BTC', 'STANDARD', 'BTC')">
+                                    <span class="sym">₿</span> BTC
+                                </div>
+                                <div class="dd-item" @click="changeViewUnit('SILVER', 'STANDARD', 'SILVER')">
+                                    <span class="sym">Ag</span> SILVER
+                                </div>
+                            </template>
 
-                            <div class="dd-group">
+                            <div v-else class="dd-gold-container">
                                 <div class="dd-item group-trigger" @click.stop="toggleGoldMenu">
-                                    <span class="sym">🥇</span> GOLD
-                                    <span class="arrow-right" :class="{ rotated: goldMenuOpen }">▶</span>
+                                    <span class="sym">🥇</span> GOLD MENÜSÜ
+                                    <span class="arrow-right" :class="{ rotated: goldMenuOpen }">▼</span>
                                 </div>
 
-                                <div v-if="goldMenuOpen" class="sub-menu">
-                                    <div v-for="gType in goldTypes" :key="gType.key" class="sub-group">
-                                        <div class="dd-item sub-trigger" @click.stop="toggleSubGold(gType.key)">
-                                            {{ gType.label }}
-                                            <span class="arrow-right" :class="{ rotated: openSubGold === gType.key }">▶</span>
-                                        </div>
+                                <div v-if="goldMenuOpen" class="gold-list">
 
-                                        <div v-if="openSubGold === gType.key" class="deep-menu">
-                                            <template v-if="gType.key === 'GRAM'">
-                                                <div class="dd-item deep-item"
-                                                     v-for="k in karats"
-                                                     :key="k"
-                                                     @click="changeViewUnit('GOLD', `${gType.key}_${k}`, `${gType.label} (${k}K)`)">
-                                                    {{ k }}K
-                                                </div>
-                                            </template>
-                                            <template v-else>
-                                                <div class="dd-item deep-item"
-                                                     @click="changeViewUnit('GOLD', gType.key, gType.label)">
-                                                    {{ gType.label }}
-                                                </div>
-                                            </template>
+                                    <div class="gold-group gram-group">
+                                        <div class="dd-item sub-trigger" @click.stop="toggleSubGold('GRAM')">
+                                            Gram Altın
+                                            <span class="arrow-right" :class="{ rotated: openSubGold === 'GRAM' }">▶</span>
+                                        </div>
+                                        <div v-if="openSubGold === 'GRAM'" class="deep-menu">
+                                            <div class="dd-item deep-item" v-for="k in karats" :key="k"
+                                                 @click="changeViewUnit('GOLD', `GRAM_${k}`, `Gram (${k}K)`)">
+                                                {{ k }}K
+                                            </div>
                                         </div>
                                     </div>
+
+                                    <div class="gold-group direct-group">
+                                        <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')">Cumhuriyet</div>
+                                        <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')">Tam</div>
+                                        <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')">Yarım</div>
+                                        <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')">Çeyrek</div>
+                                        <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')">Gremse</div>
+                                    </div>
+
                                 </div>
                             </div>
 
@@ -126,7 +127,12 @@
                         <label>Altın Türü</label>
                         <div class="gold-select-group">
                             <select v-model="modalGoldType" class="modal-input" :class="{ half: modalGoldType === 'GRAM' }">
-                                <option v-for="t in goldTypes" :key="t.key" :value="t.key">{{ t.label }}</option>
+                                <option value="GRAM">Gram Altın</option>
+                                <option value="CUMHURIYET">Cumhuriyet</option>
+                                <option value="TAM">Tam Altın</option>
+                                <option value="YARIM">Yarım Altın</option>
+                                <option value="CEYREK">Çeyrek Altın</option>
+                                <option value="GREMSE">Gremse Altın</option>
                             </select>
 
                             <select v-if="modalGoldType === 'GRAM'" v-model="modalGoldKarat" class="modal-input half">
@@ -136,7 +142,7 @@
                     </div>
 
                     <div class="input-group">
-                        <label>Miktar (Adet / Gram)</label>
+                        <label>Miktar</label>
                         <input v-model="form.amount" type="number" placeholder="0.00" class="modal-input">
                     </div>
 
@@ -164,25 +170,17 @@
     const transactions = ref([]);
     const showModal = ref(false);
     const showDd = ref(false);
-    const goldMenuOpen = ref(false);
+    const goldMenuOpen = ref(true);
     const openSubGold = ref(null);
 
     const selectedCurrency = ref(props.type === 'GOLD' ? 'GOLD' : 'TRY');
     const selectedVariant = ref('STANDARD');
-    const displayLabel = ref('TRY');
+    const displayLabel = ref(props.type === 'GOLD' ? 'Has (24K)' : 'TRY');
 
     const modalGoldType = ref('GRAM');
     const modalGoldKarat = ref(24);
     const form = ref({ amount: '', date: new Date().toISOString().split('T')[0] });
 
-    const goldTypes = [
-        { key: 'CUMHURIYET', label: 'Cumhuriyet' },
-        { key: 'TAM', label: 'Tam' },
-        { key: 'YARIM', label: 'Yarım' },
-        { key: 'CEYREK', label: 'Çeyrek' },
-        { key: 'GRAM', label: 'Gram' },
-        { key: 'GREMSE', label: 'Gremse' }
-    ];
     const karats = [24, 22, 18, 14, 8, 4];
 
     const themeMap = {
@@ -203,7 +201,7 @@
 
     const formatVariant = (v) => {
         if (v === 'STANDARD') return props.type;
-        return v.replace('_', ' ');
+        return v.replace('GRAM_', 'Gr ').replace('_', ' ');
     }
 
     const fetchData = async () => {
@@ -222,7 +220,6 @@
         selectedVariant.value = variant;
         displayLabel.value = label;
         showDd.value = false;
-        goldMenuOpen.value = false;
         openSubGold.value = null;
         fetchData();
     };
@@ -319,6 +316,7 @@
         background: #1E293B; border: 1px solid #334155;
         border-radius: 12px; width: 220px; margin-top: 10px;
         z-index: 100; max-height: 400px; overflow-y: auto; overflow-x: hidden;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
     }
     .dd-menu::-webkit-scrollbar { width: 6px; }
     .dd-menu::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
@@ -327,11 +325,12 @@
     .dd-item:hover { background: #334155; color: #FFD700; }
     .sym { width: 25px; display: inline-block; font-weight: bold; }
 
-    .sub-menu { background: #0F172A; border-left: 2px solid #FFD700; }
-    .sub-trigger { padding-left: 25px; font-size: 0.95rem; }
+    .dd-gold-container { background: rgba(0,0,0,0.2); }
+    .gold-group { border-bottom: 1px solid rgba(255,255,255,0.1); }
+    .sub-trigger { background: #0F172A; font-weight: bold; color: #FFD700; }
     .deep-menu { background: #020617; }
-    .deep-item { padding-left: 40px; font-size: 0.85rem; color: #94A3B8; }
-    .deep-item:hover { color: #fff; }
+    .deep-item { padding-left: 30px; font-size: 0.9rem; color: #94A3B8; }
+    .deep-item:hover { color: #fff; background: #1E293B; }
     .arrow-right { font-size: 0.8rem; transition: 0.3s; }
     .arrow-right.rotated { transform: rotate(90deg); }
 
