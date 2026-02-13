@@ -1,10 +1,9 @@
-```html
 <template>
     <div class="detail-container" :style="pageTheme">
         <header class="detail-header">
             <div class="left">
-                <button class="back-btn" @click="$router.push('/dashboard')">← Geri Dön</button>
-                <h1>{{ type }} Portföyü</h1>
+                <button class="back-btn" @click="$router.push('/dashboard')">← {{ t('home') }}</button>
+                <h1>{{ type }} {{ t('details') }}</h1>
             </div>
 
             <div class="right-menu">
@@ -13,27 +12,33 @@
                         {{ totalInSelectedUnit }} {{ displayLabel }} ▼
                     </button>
 
-                    <div v-if="showDd" class="dd-menu">
-                        <template v-if="type === 'GOLD'">
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_24', 'Has (24K)')">Has (24K)</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_22', '22 Ayar')">22 Ayar</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_18', '18 Ayar')">18 Ayar</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_14', '14 Ayar')">14 Ayar</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_8', '8 Ayar')">8 Ayar</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_4', '4 Ayar')">4 Ayar</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')">Çeyrek</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')">Yarım</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')">Tam</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')">Cumhuriyet</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')">Gremse</div>
-                        </template>
+                    <transition name="dd-anim">
+                        <div v-if="showDd" class="dd-menu">
+                            <template v-if="type === 'GOLD'">
+                                <div class="dd-category">Gram Altınlar</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_24', 'Has (24K)')">Has (24K)</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_22', '22 Ayar')">22 Ayar</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_18', '18 Ayar')">18 Ayar</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_14', '14 Ayar')">14 Ayar</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_8', '8 Ayar')">8 Ayar</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_4', '4 Ayar')">4 Ayar</div>
 
-                        <template v-else>
-                            <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')">TRY</div>
-                            <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')">USD</div>
-                            <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')">EUR</div>
-                        </template>
-                    </div>
+                                <div class="dd-divider"></div>
+                                <div class="dd-category">Ziynet Altınlar</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')">Çeyrek</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')">Yarım</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')">Tam</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')">Cumhuriyet</div>
+                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')">Gremse</div>
+                            </template>
+
+                            <template v-else>
+                                <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')">₺ TRY</div>
+                                <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')">$ USD</div>
+                                <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')">€ EUR</div>
+                            </template>
+                        </div>
+                    </transition>
                 </div>
 
                 <div class="actions">
@@ -128,6 +133,7 @@
 <script setup>
     import { ref, computed, onMounted, watch } from 'vue';
     import api from '../services/api';
+    import { t } from '../utils/translations';
 
     const props = defineProps(['type']);
     const assets = ref([]);
@@ -168,10 +174,8 @@
                 api.get('/assets/summary', { params: { currency: selectedCurrency.value, variant: selectedVariant.value } }),
                 api.get('/assets/transactions', { params: { currency: selectedCurrency.value } })
             ]);
-
             assets.value = (resSum.data.assets || []).filter(a => a.type === props.type);
             transactions.value = (resTx.data || []).filter(t => t.asset_type === props.type);
-
         } catch (err) { console.error(err); }
     };
 
@@ -239,10 +243,14 @@
 
     .right-menu { display: flex; align-items: center; gap: 15px; }
     .currency-dropdown-wrapper { position: relative; }
-    .dd-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1.1rem; min-width: 180px; text-align: right; }
-    .dd-menu { position: absolute; top: 100%; right: 0; background: #1E293B; border: 1px solid #334155; border-radius: 12px; width: 200px; margin-top: 10px; z-index: 100; max-height: 300px; overflow-y: auto; }
-    .dd-item { padding: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .dd-item:hover { background: #334155; color: #FFD700; }
+    .dd-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1.1rem; min-width: 220px; text-align: right; }
+    .dd-menu { position: absolute; top: 100%; right: 0; background: #1E293B; border: 1px solid #334155; border-radius: 12px; width: 220px; margin-top: 10px; z-index: 100; max-height: 400px; overflow-y: auto; padding: 10px 0; }
+    .dd-category { font-size: 0.8rem; color: #94A3B8; padding: 8px 15px; font-weight: bold; text-transform: uppercase; }
+    .dd-item { padding: 10px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; }
+    .dd-item:hover { background: #334155; color: #FFD700; padding-left: 20px; }
+    .dd-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
+    .dd-anim-enter-active, .dd-anim-leave-active { transition: all 0.2s ease; }
+    .dd-anim-enter-from, .dd-anim-leave-to { opacity: 0; transform: translateY(-10px); }
 
     .actions { display: flex; gap: 10px; }
     .icon-btn { background: rgba(255,255,255,0.1); border: none; width: 45px; height: 45px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
