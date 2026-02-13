@@ -18,11 +18,15 @@ func SetupRoutes(app *fiber.App) {
 	app.Use(logger.New())
 
 	app.Use(cors.New(cors.Config{
-		AllowOrigins:     "https://fin-track-pro-1.onrender.com, https://fin-track-pro.onrender.com, http://localhost:5173",
+		AllowOrigins:     "https://fin-track-pro.onrender.com, https://fin-track-pro-1.onrender.com, http://localhost:5173",
 		AllowMethods:     "GET,POST,PUT,DELETE,PATCH,OPTIONS,HEAD",
 		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-Currency, X-Ayar",
 		AllowCredentials: true,
 	}))
+
+	app.All("/", func(c *fiber.Ctx) error {
+		return c.Status(200).SendString("FinTrack Pro Backend is Running!")
+	})
 
 	cfg := config.LoadConfig()
 
@@ -50,13 +54,11 @@ func SetupRoutes(app *fiber.App) {
 
 	v1.Get("/market/rates", marketHandler.GetRates)
 
-	protected := v1.Group("", middleware.Protected(cfg.JWTSecret))
-
-	user := protected.Group("/user")
+	user := v1.Group("/user", middleware.Protected(cfg.JWTSecret))
 	user.Put("/update", userHandler.Update)
 	user.Delete("/delete", userHandler.Delete)
 
-	assets := protected.Group("/assets")
+	assets := v1.Group("/assets", middleware.Protected(cfg.JWTSecret))
 	assets.Post("/update", assetHandler.UpdateBalance)
 	assets.Get("/summary", assetHandler.GetSummary)
 	assets.Get("/transactions", assetHandler.GetTransactions)
@@ -64,7 +66,7 @@ func SetupRoutes(app *fiber.App) {
 	assets.Get("/receipt/:id", assetHandler.GetReceipt)
 	assets.Get("/export/excel", assetHandler.GetExcel)
 
-	calendar := protected.Group("/calendar")
+	calendar := v1.Group("/calendar", middleware.Protected(cfg.JWTSecret))
 	calendar.Post("/remind", calendarHandler.AddEvent)
 	calendar.Get("/list", calendarHandler.ListReminders)
 	calendar.Delete("/:id", calendarHandler.DeleteEvent)
