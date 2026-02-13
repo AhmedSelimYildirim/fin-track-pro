@@ -24,10 +24,6 @@ func SetupRoutes(app *fiber.App) {
 		AllowCredentials: true,
 	}))
 
-	app.All("/", func(c *fiber.Ctx) error {
-		return c.Status(200).SendString("FinTrack Pro Backend is Running!")
-	})
-
 	cfg := config.LoadConfig()
 
 	userRepo := repository.NewUserRepository(database.DB)
@@ -46,19 +42,13 @@ func SetupRoutes(app *fiber.App) {
 	calendarHandler := handler.NewCalendarHandler(calendarService)
 
 	api := app.Group("/api")
-
-	api.Get("/ping", func(c *fiber.Ctx) error {
-		return c.Status(200).JSON(fiber.Map{"message": "Pong! Backend is live."})
-	})
-
 	v1 := api.Group("/v1")
 
 	auth := v1.Group("/auth")
 	auth.Post("/register", userHandler.Register)
 	auth.Post("/login", userHandler.Login)
 
-	market := v1.Group("/market")
-	market.Get("/rates", marketHandler.GetRates)
+	v1.Get("/market/rates", marketHandler.GetRates)
 
 	protected := v1.Group("", middleware.Protected(cfg.JWTSecret))
 
