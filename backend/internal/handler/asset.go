@@ -33,7 +33,9 @@ func (h *AssetHandler) UpdateBalance(c *fiber.Ctx) error {
 func (h *AssetHandler) GetSummary(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency", "TRY")
-	summary, err := h.service.GetPortfolioSummary(userID, currency)
+	variant := c.Query("variant", "STANDARD") // YENİ: Variant parametresini okuyoruz
+
+	summary, err := h.service.GetPortfolioSummary(userID, currency, variant)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
 	}

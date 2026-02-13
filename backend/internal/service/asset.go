@@ -117,26 +117,40 @@ func (s *AssetService) getCurrentPriceInTRY(assetType string) (float64, error) {
 	}
 }
 
-func (s *AssetService) GetPortfolioSummary(userID int64, baseCurrency string) (*dto.PortfolioResponse, error) {
+// GÜNCELLENDİ: Artık baseVariant parametresi de alıyor
+func (s *AssetService) GetPortfolioSummary(userID int64, baseCurrency string, baseVariant string) (*dto.PortfolioResponse, error) {
 	assets, err := s.repo.GetByUserID(userID)
 	if err != nil {
 		return nil, err
 	}
 
+	// 1. Hedef para biriminin TRY değeri
 	basePriceTRY, _ := s.getCurrentPriceInTRY(baseCurrency)
 	if basePriceTRY <= 0 {
 		basePriceTRY = 1
 	}
 
+	// 2. Eğer hedef GOLD ise ve bir varyant seçildiyse (örn: Çeyrek), fiyatı ona göre ayarla
+	targetMultiplier := 1.0
+	if baseCurrency == "GOLD" && baseVariant != "" && baseVariant != "STANDARD" {
+		if val, ok := GoldFactors[baseVariant]; ok {
+			targetMultiplier = val
+		}
+	}
+	// Hedef birim fiyatı (Örn: 1 Çeyrek Altın kaç TL?)
+	finalBasePrice := basePriceTRY * targetMultiplier
+
 	var details []dto.AssetResponse
 	var totalValue float64
 
 	for _, a := range assets {
+		// Varlığın TRY bazındaki ham fiyatı
 		rawPriceTRY, err := s.getCurrentPriceInTRY(a.Type)
 		if err != nil {
 			continue
 		}
 
+		// Varlığın kendi çarpanı (Örn: Elimdeki 22 Ayar Gram'ın çarpanı)
 		multiplier := 1.0
 		if a.Type == "GOLD" {
 			if val, ok := GoldFactors[a.Variant]; ok {
@@ -144,7 +158,8 @@ func (s *AssetService) GetPortfolioSummary(userID int64, baseCurrency string) (*
 			}
 		}
 
-		currentUnitPrice := (rawPriceTRY * multiplier) / basePriceTRY
+		// Birim fiyatı hedef birime çevir
+		currentUnitPrice := (rawPriceTRY * multiplier) / finalBasePrice
 
 		totalAssetValue := a.Amount * currentUnitPrice
 		totalValue += totalAssetValue
@@ -250,7 +265,8 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 }
 
 func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency string) ([]byte, error) {
-	summary, err := s.GetPortfolioSummary(userID, baseCurrency)
+	// Not: Rapor şimdilik standart baseCurrency üzerinden devam ediyor
+	summary, err := s.GetPortfolioSummary(userID, baseCurrency, "STANDARD")
 	if err != nil {
 		return nil, err
 	}
@@ -293,7 +309,7 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency s
 }
 
 func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string) ([]byte, error) {
-	summary, err := s.GetPortfolioSummary(userID, baseCurrency)
+	summary, err := s.GetPortfolioSummary(userID, baseCurrency, "STANDARD")
 	if err != nil {
 		return nil, err
 	}
