@@ -14,7 +14,7 @@
 
         <div class="currency-wrapper">
           <div class="currency-btn" @click.stop="toggleDropdown" :class="{ 'active': showSelector }">
-            <span class="curr-label">{{ displayCurrency }}</span>
+            <span class="curr-label">{{ totalValue }} {{ displayCurrency }}</span>
             <span class="arrow-icon">▼</span>
           </div>
 
@@ -44,16 +44,17 @@
                   <span class="arrow-right">▶</span>
                 </div>
                 <div class="submenu">
-                  <div class="sub-item" style="--i:1" @click="changeCurrency('GOLD', 'GRAM_24', 'Gold 24K')">Has (24K)</div>
-                  <div class="sub-item" style="--i:2" @click="changeCurrency('GOLD', 'GRAM_22', 'Gold 22K')">22 Ayar</div>
-                  <div class="sub-item" style="--i:3" @click="changeCurrency('GOLD', 'GRAM_18', 'Gold 18K')">18 Ayar</div>
-                  <div class="sub-item" style="--i:4" @click="changeCurrency('GOLD', 'GRAM_14', 'Gold 14K')">14 Ayar</div>
-                  <div class="sub-item" style="--i:5" @click="changeCurrency('GOLD', 'GRAM_8', 'Gold 8K')">8 Ayar</div>
-                  <div class="sub-item" style="--i:6" @click="changeCurrency('GOLD', 'GRAM_4', 'Gold 4K')">4 Ayar</div>
+                  <div class="sub-item" style="--i:1" @click="changeCurrency('GOLD', 'GRAM_24', 'Has (24K)')">Has (24K)</div>
+                  <div class="sub-item" style="--i:2" @click="changeCurrency('GOLD', 'GRAM_22', '22 Ayar')">22 Ayar</div>
+                  <div class="sub-item" style="--i:3" @click="changeCurrency('GOLD', 'GRAM_18', '18 Ayar')">18 Ayar</div>
+                  <div class="sub-item" style="--i:4" @click="changeCurrency('GOLD', 'GRAM_14', '14 Ayar')">14 Ayar</div>
+                  <div class="sub-item" style="--i:5" @click="changeCurrency('GOLD', 'GRAM_8', '8 Ayar')">8 Ayar</div>
+                  <div class="sub-item" style="--i:6" @click="changeCurrency('GOLD', 'GRAM_4', '4 Ayar')">4 Ayar</div>
                   <div class="sub-item" style="--i:7" @click="changeCurrency('GOLD', 'CEYREK', 'Çeyrek')">Çeyrek</div>
                   <div class="sub-item" style="--i:8" @click="changeCurrency('GOLD', 'YARIM', 'Yarım')">Yarım</div>
                   <div class="sub-item" style="--i:9" @click="changeCurrency('GOLD', 'TAM', 'Tam')">Tam</div>
                   <div class="sub-item" style="--i:10" @click="changeCurrency('GOLD', 'CUMHURIYET', 'Cumhuriyet')">Cumhuriyet</div>
+                  <div class="sub-item" style="--i:11" @click="changeCurrency('GOLD', 'GREMSE', 'Gremse')">Gremse</div>
                 </div>
               </div>
             </div>
@@ -95,11 +96,6 @@
           </div>
         </div>
       </div>
-
-      <div class="floating-actions">
-        <button class="f-btn excel" @click="downloadExcel" title="Excel">📊</button>
-        <button class="f-btn pdf" @click="downloadReceipt" title="PDF">📄</button>
-      </div>
     </div>
   </div>
 </template>
@@ -116,8 +112,6 @@
   const router = useRouter();
   const showSelector = ref(false);
   const summaryData = ref(null);
-
-  // Varsayılan: TRY (Standard)
   const baseCurrency = ref('TRY');
   const targetVariant = ref('STANDARD');
   const baseCurrencyLabel = ref('TRY');
@@ -127,8 +121,8 @@
     { type: 'USD', label: 'USD', icon: '$' },
     { type: 'EUR', label: 'EUR', icon: '€' },
     { type: 'BTC', label: 'BTC', icon: '₿' },
-    { type: 'SILVER', label: 'SILVER', icon: 'Gr' }, // Gümüşte Gr kalsın dedin mi bilmiyorum ama Gold'da sildim
-    { type: 'GOLD', label: 'GOLD', icon: '🥇' } // BURADA 'Gr' YAZISI YOK, SADECE GOLD
+    { type: 'SILVER', label: 'SILVER', icon: 'Gr' },
+    { type: 'GOLD', label: 'GOLD', icon: '🥇' }
   ];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
@@ -138,16 +132,13 @@
 
   const totalValue = computed(() => {
     if (summaryData.value && summaryData.value.total_value) {
-      // Eğer seçili birim Altın, Gümüş veya BTC ise 3 basamak, değilse 2 basamak
       const decimals = ['GOLD', 'SILVER', 'BTC'].includes(baseCurrency.value) ? 3 : 2;
-      return summaryData.value.total_value.toLocaleString('tr-TR', { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
+      return summaryData.value.total_value.toLocaleString('tr-TR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     }
     return '0,00';
   });
 
-  const hasData = computed(() => {
-    return summaryData.value && summaryData.value.assets && summaryData.value.assets.length > 0 && summaryData.value.total_value > 0;
-  });
+  const hasData = computed(() => summaryData.value?.assets?.length > 0);
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
@@ -175,14 +166,9 @@
 
   const getAmount = (type) => {
     const assets = summaryData.value?.assets || [];
-    // Backend'den 'value_in_base' alanı geliyor. Bu alan, o varlığın seçili kura (TRY, USD vb.) çevrilmiş değeridir.
-    // Yani Gold kartında '20.387,35' gibi bir değer göreceksin.
     const total = assets.filter(a => a.type === type).reduce((sum, curr) => sum + curr.value_in_base, 0);
-
-    // Eğer miktar 0 ise 0 göster
     if (total === 0) return '0,00';
-
-    const decimals = 2; // Para birimi cinsinden gösterdiğimiz için genelde 2 hane yeterli
+    const decimals = 2;
     return total.toLocaleString('tr-TR', { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
   };
 
@@ -204,36 +190,6 @@
     router.push({ name: 'asset-detail', params: { type } });
   };
 
-  const downloadReceipt = async () => {
-    try {
-      const res = await api.get('/assets/receipt/full', {
-        responseType: 'blob',
-        params: { currency: baseCurrency.value }
-      });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'Genel_Rapor.pdf');
-      document.body.appendChild(link);
-      link.click();
-    } catch (e) { alert('PDF İndirilemedi.'); }
-  };
-
-  const downloadExcel = async () => {
-    try {
-      const res = await api.get('/assets/export/excel', {
-        responseType: 'blob',
-        params: { currency: baseCurrency.value }
-      });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `FinTrack_Export_${new Date().toLocaleDateString()}.xlsx`);
-      document.body.appendChild(link);
-      link.click();
-    } catch (e) { alert('Excel İndirilemedi.'); }
-  };
-
   onMounted(() => { fetchData(); });
 </script>
 
@@ -251,7 +207,6 @@
   .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; }
   .page-title h2 { color: var(--text-color); margin: 0; font-size: 1.8rem; font-weight: 700; }
 
-  /* SAĞ ÜST KÖŞE: DROP DOWN STİLİ */
   .currency-wrapper { position: relative; z-index: 100; }
 
   .currency-btn {
@@ -266,7 +221,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    min-width: 200px;
+    min-width: 220px;
     box-shadow: 0 4px 10px rgba(0,0,0,0.2);
   }
   .currency-btn:hover { border-color: var(--accent-color); transform: translateY(-2px); }
@@ -311,7 +266,7 @@
   .submenu {
     position: absolute;
     top: 0;
-    inset-inline-end: 100%; /* Sola açılır (RTL/LTR'ye göre değişir aşağıda) */
+    inset-inline-end: 100%;
     margin-inline-end: -1px;
     background: var(--sidebar-bg);
     border: 1px solid var(--border-color);
@@ -325,7 +280,6 @@
     transition: all 0.2s ease;
   }
 
-  /* Submenu yönü */
   html[dir="ltr"] .submenu { transform: translateX(-10px); }
   html[dir="rtl"] .submenu { transform: translateX(10px); margin-inline-end: -1px; }
 
@@ -406,9 +360,40 @@
   .excel { background: linear-gradient(135deg, #10B981, #059669); }
   .pdf { background: linear-gradient(135deg, #3B82F6, #2563EB); }
 
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px); }
+  .large-modal { width: 800px !important; max-width: 95%; padding: 40px; border-radius: 20px; }
+  .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
+  .modal-header { display: flex; justify-content: space-between; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
+  .modal-header h3 { color: var(--text-color); margin: 0; font-size: 1.5rem; }
+  .modal-header button { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
+  .modal-header button:hover { color: var(--danger-color); transform: rotate(90deg); }
+
+  .modal-body-split { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; margin-top: 20px; }
+  .transaction-form, .transaction-history { display: flex; flex-direction: column; gap: 15px; }
+  .transaction-history { border-inline-start: 1px solid var(--border-color); padding-inline-start: 30px; }
+  h4 { color: var(--text-muted); margin: 0 0 10px 0; font-size: 1.1rem; }
+  .history-list { max-height: 350px; overflow-y: auto; padding-inline-end: 5px; }
+  .history-item { background: var(--input-bg); padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
+  .tx-info { display: flex; flex-direction: column; gap: 4px; }
+  .tx-date { color: var(--text-muted); font-size: 0.8rem; }
+  .tx-type.add { color: var(--success-color) !important; font-weight: bold; }
+  .tx-type.subtract { color: var(--danger-color) !important; font-weight: bold; }
+  .tx-amount { color: var(--text-color); font-weight: bold; font-size: 1.1rem; }
+  .receipt-download-btn { background: transparent; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; padding: 8px; transition: 0.2s; font-size: 1.2rem; }
+  .receipt-download-btn:hover { background: var(--hover-bg); }
+
+  .big-input, .ayar-select, .date-input { width: 100%; padding: 15px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 12px; margin-bottom: 15px; font-size: 1rem; box-sizing: border-box; }
+  .actions { display: flex; gap: 15px; margin-top: 10px; }
+  .actions button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; font-size: 1rem; }
+  .add { background: linear-gradient(135deg, #10B981, #047857); }
+  .sub { background: linear-gradient(135deg, #EF4444, #B91C1C); }
+  .add:hover, .sub:hover { opacity: 0.9; transform: translateY(-2px); }
+
   @media (max-width: 1024px) { .assets-grid { grid-template-columns: repeat(2, 1fr); max-width: 100%; } }
   @media (max-width: 768px) {
     .assets-grid { grid-template-columns: 1fr; }
+    .modal-body-split { grid-template-columns: 1fr; }
+    .transaction-history { border-inline-start: none; border-top: 1px solid var(--border-color); padding-inline-start: 0; padding-top: 30px; }
     .chart-wrapper { width: 250px; height: 250px; }
     .center-balance h3 { font-size: 1.5rem; }
   }

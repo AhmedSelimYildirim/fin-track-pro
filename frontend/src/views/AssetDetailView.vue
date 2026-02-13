@@ -1,3 +1,4 @@
+```html
 <template>
     <div class="detail-container" :style="pageTheme">
         <header class="detail-header">
@@ -5,10 +6,39 @@
                 <button class="back-btn" @click="$router.push('/dashboard')">← Geri Dön</button>
                 <h1>{{ type }} Portföyü</h1>
             </div>
-            <div class="right">
-                <div class="total-box">
-                    <span class="label">Toplam Değer</span>
-                    <span class="value">{{ totalInSelectedCurrency }} {{ displayCurrency }}</span>
+
+            <div class="right-menu">
+                <div class="currency-dropdown-wrapper">
+                    <button class="dd-btn" @click="showDd = !showDd">
+                        {{ totalInSelectedUnit }} {{ displayLabel }} ▼
+                    </button>
+
+                    <div v-if="showDd" class="dd-menu">
+                        <template v-if="type === 'GOLD'">
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_24', 'Has (24K)')">Has (24K)</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_22', '22 Ayar')">22 Ayar</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_18', '18 Ayar')">18 Ayar</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_14', '14 Ayar')">14 Ayar</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_8', '8 Ayar')">8 Ayar</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_4', '4 Ayar')">4 Ayar</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')">Çeyrek</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')">Yarım</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')">Tam</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')">Cumhuriyet</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')">Gremse</div>
+                        </template>
+
+                        <template v-else>
+                            <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')">TRY</div>
+                            <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')">USD</div>
+                            <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')">EUR</div>
+                        </template>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="icon-btn" @click="downloadExcel">📊</button>
+                    <button class="icon-btn" @click="downloadPDF">📄</button>
                 </div>
             </div>
         </header>
@@ -20,14 +50,14 @@
                     <button class="add-btn" @click="openModal">İşlem Yap</button>
                 </div>
                 <div class="holding-items">
-                    <div v-if="filteredAssets.length === 0" class="no-data">Henüz varlık eklenmedi.</div>
-                    <div v-for="asset in filteredAssets" :key="asset.variant" class="h-item">
+                    <div v-if="assets.length === 0" class="no-data">Veri yok.</div>
+                    <div v-for="asset in assets" :key="asset.variant" class="h-item">
                         <div class="h-name">
                             <span class="variant-tag">{{ formatVariant(asset.variant) }}</span>
                             <span class="amount">{{ asset.amount }} Adet/Gr</span>
                         </div>
                         <div class="h-price">
-                            <span class="val">{{ asset.value_in_base.toLocaleString('tr-TR', {maximumFractionDigits: 2}) }} {{ displayCurrency }}</span>
+                            {{ asset.value_in_base.toLocaleString('tr-TR', {maximumFractionDigits: 2}) }} {{ displayLabel }}
                         </div>
                     </div>
                 </div>
@@ -36,15 +66,15 @@
             <section class="history-card">
                 <h3>İşlem Geçmişi</h3>
                 <div class="history-list">
-                    <div v-if="filteredTransactions.length === 0" class="no-data">İşlem yok.</div>
-                    <div v-for="tx in filteredTransactions" :key="tx.id" class="tx-item">
-                        <div class="tx-date">{{ new Date(tx.transaction_date).toLocaleDateString('tr-TR') }}</div>
+                    <div v-if="transactions.length === 0" class="no-data">İşlem yok.</div>
+                    <div v-for="tx in transactions" :key="tx.id" class="tx-item">
+                        <div class="tx-date">{{ new Date(tx.transaction_date).toLocaleDateString() }}</div>
                         <div class="tx-main">
                             <span :class="tx.type" class="type-dot">●</span>
                             <span class="variant">{{ formatVariant(tx.variant) }}</span>
                             <span class="amt">{{ tx.type === 'add' ? '+' : '-' }}{{ tx.amount }}</span>
                         </div>
-                        <button class="mini-btn" @click="downloadSingleReceipt(tx.id)">📄</button>
+                        <button class="mini-btn" @click="downloadReceipt(tx.id)">📄</button>
                     </div>
                 </div>
             </section>
@@ -70,8 +100,8 @@
                             <option value="CEYREK">Çeyrek Altın</option>
                             <option value="YARIM">Yarım Altın</option>
                             <option value="TAM">Tam Altın</option>
-                            <option value="CUMHURIYET">Cumhuriyet</option>
-                            <option value="GREMSE">Gremse</option>
+                            <option value="CUMHURIYET">Cumhuriyet Altını</option>
+                            <option value="GREMSE">Gremse Altın</option>
                         </select>
                     </div>
 
@@ -96,14 +126,19 @@
 </template>
 
 <script setup>
-    import { ref, computed, onMounted } from 'vue';
+    import { ref, computed, onMounted, watch } from 'vue';
     import api from '../services/api';
 
     const props = defineProps(['type']);
     const assets = ref([]);
     const transactions = ref([]);
     const showModal = ref(false);
-    const displayCurrency = ref('TRY'); // Bu detay sayfasında varsayılan görüntüleme birimi
+    const showDd = ref(false);
+
+    const selectedCurrency = ref(props.type === 'GOLD' ? 'GOLD' : 'TRY');
+    const selectedVariant = ref(props.type === 'GOLD' ? 'GRAM_24' : 'STANDARD');
+    const displayLabel = ref(props.type === 'GOLD' ? 'Has (24K)' : 'TRY');
+
     const form = ref({ amount: '', variant: 'STANDARD', date: new Date().toISOString().split('T')[0] });
 
     const themeMap = {
@@ -116,12 +151,10 @@
     };
 
     const pageTheme = computed(() => ({ background: themeMap[props.type] || '#000' }));
-    const filteredAssets = computed(() => assets.value.filter(a => a.type === props.type));
-    const filteredTransactions = computed(() => transactions.value.filter(tx => tx.asset_type === props.type));
 
-    const totalInSelectedCurrency = computed(() => {
-        const total = filteredAssets.value.reduce((sum, a) => sum + a.value_in_base, 0);
-        return total.toLocaleString('tr-TR', { minimumFractionDigits: 2 });
+    const totalInSelectedUnit = computed(() => {
+        const sum = assets.value.reduce((acc, curr) => acc + curr.value_in_base, 0);
+        return sum.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 3 });
     });
 
     const formatVariant = (v) => {
@@ -132,12 +165,22 @@
     const fetchData = async () => {
         try {
             const [resSum, resTx] = await Promise.all([
-                api.get('/assets/summary', { params: { currency: displayCurrency.value } }),
-                api.get('/assets/transactions', { params: { currency: displayCurrency.value } })
+                api.get('/assets/summary', { params: { currency: selectedCurrency.value, variant: selectedVariant.value } }),
+                api.get('/assets/transactions', { params: { currency: selectedCurrency.value } })
             ]);
-            assets.value = resSum.data.assets || [];
-            transactions.value = resTx.data || [];
+
+            assets.value = (resSum.data.assets || []).filter(a => a.type === props.type);
+            transactions.value = (resTx.data || []).filter(t => t.asset_type === props.type);
+
         } catch (err) { console.error(err); }
+    };
+
+    const changeViewUnit = (code, variant, label) => {
+        selectedCurrency.value = code;
+        selectedVariant.value = variant;
+        displayLabel.value = label;
+        showDd.value = false;
+        fetchData();
     };
 
     const openModal = () => {
@@ -158,15 +201,33 @@
             });
             showModal.value = false;
             await fetchData();
-        } catch (err) { alert(err.message); }
+        } catch (err) { alert(err.response?.data?.error || err.message); }
     };
 
-    const downloadSingleReceipt = async (id) => {
-        const res = await api.get(`/assets/receipt/${id}`, { responseType: 'blob', params: { currency: displayCurrency.value } });
+    const downloadReceipt = async (id) => {
+        const res = await api.get(`/assets/receipt/${id}`, { responseType: 'blob', params: { currency: 'TRY' } });
         const url = window.URL.createObjectURL(new Blob([res.data]));
-        const link = document.createElement('a');
-        link.href = url; link.setAttribute('download', `Dekont_${id}.pdf`); link.click();
+        const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Dekont.pdf'); link.click();
     };
+
+    const downloadExcel = async () => {
+        const res = await api.get(`/assets/export/excel`, { responseType: 'blob', params: { currency: 'TRY' } });
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Export.xlsx'); link.click();
+    };
+
+    const downloadPDF = async () => {
+        const res = await api.get(`/assets/receipt/full`, { responseType: 'blob', params: { currency: 'TRY' } });
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Rapor.pdf'); link.click();
+    };
+
+    watch(() => props.type, () => {
+        selectedCurrency.value = props.type === 'GOLD' ? 'GOLD' : 'TRY';
+        selectedVariant.value = props.type === 'GOLD' ? 'GRAM_24' : 'STANDARD';
+        displayLabel.value = props.type === 'GOLD' ? 'Has (24K)' : 'TRY';
+        fetchData();
+    });
 
     onMounted(fetchData);
 </script>
@@ -175,8 +236,16 @@
     .detail-container { min-height: 100vh; padding: 40px; color: white; font-family: 'Inter', sans-serif; }
     .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
     .back-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 25px; border-radius: 30px; cursor: pointer; font-weight: bold; }
-    .total-box { text-align: right; background: rgba(255,255,255,0.1); padding: 15px 30px; border-radius: 16px; backdrop-filter: blur(10px); }
-    .total-box .value { display: block; font-size: 2.2rem; font-weight: 800; color: #FFD700; }
+
+    .right-menu { display: flex; align-items: center; gap: 15px; }
+    .currency-dropdown-wrapper { position: relative; }
+    .dd-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px 20px; border-radius: 12px; cursor: pointer; font-weight: 800; font-size: 1.1rem; min-width: 180px; text-align: right; }
+    .dd-menu { position: absolute; top: 100%; right: 0; background: #1E293B; border: 1px solid #334155; border-radius: 12px; width: 200px; margin-top: 10px; z-index: 100; max-height: 300px; overflow-y: auto; }
+    .dd-item { padding: 12px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .dd-item:hover { background: #334155; color: #FFD700; }
+
+    .actions { display: flex; gap: 10px; }
+    .icon-btn { background: rgba(255,255,255,0.1); border: none; width: 45px; height: 45px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; }
 
     .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
     .holdings-card, .history-card { background: rgba(0,0,0,0.3); backdrop-filter: blur(20px); padding: 30px; border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); min-height: 400px; }

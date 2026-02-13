@@ -3,7 +3,7 @@ import LoginView from '../views/LoginView.vue';
 import DashboardView from '../views/DashboardView.vue';
 import CalendarView from '../views/CalendarView.vue';
 import SettingsView from '../views/SettingsView.vue';
-import AssetDetailView from '../views/AssetDetailView.vue'; // Yeni dosya
+import AssetDetailView from '../views/AssetDetailView.vue';
 
 const router = createRouter({
     history: createWebHashHistory(),
