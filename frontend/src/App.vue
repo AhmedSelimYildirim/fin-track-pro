@@ -20,19 +20,19 @@
 
       <nav class="menu">
         <div class="menu-item" :class="{ active: currentRoute.includes('/dashboard') }" @click="navigate('/dashboard')">
-          <span class="nav-icon">📊</span> {{ t('home') }}
+          <span class="nav-icon">📊</span> Portföy
         </div>
         <div class="menu-item" :class="{ active: currentRoute.includes('/calendar') }" @click="navigate('/calendar')">
-          <span class="nav-icon">📅</span> {{ t('calendar') }}
+          <span class="nav-icon">📅</span> Takvim
         </div>
         <div class="menu-item" :class="{ active: currentRoute.includes('/settings') }" @click="navigate('/settings')">
-          <span class="nav-icon">⚙️</span> {{ t('settings') }}
+          <span class="nav-icon">⚙️</span> Ayarlar
         </div>
       </nav>
 
       <div class="logout-wrapper">
         <div class="menu-item logout-btn" @click="logout">
-          <span class="nav-icon">🚪</span> {{ t('logout') }}
+          <span class="nav-icon">🚪</span> Çıkış Yap
         </div>
       </div>
     </aside>
@@ -46,7 +46,6 @@
 <script setup>
   import { ref, computed, onMounted, provide } from 'vue';
   import { useRoute, useRouter } from 'vue-router';
-  import { t } from './utils/translations';
 
   const route = useRoute();
   const router = useRouter();
@@ -73,9 +72,7 @@
   const navigate = (path) => { router.push(path); closeMobileMenu(); };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('username');
-    localStorage.removeItem('email');
+    localStorage.clear();
     currentUser.value = '';
     router.push('/login');
     closeMobileMenu();
@@ -89,10 +86,6 @@
     window.addEventListener('storage', () => {
       currentUser.value = localStorage.getItem('username') || 'Kullanıcı';
     });
-
-    if (!localStorage.getItem('username')) {
-      currentUser.value = 'Misafir';
-    }
   });
 
   provide('theme', { theme, toggleTheme });
@@ -240,13 +233,8 @@
 
   @media (max-width: 768px) {
     .mobile-menu-toggle { display: block; }
-
     .sidebar { width: 280px; transform: translateX(-100%); transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .sidebar.mobile-open { transform: translateX(0); }
-
-    html[dir="rtl"] .sidebar { transform: translateX(100%); }
-    html[dir="rtl"] .sidebar.mobile-open { transform: translateX(0); }
-
     .mobile-overlay { display: block; }
     .main-content { padding-inline-start: 0; padding-top: 70px; }
   }

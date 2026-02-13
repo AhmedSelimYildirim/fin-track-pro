@@ -60,7 +60,6 @@ func SetupRoutes(app *fiber.App) {
 	market := v1.Group("/market")
 	market.Get("/rates", marketHandler.GetRates)
 
-	// DÜZELTİLDİ: "/" yerine "" kullanıldı. Artık çift slash oluşmayacak.
 	protected := v1.Group("", middleware.Protected(cfg.JWTSecret))
 
 	user := protected.Group("/user")
