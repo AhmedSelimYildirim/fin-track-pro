@@ -47,12 +47,20 @@
                                         </div>
 
                                         <div v-if="openSubGold === gType.key" class="deep-menu">
-                                            <div class="dd-item deep-item"
-                                                 v-for="k in karats"
-                                                 :key="k"
-                                                 @click="changeViewUnit('GOLD', `${gType.key}_${k}`, `${gType.label} (${k}K)`)">
-                                                {{ k }}K
-                                            </div>
+                                            <template v-if="gType.key === 'GRAM'">
+                                                <div class="dd-item deep-item"
+                                                     v-for="k in karats"
+                                                     :key="k"
+                                                     @click="changeViewUnit('GOLD', `${gType.key}_${k}`, `${gType.label} (${k}K)`)">
+                                                    {{ k }}K
+                                                </div>
+                                            </template>
+                                            <template v-else>
+                                                <div class="dd-item deep-item"
+                                                     @click="changeViewUnit('GOLD', gType.key, gType.label)">
+                                                    {{ gType.label }}
+                                                </div>
+                                            </template>
                                         </div>
                                     </div>
                                 </div>
@@ -115,12 +123,13 @@
 
                 <div class="modal-body">
                     <div v-if="type === 'GOLD'" class="gold-selector-container">
-                        <label>Altın Türü & Ayarı</label>
+                        <label>Altın Türü</label>
                         <div class="gold-select-group">
-                            <select v-model="modalGoldType" class="modal-input half">
+                            <select v-model="modalGoldType" class="modal-input" :class="{ half: modalGoldType === 'GRAM' }">
                                 <option v-for="t in goldTypes" :key="t.key" :value="t.key">{{ t.label }}</option>
                             </select>
-                            <select v-model="modalGoldKarat" class="modal-input half">
+
+                            <select v-if="modalGoldType === 'GRAM'" v-model="modalGoldKarat" class="modal-input half">
                                 <option v-for="k in karats" :key="k" :value="k">{{ k }}K</option>
                             </select>
                         </div>
@@ -233,7 +242,11 @@
         if (!form.value.amount) return alert("Miktar giriniz");
         let variantToSend = 'STANDARD';
         if (props.type === 'GOLD') {
-            variantToSend = `${modalGoldType.value}_${modalGoldKarat.value}`;
+            if (modalGoldType.value === 'GRAM') {
+                variantToSend = `${modalGoldType.value}_${modalGoldKarat.value}`;
+            } else {
+                variantToSend = modalGoldType.value;
+            }
         }
 
         try {
@@ -307,7 +320,6 @@
         border-radius: 12px; width: 220px; margin-top: 10px;
         z-index: 100; max-height: 400px; overflow-y: auto; overflow-x: hidden;
     }
-    /* Scrollbar */
     .dd-menu::-webkit-scrollbar { width: 6px; }
     .dd-menu::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
 
@@ -315,7 +327,6 @@
     .dd-item:hover { background: #334155; color: #FFD700; }
     .sym { width: 25px; display: inline-block; font-weight: bold; }
 
-    /* Nested Menu Styles */
     .sub-menu { background: #0F172A; border-left: 2px solid #FFD700; }
     .sub-trigger { padding-left: 25px; font-size: 0.95rem; }
     .deep-menu { background: #020617; }
