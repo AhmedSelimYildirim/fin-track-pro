@@ -39,7 +39,7 @@
               <div class="c-item has-submenu">
                 <div class="gold-trigger">
                   <div style="display:flex; align-items:center; gap:12px;">
-                    <span class="symbol text-icon">🥇</span> GOLD
+                    <span class="symbol text-icon"> </span> GOLD
                   </div>
                   <span class="arrow-right">▶</span>
                 </div>
@@ -122,7 +122,7 @@
     { type: 'EUR', label: 'EUR', icon: '€' },
     { type: 'BTC', label: 'BTC', icon: '₿' },
     { type: 'SILVER', label: 'SILVER', icon: 'Gr' },
-    { type: 'GOLD', label: 'GOLD', icon: '🥇' }
+    { type: 'GOLD', label: 'GOLD', icon: ' ' }
   ];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
