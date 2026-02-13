@@ -15,43 +15,71 @@
 
                     <transition name="dd-anim">
                         <div v-if="showDd" class="dd-menu">
-                            <template v-if="type === 'GOLD'">
-                                <div class="dd-category">Gram Altınlar</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_24', 'Has (24K)')">Has (24K)</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_22', '22 Ayar')">22 Ayar</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_18', '18 Ayar')">18 Ayar</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_14', '14 Ayar')">14 Ayar</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_8', '8 Ayar')">8 Ayar</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GRAM_4', '4 Ayar')">4 Ayar</div>
 
-                                <div class="dd-divider"></div>
-                                <div class="dd-category">Ziynet Altınlar</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')">Çeyrek</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')">Yarım</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')">Tam</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')">Cumhuriyet</div>
-                                <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')">Gremse</div>
-                            </template>
+                            <div class="dd-section-title">Para Birimleri</div>
+                            <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')">
+                                <span class="sym">₺</span> TRY
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')">
+                                <span class="sym">$</span> USD
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')">
+                                <span class="sym">€</span> EUR
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('BTC', 'STANDARD', 'BTC')">
+                                <span class="sym">₿</span> BTC
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('SILVER', 'STANDARD', 'SILVER')">
+                                <span class="sym">Ag</span> SILVER
+                            </div>
 
-                            <template v-else>
-                                <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')">₺ TRY</div>
-                                <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')">$ USD</div>
-                                <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')">€ EUR</div>
-                            </template>
+                            <div class="dd-divider"></div>
+
+                            <div class="dd-section-title">Altın Birimleri</div>
+
+                            <div class="dd-group">
+                                <div class="dd-item sub-trigger" @click.stop="toggleGramMenu">
+                                    <span class="sym">⚖️</span> Gram Altın
+                                    <span class="arrow-right" :class="{ rotated: gramMenuOpen }">▶</span>
+                                </div>
+
+                                <div v-if="gramMenuOpen" class="deep-menu">
+                                    <div class="dd-item deep-item" v-for="k in karats" :key="k"
+                                         @click="changeViewUnit('GOLD', `GRAM_${k}`, `Gram (${k}K)`)">
+                                        {{ k }} Ayar
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')">
+                                <span class="sym">🔴</span> Cumhuriyet
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')">
+                                <span class="sym">🌕</span> Tam
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')">
+                                <span class="sym">🌓</span> Yarım
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')">
+                                <span class="sym">🔸</span> Çeyrek
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')">
+                                <span class="sym">🔶</span> Gremse
+                            </div>
+
                         </div>
                     </transition>
                 </div>
 
                 <div class="actions">
-                    <button class="icon-btn" @click="downloadExcel" title="Excel Raporu">📊</button>
-                    <button class="icon-btn" @click="downloadFullPDF" title="PDF Raporu">📄</button>
+                    <button class="icon-btn" @click="downloadExcel" title="Excel">📊</button>
+                    <button class="icon-btn" @click="downloadPDF" title="PDF">📄</button>
                 </div>
             </div>
         </header>
 
         <div class="hero-section">
             <div class="hero-value">{{ totalInSelectedUnit }}</div>
-            <div class="hero-unit">{{ displayLabel }}</div>
             <div class="hero-line"></div>
         </div>
 
@@ -67,11 +95,11 @@
                             <label>Altın Türü</label>
                             <select v-model="form.goldType" class="custom-input">
                                 <option value="GRAM">Gram Altın</option>
-                                <option value="CEYREK">Çeyrek Altın</option>
-                                <option value="YARIM">Yarım Altın</option>
-                                <option value="TAM">Tam Altın</option>
                                 <option value="CUMHURIYET">Cumhuriyet</option>
-                                <option value="GREMSE">Gremse</option>
+                                <option value="TAM">Tam Altın</option>
+                                <option value="YARIM">Yarım Altın</option>
+                                <option value="CEYREK">Çeyrek Altın</option>
+                                <option value="GREMSE">Gremse Altın</option>
                             </select>
                         </div>
 
@@ -115,7 +143,7 @@
                     <h3>İşlem Geçmişi</h3>
                 </div>
                 <div class="history-list">
-                    <div v-if="transactions.length === 0" class="no-data">Henüz işlem yapılmadı.</div>
+                    <div v-if="transactions.length === 0" class="no-data">İşlem geçmişi boş.</div>
                     <div v-for="tx in transactions" :key="tx.id" class="tx-item">
                         <div class="tx-left">
                             <div class="tx-date">{{ new Date(tx.transaction_date).toLocaleDateString('tr-TR') }}</div>
@@ -145,9 +173,10 @@
     const assets = ref([]);
     const transactions = ref([]);
     const showDd = ref(false);
+    const gramMenuOpen = ref(false);
 
     const selectedCurrency = ref(props.type === 'GOLD' ? 'GOLD' : 'TRY');
-    const selectedVariant = ref(props.type === 'GOLD' ? 'GRAM_24' : 'STANDARD');
+    const selectedVariant = ref('STANDARD');
     const displayLabel = ref(props.type === 'GOLD' ? 'Has (24K)' : 'TRY');
 
     const form = ref({
@@ -156,6 +185,8 @@
         goldType: 'GRAM',
         goldKarat: 24
     });
+
+    const karats = [24, 22, 18, 14, 8, 4];
 
     const themeMap = {
         TRY: 'linear-gradient(135deg, #1e0505 0%, #450a0a 100%)',
@@ -189,23 +220,22 @@
         selectedVariant.value = variant;
         displayLabel.value = label;
         showDd.value = false;
+        gramMenuOpen.value = false;
         fetchData();
     };
 
+    const toggleGramMenu = () => { gramMenuOpen.value = !gramMenuOpen.value; };
+    const closeDropdown = () => { showDd.value = false; };
+
     const formatTxName = (tx) => {
         if (tx.asset_type !== 'GOLD') return props.type;
-
         if (tx.variant.startsWith('GRAM')) {
             const k = tx.variant.split('_')[1];
             return `${k} Ayar Gram`;
         }
-
         const map = {
-            'CEYREK': 'Çeyrek Altın',
-            'YARIM': 'Yarım Altın',
-            'TAM': 'Tam Altın',
-            'CUMHURIYET': 'Cumhuriyet',
-            'GREMSE': 'Gremse'
+            'CEYREK': 'Çeyrek', 'YARIM': 'Yarım', 'TAM': 'Tam',
+            'CUMHURIYET': 'Cumhuriyet', 'GREMSE': 'Gremse'
         };
         return map[tx.variant] || tx.variant;
     };
@@ -253,7 +283,6 @@
         const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Export.xlsx'); link.click();
     };
 
-    const closeDropdown = () => { showDd.value = false; };
     const vClickOutside = {
         mounted(el, binding) {
             el.clickOutsideEvent = function(event) {
@@ -276,40 +305,49 @@
 
 <style scoped>
     .detail-container { min-height: 100vh; padding: 40px; color: white; font-family: 'Inter', sans-serif; box-sizing: border-box; }
-    .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .back-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 25px; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.3s; }
     .back-btn:hover { background: rgba(255,255,255,0.2); }
 
-    .right-menu { display: flex; align-items: center; gap: 15px; }
+    /* SAĞ MENÜ (BİRAZ AŞAĞI ALINDI) */
+    .right-menu { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
     .currency-dropdown-wrapper { position: relative; }
     .dd-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 1rem; min-width: 160px; display: flex; justify-content: space-between; align-items: center; }
     .dd-btn:hover { background: rgba(255,255,255,0.15); border-color: #FFD700; }
 
     .dd-menu {
-        position: absolute; top: 100%; right: 0;
+        position: absolute; top: 110%; right: 0;
         background: #1E293B; border: 1px solid #334155;
-        border-radius: 12px; width: 220px; margin-top: 10px;
+        border-radius: 12px; width: 220px;
         z-index: 100; max-height: 400px; overflow-y: auto; overflow-x: hidden;
         box-shadow: 0 10px 40px rgba(0,0,0,0.5);
     }
     .dd-menu::-webkit-scrollbar { width: 6px; }
     .dd-menu::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
-    .dd-category { font-size: 0.75rem; color: #94A3B8; padding: 10px 15px 5px; font-weight: bold; letter-spacing: 1px; }
+    .dd-section-title { font-size: 0.75rem; color: #94A3B8; padding: 10px 15px 5px; font-weight: bold; letter-spacing: 1px; }
     .dd-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
     .dd-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
     .dd-item:hover { background: #334155; color: #FFD700; padding-left: 20px; }
     .dd-anim-enter-active, .dd-anim-leave-active { transition: all 0.2s ease; }
     .dd-anim-enter-from, .dd-anim-leave-to { opacity: 0; transform: translateY(-10px); }
 
+    /* GRAM ÖZEL STİL */
+    .sub-menu { background: #0F172A; border-left: 2px solid #FFD700; }
+    .sub-trigger { font-weight: bold; color: #FFD700; background: #1E293B; }
+    .deep-menu { background: #020617; }
+    .deep-item { padding-left: 35px; font-size: 0.9rem; color: #94A3B8; }
+    .deep-item:hover { color: #fff; background: #1E293B; }
+    .arrow-right { font-size: 0.8rem; transition: 0.3s; margin-left: auto; }
+    .arrow-right.rotated { transform: rotate(90deg); }
+
     .actions { display: flex; gap: 10px; }
     .icon-btn { background: rgba(255,255,255,0.1); border: none; width: 45px; height: 45px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
     .icon-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
 
-    /* HERO SECTION */
+    /* HERO SECTION - SADECE SAYI VE ÇİZGİ */
     .hero-section { text-align: center; margin-bottom: 50px; }
-    .hero-value { font-size: 4rem; font-weight: 800; letter-spacing: -2px; line-height: 1; }
-    .hero-unit { font-size: 1.2rem; color: #FFD700; font-weight: bold; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px; opacity: 0.9; }
-    .hero-line { width: 100px; height: 4px; background: #FFD700; margin: 20px auto 0; border-radius: 2px; opacity: 0.7; }
+    .hero-value { font-size: 4.5rem; font-weight: 800; letter-spacing: -2px; line-height: 1; }
+    .hero-line { width: 120px; height: 5px; background: #FFD700; margin: 25px auto 0; border-radius: 3px; opacity: 0.8; }
 
     /* GRID */
     .detail-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 40px; max-width: 1200px; margin: 0 auto; }
