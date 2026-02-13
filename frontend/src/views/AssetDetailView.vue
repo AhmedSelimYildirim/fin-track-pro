@@ -371,7 +371,6 @@
     .btn-sub { background: linear-gradient(135deg, #EF4444, #B91C1C); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3); }
     .btn-add:hover, .btn-sub:hover { transform: translateY(-2px); filter: brightness(1.1); }
 
-    /* HISTORY */
     .history-list { padding: 0 30px; max-height: 500px; overflow-y: auto; }
     .history-list::-webkit-scrollbar { width: 6px; }
     .history-list::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
