@@ -17,54 +17,53 @@
                     <transition name="dd-anim">
                         <div v-if="showDd" class="dd-menu">
 
-                            <template v-if="type !== 'GOLD'">
-                                <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')">
-                                    <span class="sym">₺</span> TRY
-                                </div>
-                                <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')">
-                                    <span class="sym">$</span> USD
-                                </div>
-                                <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')">
-                                    <span class="sym">€</span> EUR
-                                </div>
-                                <div class="dd-item" @click="changeViewUnit('BTC', 'STANDARD', 'BTC')">
-                                    <span class="sym">₿</span> BTC
-                                </div>
-                                <div class="dd-item" @click="changeViewUnit('SILVER', 'STANDARD', 'SILVER')">
-                                    <span class="sym">Ag</span> SILVER
-                                </div>
-                            </template>
+                            <div class="dd-section-title">Para Birimleri</div>
+                            <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')">
+                                <span class="sym">₺</span> TRY
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')">
+                                <span class="sym">$</span> USD
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')">
+                                <span class="sym">€</span> EUR
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('BTC', 'STANDARD', 'BTC')">
+                                <span class="sym">₿</span> BTC
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('SILVER', 'STANDARD', 'SILVER')">
+                                <span class="sym">Ag</span> SILVER
+                            </div>
 
-                            <div v-else class="dd-gold-container">
-                                <div class="dd-item group-trigger" @click.stop="toggleGoldMenu">
-                                    <span class="sym">🥇</span> GOLD MENÜSÜ
-                                    <span class="arrow-right" :class="{ rotated: goldMenuOpen }">▼</span>
+                            <div class="dd-divider"></div>
+
+                            <div class="dd-section-title">Altın Birimleri</div>
+
+                            <div class="dd-item gram-trigger" @click.stop="toggleGramMenu">
+                                <span class="sym">⚖️</span> Gram Altın
+                                <span class="arrow-right" :class="{ rotated: gramMenuOpen }">▶</span>
+                            </div>
+
+                            <div v-if="gramMenuOpen" class="sub-menu">
+                                <div class="dd-item sub-item" v-for="k in karats" :key="k"
+                                     @click="changeViewUnit('GOLD', `GRAM_${k}`, `Gram (${k}K)`)">
+                                    {{ k }} Ayar
                                 </div>
+                            </div>
 
-                                <div v-if="goldMenuOpen" class="gold-list">
-
-                                    <div class="gold-group gram-group">
-                                        <div class="dd-item sub-trigger" @click.stop="toggleSubGold('GRAM')">
-                                            Gram Altın
-                                            <span class="arrow-right" :class="{ rotated: openSubGold === 'GRAM' }">▶</span>
-                                        </div>
-                                        <div v-if="openSubGold === 'GRAM'" class="deep-menu">
-                                            <div class="dd-item deep-item" v-for="k in karats" :key="k"
-                                                 @click="changeViewUnit('GOLD', `GRAM_${k}`, `Gram (${k}K)`)">
-                                                {{ k }}K
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="gold-group direct-group">
-                                        <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')">Cumhuriyet</div>
-                                        <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')">Tam</div>
-                                        <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')">Yarım</div>
-                                        <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')">Çeyrek</div>
-                                        <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')">Gremse</div>
-                                    </div>
-
-                                </div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')">
+                                <span class="sym">🔸</span> Çeyrek
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')">
+                                <span class="sym">🌓</span> Yarım
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')">
+                                <span class="sym">🌕</span> Tam
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')">
+                                <span class="sym">🔴</span> Cumhuriyet
+                            </div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')">
+                                <span class="sym">🔶</span> Gremse
                             </div>
 
                         </div>
@@ -170,8 +169,7 @@
     const transactions = ref([]);
     const showModal = ref(false);
     const showDd = ref(false);
-    const goldMenuOpen = ref(true);
-    const openSubGold = ref(null);
+    const gramMenuOpen = ref(false);
 
     const selectedCurrency = ref(props.type === 'GOLD' ? 'GOLD' : 'TRY');
     const selectedVariant = ref('STANDARD');
@@ -220,15 +218,15 @@
         selectedVariant.value = variant;
         displayLabel.value = label;
         showDd.value = false;
-        openSubGold.value = null;
+        gramMenuOpen.value = false;
         fetchData();
     };
 
-    const toggleGoldMenu = () => { goldMenuOpen.value = !goldMenuOpen.value; };
-    const toggleSubGold = (key) => { openSubGold.value = openSubGold.value === key ? null : key; };
+    const toggleGramMenu = () => { gramMenuOpen.value = !gramMenuOpen.value; };
     const closeDropdown = () => { showDd.value = false; };
 
     const openModal = () => {
+        form.value.variant = props.type === 'GOLD' ? 'GRAM_24' : 'STANDARD';
         form.value.amount = '';
         modalGoldType.value = 'GRAM';
         modalGoldKarat.value = 24;
@@ -321,16 +319,18 @@
     .dd-menu::-webkit-scrollbar { width: 6px; }
     .dd-menu::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
 
+    .dd-section-title { font-size: 0.75rem; color: #94A3B8; padding: 10px 15px 5px; font-weight: bold; letter-spacing: 1px; }
+    .dd-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
+
     .dd-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; display: flex; justify-content: space-between; align-items: center; }
     .dd-item:hover { background: #334155; color: #FFD700; }
     .sym { width: 25px; display: inline-block; font-weight: bold; }
 
-    .dd-gold-container { background: rgba(0,0,0,0.2); }
-    .gold-group { border-bottom: 1px solid rgba(255,255,255,0.1); }
-    .sub-trigger { background: #0F172A; font-weight: bold; color: #FFD700; }
-    .deep-menu { background: #020617; }
-    .deep-item { padding-left: 30px; font-size: 0.9rem; color: #94A3B8; }
-    .deep-item:hover { color: #fff; background: #1E293B; }
+    /* GRAM ALTIN ÖZEL STİLİ */
+    .gram-trigger { font-weight: bold; color: #FFD700; }
+    .sub-menu { background: #0F172A; border-left: 2px solid #FFD700; }
+    .sub-item { padding-left: 30px; font-size: 0.9rem; color: #94A3B8; }
+    .sub-item:hover { color: #fff; background: #1E293B; }
     .arrow-right { font-size: 0.8rem; transition: 0.3s; }
     .arrow-right.rotated { transform: rotate(90deg); }
 
