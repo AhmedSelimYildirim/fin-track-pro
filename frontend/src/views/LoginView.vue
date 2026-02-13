@@ -23,10 +23,10 @@
         <transition name="fade" mode="out-in">
           <div v-if="activeTab==='login'" key="login" class="form-content">
             <div class="input-box">
-              <input v-model="loginData.email" type="email" placeholder="E-Posta Adresi" />
+              <input v-model="loginData.email" type="email" placeholder="E-Posta Adresi" @keyup.enter="handleLogin" />
             </div>
             <div class="input-box">
-              <input v-model="loginData.password" type="password" placeholder="Şifre" />
+              <input v-model="loginData.password" type="password" placeholder="Şifre" @keyup.enter="handleLogin" />
             </div>
             <button class="action-btn" :disabled="isLoading" @click="handleLogin">
               <span v-if="isLoading" class="spinner"></span>
@@ -36,7 +36,7 @@
 
           <div v-else key="register" class="form-content">
             <div class="input-box">
-              <input v-model="registerData.username" placeholder="Kullanıcı Adı" />
+              <input v-model="registerData.username" type="text" placeholder="Kullanıcı Adı" />
             </div>
             <div class="input-box">
               <input v-model="registerData.email" type="email" placeholder="E-Posta Adresi" />
@@ -88,19 +88,26 @@
         password: loginData.value.password
       })
 
-      localStorage.setItem('token', res.data.token)
+      const { token, username, email } = res.data
 
-      const user = res.data.username || loginData.value.email.split('@')[0]
-      localStorage.setItem('username', user)
-      localStorage.setItem('email', loginData.value.email)
+      if (token) {
+        localStorage.setItem('token', token)
+        localStorage.setItem('username', username || email.split('@')[0])
+        localStorage.setItem('email', email)
 
-      window.dispatchEvent(new Event('storage'))
+        window.dispatchEvent(new Event('storage'))
 
-      router.push('/dashboard')
+        showNotification('Giriş başarılı, yönlendiriliyorsunuz...', 'success')
+
+        setTimeout(() => {
+          router.push('/dashboard')
+        }, 500)
+      } else {
+        throw new Error("Token alinamadi.")
+      }
+
     } catch (e) {
-      console.error(e)
-      // Backend { "error": "mesaj" } formatında dönüyor, bunu yakalıyoruz
-      showNotification(e.response?.data?.error || e.response?.data?.message || 'Giriş başarısız.', 'error')
+      showNotification(e.response?.data?.error || 'Giriş başarısız. Bilgilerinizi kontrol edin.', 'error')
     } finally {
       isLoading.value = false
     }
@@ -114,18 +121,20 @@
 
     isLoading.value = true
     try {
-      await api.post('/auth/register', registerData.value)
+      await api.post('/auth/register', {
+        username: registerData.value.username,
+        email: registerData.value.email,
+        password: registerData.value.password
+      })
 
-      showNotification('Kayıt başarılı! Giriş yapabilirsiniz.', 'success')
+      showNotification('Kayıt başarılı! Şimdi giriş yapabilirsiniz.', 'success')
 
       loginData.value.email = registerData.value.email
-      loginData.value.password = registerData.value.password
-
+      loginData.value.password = ''
       activeTab.value = 'login'
 
     } catch (e) {
-      console.error(e)
-      showNotification(e.response?.data?.error || e.response?.data?.message || 'Kayıt sırasında hata oluştu.', 'error')
+      showNotification(e.response?.data?.error || 'Kayıt sırasında hata oluştu.', 'error')
     } finally {
       isLoading.value = false
     }

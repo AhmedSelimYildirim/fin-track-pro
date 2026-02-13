@@ -25,7 +25,6 @@ func main() {
 	redis.ConnectRedis()
 	ctx := context.Background()
 
-	// MarketHistory tablosunu da ekliyoruz
 	modelToCreate := []interface{}{
 		(*model.User)(nil),
 		(*model.Asset)(nil),
@@ -43,7 +42,7 @@ func main() {
 			log.Fatalf("Tablo olusturma hatasi: %v", err)
 		}
 	}
-	fmt.Println("✅ Veritabani tablolari kontrol edildi.")
+	fmt.Println("Veritabani tablolari kontrol edildi.")
 
 	cfg := config.LoadConfig()
 	marketRepo := repository.NewMarketRepository(database.DB)
@@ -51,18 +50,14 @@ func main() {
 
 	c := cron.New()
 	_, err := c.AddFunc("0 17 * * *", func() {
-		log.Println("⏳ Gunluk piyasa verileri kaydediliyor...")
 		if err := marketService.SaveDailyRates(); err != nil {
-			log.Printf("❌ Kur kaydetme hatasi: %v", err)
-		} else {
-			log.Println("✅ Gunluk kurlar veritabanina kaydedildi.")
+			log.Printf("Kur kaydetme hatasi: %v", err)
 		}
 	})
 	if err != nil {
-		log.Fatal("Cron başlatılamadı:", err)
+		log.Fatal("Cron baslatilamadi:", err)
 	}
 	c.Start()
-	fmt.Println("🕒 Cron servisi aktif (Her gun 17:00)")
 
 	app := fiber.New(fiber.Config{
 		AppName:      "FinTrack Pro v2.0",
@@ -86,8 +81,6 @@ func main() {
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
 	<-quit
 
-	log.Println("Sunucu kapatiliyor...")
 	c.Stop()
 	_ = app.Shutdown()
-	log.Println("FinTrack Pro durduruldu.")
 }

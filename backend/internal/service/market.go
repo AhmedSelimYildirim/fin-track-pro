@@ -24,7 +24,6 @@ func NewMarketService(cfg *config.Config, rdb *redis.Client, repo *repository.Ma
 	return &MarketService{cfg: cfg, rdb: rdb, marketRepo: repo}
 }
 
-// Cron Job tarafindan cagrilacak fonksiyon
 func (s *MarketService) SaveDailyRates() error {
 	rates, err := s.GetCurrencyRates()
 	if err != nil {

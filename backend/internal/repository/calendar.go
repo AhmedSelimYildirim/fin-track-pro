@@ -24,7 +24,6 @@ func (r *CalendarRepository) GetRemindersByUserID(ctx context.Context, userID in
 	var reminders []model.Reminder
 	err := r.db.NewSelect().
 		Model(&reminders).
-		Relation("User").
 		Where("user_id = ?", userID).
 		Order("target_date ASC").
 		Scan(ctx)

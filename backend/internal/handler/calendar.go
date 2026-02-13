@@ -17,7 +17,7 @@ func NewCalendarHandler(s *service.CalendarService) *CalendarHandler {
 }
 
 func (h *CalendarHandler) AddEvent(c *fiber.Ctx) error {
-	userID := int64(c.Locals("user_id").(uint))
+	userID := c.Locals("user_id").(int64)
 	var req dto.CreateReminderRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "gecersiz format"})
@@ -26,11 +26,11 @@ func (h *CalendarHandler) AddEvent(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Not kaydedilemedi"})
 	}
-	return c.JSON(fiber.Map{"message": "Not basariyla kaydedildi !"})
+	return c.JSON(fiber.Map{"message": "Not basariyla kaydedildi!"})
 }
 
 func (h *CalendarHandler) ListReminders(c *fiber.Ctx) error {
-	userID := int64(c.Locals("user_id").(uint))
+	userID := c.Locals("user_id").(int64)
 	notes, err := h.calendarService.GetUserReminders(userID)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": err.Error()})
@@ -39,7 +39,7 @@ func (h *CalendarHandler) ListReminders(c *fiber.Ctx) error {
 }
 
 func (h *CalendarHandler) DeleteEvent(c *fiber.Ctx) error {
-	userID := int64(c.Locals("user_id").(uint))
+	userID := c.Locals("user_id").(int64)
 	idStr := c.Params("id")
 	reminderID, err := strconv.ParseInt(idStr, 10, 64)
 	if err != nil {
