@@ -87,10 +87,11 @@
           </template>
           <div v-else class="no-data-circle">
             <div class="no-data-content">
-              <span>Veri Yok</span>
+              <span>{{ t('noData') }}</span>
             </div>
           </div>
         </div>
+        <div class="chart-line"></div>
       </div>
 
       <div class="assets-grid">
@@ -124,34 +125,38 @@
   ChartJS.register(ArcElement, Tooltip, Legend);
   const router = useRouter();
   const showSelector = ref(false);
-  const gramMenuOpen = ref(false);
+  const gramMenuOpen = ref(false); // YENİ: Gram menüsü kontrolü
   const summaryData = ref(null);
 
   const baseCurrency = ref('TRY');
   const targetVariant = ref('STANDARD');
   const baseCurrencyLabel = ref('TRY');
 
-  const karats = [24, 22, 18, 14, 8, 4];
+  const karats = [24, 22, 18, 14, 8, 4]; // YENİ: Ayar listesi
 
   const cardConfigs = [
     { type: 'TRY', label: 'TRY', icon: '₺' },
     { type: 'USD', label: 'USD', icon: '$' },
     { type: 'EUR', label: 'EUR', icon: '€' },
     { type: 'BTC', label: 'BTC', icon: '₿' },
-    { type: 'SILVER', label: 'SILVER', icon: 'Ag' },
+    { type: 'SILVER', label: 'SILVER', icon: 'Gr' },
     { type: 'GOLD', label: 'GOLD', icon: '🥇' }
   ];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
-  const toggleGramMenu = () => { gramMenuOpen.value = !gramMenuOpen.value; };
-  const closeDropdown = () => { showSelector.value = false; gramMenuOpen.value = false; };
+  const toggleGramMenu = () => { gramMenuOpen.value = !gramMenuOpen.value; }; // YENİ
+
+  const closeDropdown = () => {
+    showSelector.value = false;
+    gramMenuOpen.value = false;
+  };
 
   const displayCurrency = computed(() => baseCurrencyLabel.value);
 
   const totalValue = computed(() => {
     if (summaryData.value && summaryData.value.total_value) {
       const decimals = ['GOLD', 'SILVER', 'BTC'].includes(baseCurrency.value) ? 3 : 2;
-      return summaryData.value.total_value.toLocaleString('tr-TR', { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
+      return summaryData.value.total_value.toLocaleString('tr-TR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
     }
     return '0,00';
   });
@@ -160,7 +165,7 @@
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
-    const colors = ['#DC2626', '#059669', '#8B4513', '#111827', '#64748B', '#FACC15'];
+    const colors = ['#E63946', '#2A9D8F', '#A0522D', '#1B1B1B', '#A9A9A9', '#FFD700'];
     const data = labels.map(label => {
       const assets = summaryData.value?.assets || [];
       return assets.filter(a => a.type === label).reduce((sum, curr) => sum + (curr.allocation || 0), 0);
@@ -185,8 +190,9 @@
   const getAmount = (type) => {
     const assets = summaryData.value?.assets || [];
     const total = assets.filter(a => a.type === type).reduce((sum, curr) => sum + curr.value_in_base, 0);
+    if (total === 0) return '0,00';
     const decimals = 2;
-    return total.toLocaleString('tr-TR', { maximumFractionDigits: decimals }) + ' ' + baseCurrencyLabel.value;
+    return total.toLocaleString('tr-TR', { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
   };
 
   const getAllocation = (type) => {
@@ -200,7 +206,7 @@
     targetVariant.value = variant;
     baseCurrencyLabel.value = label;
     showSelector.value = false;
-    gramMenuOpen.value = false;
+    gramMenuOpen.value = false; // Menü kapanınca gramı da kapat
     fetchData();
   };
 
@@ -231,17 +237,45 @@
   @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
 
   .dashboard-content { position: relative; z-index: 10; width: 100%; height: 100%; overflow-y: auto; padding: 30px; box-sizing: border-box; }
-  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; }
   .page-title h2 { color: var(--text-color); margin: 0; font-size: 1.8rem; font-weight: 700; }
 
-  .currency-btn { background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; color: var(--accent-color); display: flex; align-items: center; gap: 10px; min-width: 200px; justify-content: space-between; position: relative; z-index: 100; }
+  .currency-wrapper { position: relative; z-index: 100; }
 
+  .currency-btn {
+    background: var(--sidebar-bg);
+    border: 1px solid var(--border-color);
+    padding: 12px 25px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--accent-color);
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-width: 220px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+  .currency-btn:hover { border-color: var(--accent-color); transform: translateY(-2px); }
+  .currency-btn.active .arrow-icon { transform: rotate(180deg); }
+  .arrow-icon { font-size: 0.8rem; transition: 0.3s; }
+
+  /* GÜNCELLENMİŞ DROPDOWN STİLİ (Ağaç Yapısı İçin) */
   .currency-dropdown {
-    position: absolute; top: 100%; right: 0;
-    background: #1E293B; border: 1px solid #334155;
-    border-radius: 12px; width: 220px; z-index: 101;
-    margin-top: 10px; max-height: 400px; overflow-y: auto; overflow-x: hidden;
+    position: absolute;
+    top: calc(100% + 10px);
+    inset-inline-end: 0;
+    background: #1E293B; /* Koyu arka plan */
+    border: 1px solid #334155;
+    border-radius: 12px;
+    width: 240px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    z-index: 101;
+    padding: 8px 0;
+    overflow-y: auto;
+    max-height: 400px;
   }
   .currency-dropdown::-webkit-scrollbar { width: 6px; }
   .currency-dropdown::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
@@ -249,43 +283,93 @@
   .dd-section-title { font-size: 0.75rem; color: #94A3B8; padding: 10px 15px 5px; font-weight: bold; letter-spacing: 1px; }
   .dd-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
 
-  .c-item { padding: 12px 15px; cursor: pointer; color: var(--text-color); transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
-  .c-item:hover { background: #334155; color: #FFD700; padding-left: 20px; }
+  .c-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    position: relative;
+    color: #FFFFFF;
+    transition: 0.2s;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .c-item:last-child { border-bottom: none; }
+  .c-item:hover { background: #334155; color: #FFD700; padding-left: 25px; }
 
+  /* GRAM ALTIN ÖZEL STİLİ */
   .sub-menu { background: #0F172A; border-left: 2px solid #FFD700; }
   .sub-item { padding-left: 35px; font-size: 0.9rem; color: #94A3B8; }
   .sub-item:hover { color: #fff; background: #1E293B; }
+  .group-trigger { color: #FFD700; background: #1E293B; }
   .arrow-right { font-size: 0.8rem; transition: 0.3s; margin-left: auto; }
   .arrow-right.rotated { transform: rotate(90deg); }
 
-  .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; }
+  .symbol { width: 24px; text-align: center; font-weight: bold; font-size: 1.1rem; }
+  .text-icon { font-size: 0.85rem; font-weight: 800; opacity: 0.9; }
+
+  .dropdown-anim-enter-active, .dropdown-anim-leave-active { transition: all 0.2s ease; }
+  .dropdown-anim-enter-from, .dropdown-anim-leave-to { opacity: 0; transform: translateY(-10px); }
+
+  .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; position: relative; width: 100%; }
   .chart-wrapper { width: 280px; height: 280px; position: relative; }
-  .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
-  .center-balance h3 { font-size: 1.8rem; margin: 0; color: var(--text-color); }
-  .center-balance small { color: var(--text-muted); }
+  .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
+  .center-balance h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; }
+  .center-balance small { color: var(--text-muted); font-size: 0.9rem; font-weight: bold; letter-spacing: 2px; }
+  .chart-line { width: 50px; height: 3px; background: var(--border-color); border-radius: 2px; margin-top: 25px; opacity: 0.7; }
 
-  .assets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; max-width: 900px; margin: 0 auto; }
-  .asset-card { padding: 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; color: white !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-  .asset-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+  .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 6px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
+  .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
 
-  .card-try { background: linear-gradient(135deg, #DC2626, #7F1D1D); }
-  .card-usd { background: linear-gradient(135deg, #059669, #064E3B); }
+  .assets-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 25px;
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    padding-bottom: 80px;
+  }
 
-  /* EUR KAHVERENGİ */
+  .asset-card {
+    padding: 20px;
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    min-height: 95px;
+    border: 1px solid rgba(255,255,255,0.05);
+  }
+  .asset-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+  .asset-card * { color: white !important; z-index: 2; position: relative; }
+
+  .card-try { background: linear-gradient(135deg, #FF4500, #8B0000); }
+  .card-usd { background: linear-gradient(135deg, #32CD32, #006400); }
   .card-eur { background: linear-gradient(135deg, #8B4513, #5D4037); }
+  .card-btc { background: linear-gradient(135deg, #4F4F4F, #000000); }
+  .card-silver { background: linear-gradient(135deg, #D3D3D3, #708090); }
+  .card-gold { background: linear-gradient(135deg, #FFD700, #B8860B); }
 
-  /* BTC METALİK SİYAH */
-  .card-btc { background: linear-gradient(135deg, #2D3436, #000000); }
+  .card-left { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+  .card-symbol { font-size: 1.6rem; font-weight: 800; opacity: 0.9; line-height: 1; }
+  .card-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; font-weight: bold; }
 
-  .card-silver { background: linear-gradient(135deg, #64748B, #334155); }
-  .card-gold { background: linear-gradient(135deg, #FACC15, #854D0E); }
-
-  /* LIGHT MODE AYARLARI */
-  [data-theme="light"] .card-eur { background: linear-gradient(135deg, #A0522D, #8B4513); }
-  [data-theme="light"] .card-btc { background: linear-gradient(135deg, #4A4A4A, #1A1A1A); }
-
+  .card-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
   .card-amount { font-size: 1.2rem; font-weight: 800; }
-  .card-val { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; }
+  .card-val { font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; margin-top: 4px; }
 
-  @media (max-width: 768px) { .assets-grid { grid-template-columns: 1fr; } }
+  [data-theme="light"] .asset-card { border: 1px solid #475569; }
+
+  @media (max-width: 1024px) { .assets-grid { grid-template-columns: repeat(2, 1fr); max-width: 100%; } }
+  @media (max-width: 768px) {
+    .assets-grid { grid-template-columns: 1fr; }
+    .chart-wrapper { width: 250px; height: 250px; }
+    .center-balance h3 { font-size: 1.5rem; }
+  }
 </style>
