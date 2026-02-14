@@ -12,7 +12,7 @@
           <h2>{{ t('portfolioSummary') }}</h2>
         </div>
 
-        <div class="currency-wrapper">
+        <div class="currency-wrapper" v-click-outside="closeDropdown">
           <div class="currency-btn" @click.stop="toggleDropdown" :class="{ 'active': showSelector }">
             <span class="curr-label">{{ totalValue }} {{ displayCurrency }}</span>
             <span class="arrow-icon">▼</span>
@@ -20,6 +20,8 @@
 
           <transition name="dropdown-anim">
             <div v-if="showSelector" class="currency-dropdown">
+
+              <div class="dd-section-title">Para Birimleri</div>
               <div class="c-item" @click="changeCurrency('TRY', 'STANDARD', 'TRY')">
                 <span class="symbol">₺</span> TRY
               </div>
@@ -33,30 +35,42 @@
                 <span class="symbol">₿</span> BTC
               </div>
               <div class="c-item" @click="changeCurrency('SILVER', 'STANDARD', 'SILVER')">
-                <span class="symbol text-icon">Gr</span> SILVER
+                <span class="symbol text-icon">Ag</span> SILVER
               </div>
 
-              <div class="c-item has-submenu">
-                <div class="gold-trigger">
-                  <div style="display:flex; align-items:center; gap:12px;">
-                    <span class="symbol text-icon"> </span> GOLD
-                  </div>
-                  <span class="arrow-right">▶</span>
+              <div class="dd-divider"></div>
+              <div class="dd-section-title">Altın Birimleri</div>
+
+              <div class="dd-group">
+                <div class="c-item group-trigger" @click.stop="toggleGramMenu">
+                  <span class="symbol text-icon">⚖️</span> Gram Altın
+                  <span class="arrow-right" :class="{ rotated: gramMenuOpen }">▶</span>
                 </div>
-                <div class="submenu">
-                  <div class="sub-item" style="--i:1" @click="changeCurrency('GOLD', 'GRAM_24', 'Has (24K)')">Has (24K)</div>
-                  <div class="sub-item" style="--i:2" @click="changeCurrency('GOLD', 'GRAM_22', '22 Ayar')">22 Ayar</div>
-                  <div class="sub-item" style="--i:3" @click="changeCurrency('GOLD', 'GRAM_18', '18 Ayar')">18 Ayar</div>
-                  <div class="sub-item" style="--i:4" @click="changeCurrency('GOLD', 'GRAM_14', '14 Ayar')">14 Ayar</div>
-                  <div class="sub-item" style="--i:5" @click="changeCurrency('GOLD', 'GRAM_8', '8 Ayar')">8 Ayar</div>
-                  <div class="sub-item" style="--i:6" @click="changeCurrency('GOLD', 'GRAM_4', '4 Ayar')">4 Ayar</div>
-                  <div class="sub-item" style="--i:7" @click="changeCurrency('GOLD', 'CEYREK', 'Çeyrek')">Çeyrek</div>
-                  <div class="sub-item" style="--i:8" @click="changeCurrency('GOLD', 'YARIM', 'Yarım')">Yarım</div>
-                  <div class="sub-item" style="--i:9" @click="changeCurrency('GOLD', 'TAM', 'Tam')">Tam</div>
-                  <div class="sub-item" style="--i:10" @click="changeCurrency('GOLD', 'CUMHURIYET', 'Cumhuriyet')">Cumhuriyet</div>
-                  <div class="sub-item" style="--i:11" @click="changeCurrency('GOLD', 'GREMSE', 'Gremse')">Gremse</div>
+
+                <div v-if="gramMenuOpen" class="sub-menu">
+                  <div class="c-item sub-item" v-for="k in karats" :key="k"
+                       @click="changeCurrency('GOLD', `GRAM_${k}`, `Gram (${k}K)`)">
+                    {{ k }} Ayar
+                  </div>
                 </div>
               </div>
+
+              <div class="c-item" @click="changeCurrency('GOLD', 'CUMHURIYET', 'Cumhuriyet')">
+                <span class="symbol text-icon">🔴</span> Cumhuriyet
+              </div>
+              <div class="c-item" @click="changeCurrency('GOLD', 'TAM', 'Tam')">
+                <span class="symbol text-icon">🌕</span> Tam
+              </div>
+              <div class="c-item" @click="changeCurrency('GOLD', 'YARIM', 'Yarım')">
+                <span class="symbol text-icon">🌓</span> Yarım
+              </div>
+              <div class="c-item" @click="changeCurrency('GOLD', 'CEYREK', 'Çeyrek')">
+                <span class="symbol text-icon">🔸</span> Çeyrek
+              </div>
+              <div class="c-item" @click="changeCurrency('GOLD', 'GREMSE', 'Gremse')">
+                <span class="symbol text-icon">🔶</span> Gremse
+              </div>
+
             </div>
           </transition>
         </div>
@@ -73,11 +87,10 @@
           </template>
           <div v-else class="no-data-circle">
             <div class="no-data-content">
-              <span>{{ t('noData') }}</span>
+              <span>Veri Yok</span>
             </div>
           </div>
         </div>
-        <div class="chart-line"></div>
       </div>
 
       <div class="assets-grid">
@@ -111,29 +124,34 @@
   ChartJS.register(ArcElement, Tooltip, Legend);
   const router = useRouter();
   const showSelector = ref(false);
+  const gramMenuOpen = ref(false);
   const summaryData = ref(null);
+
   const baseCurrency = ref('TRY');
   const targetVariant = ref('STANDARD');
   const baseCurrencyLabel = ref('TRY');
+
+  const karats = [24, 22, 18, 14, 8, 4];
 
   const cardConfigs = [
     { type: 'TRY', label: 'TRY', icon: '₺' },
     { type: 'USD', label: 'USD', icon: '$' },
     { type: 'EUR', label: 'EUR', icon: '€' },
     { type: 'BTC', label: 'BTC', icon: '₿' },
-    { type: 'SILVER', label: 'SILVER', icon: 'Gr' },
-    { type: 'GOLD', label: 'GOLD', icon: ' ' }
+    { type: 'SILVER', label: 'SILVER', icon: 'Ag' },
+    { type: 'GOLD', label: 'GOLD', icon: '🥇' }
   ];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
-  window.addEventListener('click', () => { if(showSelector.value) showSelector.value = false; });
+  const toggleGramMenu = () => { gramMenuOpen.value = !gramMenuOpen.value; };
+  const closeDropdown = () => { showSelector.value = false; gramMenuOpen.value = false; };
 
   const displayCurrency = computed(() => baseCurrencyLabel.value);
 
   const totalValue = computed(() => {
     if (summaryData.value && summaryData.value.total_value) {
       const decimals = ['GOLD', 'SILVER', 'BTC'].includes(baseCurrency.value) ? 3 : 2;
-      return summaryData.value.total_value.toLocaleString('tr-TR', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+      return summaryData.value.total_value.toLocaleString('tr-TR', { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
     }
     return '0,00';
   });
@@ -142,7 +160,7 @@
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
-    const colors = ['#E63946', '#2A9D8F', '#A0522D', '#1B1B1B', '#A9A9A9', '#FFD700'];
+    const colors = ['#DC2626', '#059669', '#8B4513', '#111827', '#64748B', '#FACC15'];
     const data = labels.map(label => {
       const assets = summaryData.value?.assets || [];
       return assets.filter(a => a.type === label).reduce((sum, curr) => sum + (curr.allocation || 0), 0);
@@ -167,9 +185,8 @@
   const getAmount = (type) => {
     const assets = summaryData.value?.assets || [];
     const total = assets.filter(a => a.type === type).reduce((sum, curr) => sum + curr.value_in_base, 0);
-    if (total === 0) return '0,00';
     const decimals = 2;
-    return total.toLocaleString('tr-TR', { maximumFractionDigits: decimals, minimumFractionDigits: decimals });
+    return total.toLocaleString('tr-TR', { maximumFractionDigits: decimals }) + ' ' + baseCurrencyLabel.value;
   };
 
   const getAllocation = (type) => {
@@ -183,11 +200,22 @@
     targetVariant.value = variant;
     baseCurrencyLabel.value = label;
     showSelector.value = false;
+    gramMenuOpen.value = false;
     fetchData();
   };
 
   const navigateToDetail = (type) => {
     router.push({ name: 'asset-detail', params: { type } });
+  };
+
+  const vClickOutside = {
+    mounted(el, binding) {
+      el.clickOutsideEvent = function(event) {
+        if (!(el === event.target || el.contains(event.target))) { binding.value(event, el); }
+      };
+      document.body.addEventListener('click', el.clickOutsideEvent);
+    },
+    unmounted(el) { document.body.removeEventListener('click', el.clickOutsideEvent); }
   };
 
   onMounted(() => { fetchData(); });
@@ -203,198 +231,61 @@
   @keyframes floatOrb { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(50px, 50px) scale(1.1); } }
 
   .dashboard-content { position: relative; z-index: 10; width: 100%; height: 100%; overflow-y: auto; padding: 30px; box-sizing: border-box; }
-
-  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; flex-wrap: wrap; gap: 20px; }
+  .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
   .page-title h2 { color: var(--text-color); margin: 0; font-size: 1.8rem; font-weight: 700; }
 
-  .currency-wrapper { position: relative; z-index: 100; }
-
-  .currency-btn {
-    background: var(--sidebar-bg);
-    border: 1px solid var(--border-color);
-    padding: 12px 25px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    color: var(--accent-color);
-    transition: 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-width: 220px;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-  }
-  .currency-btn:hover { border-color: var(--accent-color); transform: translateY(-2px); }
-  .currency-btn.active .arrow-icon { transform: rotate(180deg); }
-  .arrow-icon { font-size: 0.8rem; transition: 0.3s; }
+  .currency-btn { background: var(--sidebar-bg); border: 1px solid var(--border-color); padding: 12px 25px; border-radius: 25px; cursor: pointer; font-weight: bold; color: var(--accent-color); display: flex; align-items: center; gap: 10px; min-width: 200px; justify-content: space-between; position: relative; z-index: 100; }
 
   .currency-dropdown {
-    position: absolute;
-    top: calc(100% + 10px);
-    inset-inline-end: 0;
-    background: var(--sidebar-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    width: 240px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    z-index: 101;
-    padding: 8px 0;
-    overflow: visible;
+    position: absolute; top: 100%; right: 0;
+    background: #1E293B; border: 1px solid #334155;
+    border-radius: 12px; width: 220px; z-index: 101;
+    margin-top: 10px; max-height: 400px; overflow-y: auto; overflow-x: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
   }
+  .currency-dropdown::-webkit-scrollbar { width: 6px; }
+  .currency-dropdown::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
 
-  .c-item {
-    padding: 12px 20px;
-    cursor: pointer;
-    position: relative;
-    color: var(--text-color);
-    transition: 0.2s;
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    border-bottom: 1px solid var(--border-color);
-  }
-  .c-item:last-child { border-bottom: none; }
-  .c-item:hover { background: var(--hover-bg); color: var(--accent-color); }
+  .dd-section-title { font-size: 0.75rem; color: #94A3B8; padding: 10px 15px 5px; font-weight: bold; letter-spacing: 1px; }
+  .dd-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
 
-  .symbol { width: 24px; text-align: center; font-weight: bold; font-size: 1.1rem; }
-  .text-icon { font-size: 0.85rem; font-weight: 800; opacity: 0.9; }
+  .c-item { padding: 12px 15px; cursor: pointer; color: var(--text-color); transition: 0.2s; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
+  .c-item:hover { background: #334155; color: #FFD700; padding-left: 20px; }
 
-  .has-submenu { position: relative; overflow: visible; }
-  .gold-trigger { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+  .sub-menu { background: #0F172A; border-left: 2px solid #FFD700; }
+  .sub-item { padding-left: 35px; font-size: 0.9rem; color: #94A3B8; }
+  .sub-item:hover { color: #fff; background: #1E293B; }
+  .arrow-right { font-size: 0.8rem; transition: 0.3s; margin-left: auto; }
+  .arrow-right.rotated { transform: rotate(90deg); }
 
-  .submenu {
-    position: absolute;
-    top: 0;
-    inset-inline-end: 100%;
-    margin-inline-end: -1px;
-    background: var(--sidebar-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    min-width: 160px;
-    padding: 8px;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    opacity: 0;
-    visibility: hidden;
-    transform: translateX(10px);
-    transition: all 0.2s ease;
-  }
-
-  html[dir="ltr"] .submenu { transform: translateX(-10px); }
-  html[dir="rtl"] .submenu { transform: translateX(10px); margin-inline-end: -1px; }
-
-  .has-submenu::after { content: ''; position: absolute; top: 0; bottom: 0; width: 20px; inset-inline-end: 100%; z-index: 102; }
-  .has-submenu:hover .submenu { opacity: 1; visibility: visible; transform: translateX(0); }
-
-  .sub-item {
-    padding: 10px 15px;
-    font-size: 0.9rem;
-    color: var(--text-color);
-    cursor: pointer;
-    transition: 0.2s;
-    border-bottom: 1px solid var(--border-color);
-  }
-  .sub-item:last-child { border-bottom: none; }
-  .sub-item:hover { background: var(--hover-bg); color: var(--accent-color); }
-
-  .dropdown-anim-enter-active, .dropdown-anim-leave-active { transition: all 0.2s ease; }
-  .dropdown-anim-enter-from, .dropdown-anim-leave-to { opacity: 0; transform: translateY(-10px); }
-
-  .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; position: relative; width: 100%; }
+  .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; }
   .chart-wrapper { width: 280px; height: 280px; position: relative; }
-  .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
-  .center-balance h3 { font-size: 1.8rem; margin: 0; font-weight: 800; color: var(--text-color); white-space: nowrap; }
-  .center-balance small { color: var(--text-muted); font-size: 0.9rem; font-weight: bold; letter-spacing: 2px; }
-  .chart-line { width: 50px; height: 3px; background: var(--border-color); border-radius: 2px; margin-top: 25px; opacity: 0.7; }
+  .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .center-balance h3 { font-size: 1.8rem; margin: 0; color: var(--text-color); }
+  .center-balance small { color: var(--text-muted); }
 
-  .no-data-circle { width: 100%; height: 100%; border-radius: 50%; border: 6px dashed var(--border-color); display: flex; align-items: center; justify-content: center; }
-  .no-data-content { text-align: center; color: var(--text-muted); font-weight: bold; }
+  .assets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; max-width: 900px; margin: 0 auto; }
+  .asset-card { padding: 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; color: white !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+  .asset-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-  .assets-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 25px;
-    width: 100%;
-    max-width: 900px;
-    margin: 0 auto;
-    padding-bottom: 80px;
-  }
+  .card-try { background: linear-gradient(135deg, #DC2626, #7F1D1D); }
+  .card-usd { background: linear-gradient(135deg, #059669, #064E3B); }
 
-  .asset-card {
-    padding: 20px;
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-    overflow: hidden;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    min-height: 95px;
-    border: 1px solid rgba(255,255,255,0.05);
-  }
-  .asset-card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-  .asset-card * { color: white !important; z-index: 2; position: relative; }
-
-  .card-try { background: linear-gradient(135deg, #FF4500, #8B0000); }
-  .card-usd { background: linear-gradient(135deg, #32CD32, #006400); }
+  /* EUR KAHVERENGİ */
   .card-eur { background: linear-gradient(135deg, #8B4513, #5D4037); }
-  .card-btc { background: linear-gradient(135deg, #4F4F4F, #000000); }
-  .card-silver { background: linear-gradient(135deg, #D3D3D3, #708090); }
-  .card-gold { background: linear-gradient(135deg, #FFD700, #B8860B); }
 
-  .card-left { display: flex; flex-direction: column; justify-content: center; gap: 4px; }
-  .card-symbol { font-size: 1.6rem; font-weight: 800; opacity: 0.9; line-height: 1; }
-  .card-name { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; font-weight: bold; }
+  /* BTC METALİK SİYAH */
+  .card-btc { background: linear-gradient(135deg, #2D3436, #000000); }
 
-  .card-right { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; }
+  .card-silver { background: linear-gradient(135deg, #64748B, #334155); }
+  .card-gold { background: linear-gradient(135deg, #FACC15, #854D0E); }
+
+  /* LIGHT MODE AYARLARI */
+  [data-theme="light"] .card-eur { background: linear-gradient(135deg, #A0522D, #8B4513); }
+  [data-theme="light"] .card-btc { background: linear-gradient(135deg, #4A4A4A, #1A1A1A); }
+
   .card-amount { font-size: 1.2rem; font-weight: 800; }
-  .card-val { font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; margin-top: 4px; }
+  .card-val { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; }
 
-  [data-theme="light"] .asset-card { border: 1px solid #475569; }
-
-  .floating-actions { position: fixed; bottom: 30px; inset-inline-end: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 110; }
-  .f-btn { width: 60px; height: 60px; border-radius: 50%; border: none; font-size: 24px; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); transition: 0.3s; color: white; display: flex; align-items: center; justify-content: center; }
-  .f-btn:hover { transform: scale(1.1); }
-  .excel { background: linear-gradient(135deg, #10B981, #059669); }
-  .pdf { background: linear-gradient(135deg, #3B82F6, #2563EB); }
-
-  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 200; backdrop-filter: blur(5px); }
-  .large-modal { width: 800px !important; max-width: 95%; padding: 40px; border-radius: 20px; }
-  .modal-content { background: var(--card-bg); padding: 30px; border-radius: 20px; border: 1px solid var(--border-color); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-  .modal-header { display: flex; justify-content: space-between; margin-bottom: 25px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
-  .modal-header h3 { color: var(--text-color); margin: 0; font-size: 1.5rem; }
-  .modal-header button { background: none; border: none; color: var(--text-color); font-size: 1.5rem; cursor: pointer; transition: 0.2s; }
-  .modal-header button:hover { color: var(--danger-color); transform: rotate(90deg); }
-
-  .modal-body-split { display: grid; grid-template-columns: 1fr 1.2fr; gap: 40px; margin-top: 20px; }
-  .transaction-form, .transaction-history { display: flex; flex-direction: column; gap: 15px; }
-  .transaction-history { border-inline-start: 1px solid var(--border-color); padding-inline-start: 30px; }
-  h4 { color: var(--text-muted); margin: 0 0 10px 0; font-size: 1.1rem; }
-  .history-list { max-height: 350px; overflow-y: auto; padding-inline-end: 5px; }
-  .history-item { background: var(--input-bg); padding: 15px; border-radius: 12px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
-  .tx-info { display: flex; flex-direction: column; gap: 4px; }
-  .tx-date { color: var(--text-muted); font-size: 0.8rem; }
-  .tx-type.add { color: var(--success-color) !important; font-weight: bold; }
-  .tx-type.subtract { color: var(--danger-color) !important; font-weight: bold; }
-  .tx-amount { color: var(--text-color); font-weight: bold; font-size: 1.1rem; }
-  .receipt-download-btn { background: transparent; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; padding: 8px; transition: 0.2s; font-size: 1.2rem; }
-  .receipt-download-btn:hover { background: var(--hover-bg); }
-
-  .big-input, .ayar-select, .date-input { width: 100%; padding: 15px; background: var(--input-bg); border: 1px solid var(--border-color); color: var(--text-color); border-radius: 12px; margin-bottom: 15px; font-size: 1rem; box-sizing: border-box; }
-  .actions { display: flex; gap: 15px; margin-top: 10px; }
-  .actions button { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; color: white; transition: 0.2s; font-size: 1rem; }
-  .add { background: linear-gradient(135deg, #10B981, #047857); }
-  .sub { background: linear-gradient(135deg, #EF4444, #B91C1C); }
-  .add:hover, .sub:hover { opacity: 0.9; transform: translateY(-2px); }
-
-  @media (max-width: 1024px) { .assets-grid { grid-template-columns: repeat(2, 1fr); max-width: 100%; } }
-  @media (max-width: 768px) {
-    .assets-grid { grid-template-columns: 1fr; }
-    .modal-body-split { grid-template-columns: 1fr; }
-    .transaction-history { border-inline-start: none; border-top: 1px solid var(--border-color); padding-inline-start: 0; padding-top: 30px; }
-    .chart-wrapper { width: 250px; height: 250px; }
-    .center-balance h3 { font-size: 1.5rem; }
-  }
+  @media (max-width: 768px) { .assets-grid { grid-template-columns: 1fr; } }
 </style>

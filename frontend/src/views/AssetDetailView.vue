@@ -17,24 +17,13 @@
                         <div v-if="showDd" class="dd-menu">
 
                             <div class="dd-section-title">Para Birimleri</div>
-                            <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')">
-                                <span class="sym">₺</span> TRY
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')">
-                                <span class="sym">$</span> USD
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')">
-                                <span class="sym">€</span> EUR
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('BTC', 'STANDARD', 'BTC')">
-                                <span class="sym">₿</span> BTC
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('SILVER', 'STANDARD', 'SILVER')">
-                                <span class="sym">Ag</span> SILVER
-                            </div>
+                            <div class="dd-item" @click="changeViewUnit('TRY', 'STANDARD', 'TRY')"><span class="sym">₺</span> TRY</div>
+                            <div class="dd-item" @click="changeViewUnit('USD', 'STANDARD', 'USD')"><span class="sym">$</span> USD</div>
+                            <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')"><span class="sym">€</span> EUR</div>
+                            <div class="dd-item" @click="changeViewUnit('BTC', 'STANDARD', 'BTC')"><span class="sym">₿</span> BTC</div>
+                            <div class="dd-item" @click="changeViewUnit('SILVER', 'STANDARD', 'SILVER')"><span class="sym">Ag</span> SILVER</div>
 
                             <div class="dd-divider"></div>
-
                             <div class="dd-section-title">Altın Birimleri</div>
 
                             <div class="dd-group">
@@ -42,7 +31,6 @@
                                     <span class="sym">⚖️</span> Gram Altın
                                     <span class="arrow-right" :class="{ rotated: gramMenuOpen }">▶</span>
                                 </div>
-
                                 <div v-if="gramMenuOpen" class="deep-menu">
                                     <div class="dd-item deep-item" v-for="k in karats" :key="k"
                                          @click="changeViewUnit('GOLD', `GRAM_${k}`, `Gram (${k}K)`)">
@@ -51,43 +39,33 @@
                                 </div>
                             </div>
 
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')">
-                                <span class="sym">🔴</span> Cumhuriyet
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')">
-                                <span class="sym">🌕</span> Tam
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')">
-                                <span class="sym">🌓</span> Yarım
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')">
-                                <span class="sym">🔸</span> Çeyrek
-                            </div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')">
-                                <span class="sym">🔶</span> Gremse
-                            </div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')"><span class="sym">🔴</span> Cumhuriyet</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')"><span class="sym">🌕</span> Tam</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')"><span class="sym">🌓</span> Yarım</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')"><span class="sym">🔸</span> Çeyrek</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')"><span class="sym">🔶</span> Gremse</div>
 
                         </div>
                     </transition>
                 </div>
 
                 <div class="actions">
-                    <button class="icon-btn" @click="downloadExcel" title="Excel">📊</button>
-                    <button class="icon-btn" @click="downloadPDF" title="PDF">📄</button>
+                    <button class="icon-btn" @click="downloadExcel" title="Excel İndir">📊</button>
+                    <button class="icon-btn" @click="downloadFullPDF" title="Rapor İndir">📄</button>
                 </div>
             </div>
         </header>
 
-        <div class="hero-section">
-            <div class="hero-value">{{ totalInSelectedUnit }}</div>
-            <div class="hero-line"></div>
+        <div class="hero-container">
+            <div class="hero-card">
+                <div class="hero-label">TOPLAM VARLIK DEĞERİ</div>
+                <div class="hero-amount">{{ totalInSelectedUnit }} <span class="hero-curr">{{ displayLabel }}</span></div>
+            </div>
         </div>
 
         <div class="detail-grid">
             <section class="action-card">
-                <div class="card-header">
-                    <h3>Hızlı İşlem</h3>
-                </div>
+                <div class="card-header"><h3>Hızlı İşlem</h3></div>
 
                 <div class="form-body">
                     <div v-if="type === 'GOLD'" class="gold-options">
@@ -128,20 +106,14 @@
                     </div>
 
                     <div class="action-buttons">
-                        <button class="btn-add" @click="submitTx('add')">
-                            <span>+</span> EKLE
-                        </button>
-                        <button class="btn-sub" @click="submitTx('subtract')">
-                            <span>-</span> ÇIKAR
-                        </button>
+                        <button class="btn-add" @click="submitTx('add')"><span>+</span> EKLE</button>
+                        <button class="btn-sub" @click="submitTx('subtract')"><span>-</span> ÇIKAR</button>
                     </div>
                 </div>
             </section>
 
             <section class="history-card">
-                <div class="card-header">
-                    <h3>İşlem Geçmişi</h3>
-                </div>
+                <div class="card-header"><h3>İşlem Geçmişi</h3></div>
                 <div class="history-list">
                     <div v-if="transactions.length === 0" class="no-data">İşlem geçmişi boş.</div>
                     <div v-for="tx in transactions" :key="tx.id" class="tx-item">
@@ -153,9 +125,7 @@
                             </div>
                         </div>
                         <div class="tx-right">
-              <span class="tx-amount" :class="tx.type">
-                {{ tx.type === 'add' ? '+' : '-' }}{{ tx.amount }}
-              </span>
+                            <span class="tx-amount" :class="tx.type">{{ tx.type === 'add' ? '+' : '-' }}{{ tx.amount }}</span>
                             <button class="receipt-btn" @click="downloadSingleReceipt(tx.id)" title="Dekont">📄</button>
                         </div>
                     </div>
@@ -176,24 +146,18 @@
     const gramMenuOpen = ref(false);
 
     const selectedCurrency = ref(props.type === 'GOLD' ? 'GOLD' : 'TRY');
-    const selectedVariant = ref('STANDARD');
+    const selectedVariant = ref(props.type === 'GOLD' ? 'GRAM_24' : 'STANDARD');
     const displayLabel = ref(props.type === 'GOLD' ? 'Has (24K)' : 'TRY');
 
-    const form = ref({
-        amount: '',
-        date: new Date().toISOString().split('T')[0],
-        goldType: 'GRAM',
-        goldKarat: 24
-    });
-
+    const form = ref({ amount: '', date: new Date().toISOString().split('T')[0], goldType: 'GRAM', goldKarat: 24 });
     const karats = [24, 22, 18, 14, 8, 4];
 
     const themeMap = {
         TRY: 'linear-gradient(135deg, #1e0505 0%, #450a0a 100%)',
         USD: 'linear-gradient(135deg, #051e0f 0%, #064e3b 100%)',
         GOLD: 'linear-gradient(135deg, #2A1C05 0%, #713F12 100%)',
-        EUR: 'linear-gradient(135deg, #050b1e 0%, #1e3a8a 100%)',
-        BTC: 'linear-gradient(135deg, #1e1305 0%, #78350f 100%)',
+        EUR: 'linear-gradient(135deg, #3E2723 0%, #5D4037 100%)', // Kahverengi
+        BTC: 'linear-gradient(135deg, #1A1A1A 0%, #000000 100%)', // Metalik Siyah
         SILVER: 'linear-gradient(135deg, #111827 0%, #374151 100%)'
     };
 
@@ -211,7 +175,12 @@
                 api.get('/assets/transactions', { params: { currency: selectedCurrency.value } })
             ]);
             assets.value = (resSum.data.assets || []).filter(a => a.type === props.type);
-            transactions.value = (resTx.data || []).filter(t => t.asset_type === props.type);
+
+            // SIRALAMA: En yeni tarih en üstte
+            transactions.value = (resTx.data || [])
+                .filter(t => t.asset_type === props.type)
+                .sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+
         } catch (err) { console.error(err); }
     };
 
@@ -229,36 +198,21 @@
 
     const formatTxName = (tx) => {
         if (tx.asset_type !== 'GOLD') return props.type;
-        if (tx.variant.startsWith('GRAM')) {
-            const k = tx.variant.split('_')[1];
-            return `${k} Ayar Gram`;
-        }
-        const map = {
-            'CEYREK': 'Çeyrek', 'YARIM': 'Yarım', 'TAM': 'Tam',
-            'CUMHURIYET': 'Cumhuriyet', 'GREMSE': 'Gremse'
-        };
+        if (tx.variant.startsWith('GRAM')) { return `${tx.variant.split('_')[1]} Ayar Gram`; }
+        const map = { 'CEYREK': 'Çeyrek', 'YARIM': 'Yarım', 'TAM': 'Tam', 'CUMHURIYET': 'Cumhuriyet', 'GREMSE': 'Gremse' };
         return map[tx.variant] || tx.variant;
     };
 
     const submitTx = async (action) => {
         if (!form.value.amount || form.value.amount <= 0) return alert("Geçerli miktar giriniz");
-
         let variantToSend = 'STANDARD';
         if (props.type === 'GOLD') {
-            if (form.value.goldType === 'GRAM') {
-                variantToSend = `GRAM_${form.value.goldKarat}`;
-            } else {
-                variantToSend = form.value.goldType;
-            }
+            variantToSend = form.value.goldType === 'GRAM' ? `GRAM_${form.value.goldKarat}` : form.value.goldType;
         }
-
         try {
             await api.post('/assets/update', {
-                type: props.type,
-                action,
-                variant: variantToSend,
-                amount: parseFloat(form.value.amount),
-                transaction_date: new Date(form.value.date).toISOString()
+                type: props.type, action, variant: variantToSend,
+                amount: parseFloat(form.value.amount), transaction_date: new Date(form.value.date).toISOString()
             });
             form.value.amount = '';
             await fetchData();
@@ -274,7 +228,7 @@
     const downloadFullPDF = async () => {
         const res = await api.get(`/assets/receipt/full`, { responseType: 'blob', params: { currency: 'TRY' } });
         const url = window.URL.createObjectURL(new Blob([res.data]));
-        const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Rapor.pdf'); link.click();
+        const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Portfoy_Raporu.pdf'); link.click();
     };
 
     const downloadExcel = async () => {
@@ -285,9 +239,7 @@
 
     const vClickOutside = {
         mounted(el, binding) {
-            el.clickOutsideEvent = function(event) {
-                if (!(el === event.target || el.contains(event.target))) { binding.value(event, el); }
-            };
+            el.clickOutsideEvent = function(event) { if (!(el === event.target || el.contains(event.target))) { binding.value(event, el); } };
             document.body.addEventListener('click', el.clickOutsideEvent);
         },
         unmounted(el) { document.body.removeEventListener('click', el.clickOutsideEvent); }
@@ -305,23 +257,16 @@
 
 <style scoped>
     .detail-container { min-height: 100vh; padding: 40px; color: white; font-family: 'Inter', sans-serif; box-sizing: border-box; }
-    .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
     .back-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 25px; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.3s; }
     .back-btn:hover { background: rgba(255,255,255,0.2); }
 
-    /* SAĞ MENÜ (BİRAZ AŞAĞI ALINDI) */
-    .right-menu { display: flex; align-items: center; gap: 15px; margin-top: 10px; }
+    .right-menu { display: flex; align-items: center; gap: 15px; }
     .currency-dropdown-wrapper { position: relative; }
     .dd-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 1rem; min-width: 160px; display: flex; justify-content: space-between; align-items: center; }
     .dd-btn:hover { background: rgba(255,255,255,0.15); border-color: #FFD700; }
 
-    .dd-menu {
-        position: absolute; top: 110%; right: 0;
-        background: #1E293B; border: 1px solid #334155;
-        border-radius: 12px; width: 220px;
-        z-index: 100; max-height: 400px; overflow-y: auto; overflow-x: hidden;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-    }
+    .dd-menu { position: absolute; top: 110%; right: 0; background: #1E293B; border: 1px solid #334155; border-radius: 12px; width: 220px; z-index: 100; max-height: 400px; overflow-y: auto; overflow-x: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
     .dd-menu::-webkit-scrollbar { width: 6px; }
     .dd-menu::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
     .dd-section-title { font-size: 0.75rem; color: #94A3B8; padding: 10px 15px 5px; font-weight: bold; letter-spacing: 1px; }
@@ -331,7 +276,7 @@
     .dd-anim-enter-active, .dd-anim-leave-active { transition: all 0.2s ease; }
     .dd-anim-enter-from, .dd-anim-leave-to { opacity: 0; transform: translateY(-10px); }
 
-    /* GRAM ÖZEL STİL */
+    /* GRAM MENÜSÜ */
     .sub-menu { background: #0F172A; border-left: 2px solid #FFD700; }
     .sub-trigger { font-weight: bold; color: #FFD700; background: #1E293B; }
     .deep-menu { background: #020617; }
@@ -344,18 +289,30 @@
     .icon-btn { background: rgba(255,255,255,0.1); border: none; width: 45px; height: 45px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
     .icon-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
 
-    /* HERO SECTION - SADECE SAYI VE ÇİZGİ */
-    .hero-section { text-align: center; margin-bottom: 50px; }
-    .hero-value { font-size: 4.5rem; font-weight: 800; letter-spacing: -2px; line-height: 1; }
-    .hero-line { width: 120px; height: 5px; background: #FFD700; margin: 25px auto 0; border-radius: 3px; opacity: 0.8; }
+    /* YENİ PROFESYONEL HERO ALANI */
+    .hero-container { display: flex; justify-content: center; margin-bottom: 50px; }
+    .hero-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 30px 60px;
+        border-radius: 24px;
+        text-align: center;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-card::before { content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%); transform: rotate(30deg); pointer-events: none; }
+    .hero-label { font-size: 0.85rem; letter-spacing: 2px; color: rgba(255,255,255,0.6); margin-bottom: 10px; font-weight: 600; }
+    .hero-amount { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .hero-curr { font-size: 1.5rem; color: #FFD700; margin-left: 10px; font-weight: 600; opacity: 0.9; }
 
-    /* GRID */
+    /* GRID VE KARTLAR */
     .detail-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 40px; max-width: 1200px; margin: 0 auto; }
     .action-card, .history-card { background: rgba(0,0,0,0.3); backdrop-filter: blur(20px); border-radius: 24px; border: 1px solid rgba(255,255,255,0.1); overflow: hidden; display: flex; flex-direction: column; }
     .card-header { padding: 20px 30px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.02); }
     .card-header h3 { margin: 0; font-size: 1.2rem; color: #fff; font-weight: 700; }
 
-    /* FORM */
     .form-body { padding: 30px; display: flex; flex-direction: column; gap: 20px; }
     .input-group label { display: block; margin-bottom: 8px; color: #94A3B8; font-size: 0.9rem; font-weight: 600; }
     .custom-input { width: 100%; padding: 16px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.15); color: white; border-radius: 12px; font-size: 1.1rem; box-sizing: border-box; transition: 0.3s; }
@@ -389,6 +346,6 @@
 
     @media (max-width: 1024px) {
         .detail-grid { grid-template-columns: 1fr; }
-        .hero-value { font-size: 3rem; }
+        .hero-amount { font-size: 2.5rem; }
     }
 </style>
