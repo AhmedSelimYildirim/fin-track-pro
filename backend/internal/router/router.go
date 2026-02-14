@@ -24,7 +24,7 @@ func SetupRoutes(app *fiber.App) {
 		AllowCredentials: true,
 	}))
 
-	app.All("/", func(c *fiber.Ctx) error {
+	app.Get("/", func(c *fiber.Ctx) error {
 		return c.Status(200).SendString("FinTrack Pro Backend is Running!")
 	})
 
