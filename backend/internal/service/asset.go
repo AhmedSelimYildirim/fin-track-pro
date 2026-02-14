@@ -246,6 +246,7 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	pdf.Ln(8)
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Toplam Tutar: %.2f %s", tx.Amount*convertedPrice, baseCurrency)))
 	pdf.Ln(8)
+	// SAAT KALDIRILDI - SADECE TARİH
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Islem Tarihi: %s", tx.TransactionDate.Add(3*time.Hour).Format("02.01.2006"))))
 	pdf.Ln(20)
 

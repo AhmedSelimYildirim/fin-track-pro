@@ -2,7 +2,6 @@
     <div class="detail-container" :style="pageTheme">
         <header class="detail-header">
             <div class="left">
-                <button class="back-btn" @click="$router.push('/dashboard')">← Geri</button>
                 <h1>{{ type === 'GOLD' ? 'GOLD' : type }} Portföyü</h1>
             </div>
 
@@ -146,9 +145,9 @@
     const showDd = ref(false);
     const gramMenuOpen = ref(false);
 
-    const selectedCurrency = ref(props.type === 'GOLD' ? 'GOLD' : 'TRY');
-    const selectedVariant = ref(props.type === 'GOLD' ? 'GRAM_24' : 'STANDARD');
-    const displayLabel = ref(props.type === 'GOLD' ? 'Has (24K)' : 'TRY');
+    const selectedCurrency = ref('TRY');
+    const selectedVariant = ref('STANDARD');
+    const displayLabel = ref('TRY');
 
     const form = ref({ amount: '', date: new Date().toISOString().split('T')[0], goldType: 'GRAM', goldKarat: 24 });
     const karats = [24, 22, 18, 14, 8, 4];
@@ -157,8 +156,8 @@
         TRY: 'linear-gradient(135deg, #1e0505 0%, #450a0a 100%)',
         USD: 'linear-gradient(135deg, #051e0f 0%, #064e3b 100%)',
         GOLD: 'linear-gradient(135deg, #2A1C05 0%, #713F12 100%)',
-        EUR: 'linear-gradient(135deg, #3E2723 0%, #5D4037 100%)', // Kahverengi
-        BTC: 'linear-gradient(135deg, #1A1A1A 0%, #000000 100%)', // Metalik Siyah
+        EUR: 'linear-gradient(135deg, #3E2723 0%, #5D4037 100%)',
+        BTC: 'linear-gradient(135deg, #1A1A1A 0%, #000000 100%)',
         SILVER: 'linear-gradient(135deg, #111827 0%, #374151 100%)'
     };
 
@@ -177,13 +176,14 @@
             ]);
             assets.value = (resSum.data.assets || []).filter(a => a.type === props.type);
 
+            // SIRALAMA: Tarih (Yeni->Eski) + Aynı tarihteyse son eklenen (ID büyük)
             transactions.value = (resTx.data || [])
                 .filter(t => t.asset_type === props.type)
                 .sort((a, b) => {
                     const dateA = new Date(a.transaction_date);
                     const dateB = new Date(b.transaction_date);
                     if (dateA.getTime() === dateB.getTime()) {
-                        return new Date(b.created_at) - new Date(a.created_at);
+                        return b.id - a.id; // Aynı tarihte son eklenen üste
                     }
                     return dateB - dateA;
                 });
@@ -262,9 +262,10 @@
     };
 
     watch(() => props.type, () => {
-        selectedCurrency.value = props.type === 'GOLD' ? 'GOLD' : 'TRY';
-        selectedVariant.value = props.type === 'GOLD' ? 'GRAM_24' : 'STANDARD';
-        displayLabel.value = props.type === 'GOLD' ? 'Has (24K)' : 'TRY';
+        // Varsayılan TRY olarak ayarlandı
+        selectedCurrency.value = 'TRY';
+        selectedVariant.value = 'STANDARD';
+        displayLabel.value = 'TRY';
         fetchData();
     });
 
@@ -274,8 +275,6 @@
 <style scoped>
     .detail-container { min-height: 100vh; padding: 40px; color: white; font-family: 'Inter', sans-serif; box-sizing: border-box; }
     .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-    .back-btn { background: rgba(255,255,255,0.1); border: none; color: white; padding: 10px 25px; border-radius: 30px; cursor: pointer; font-weight: bold; transition: 0.3s; }
-    .back-btn:hover { background: rgba(255,255,255,0.2); }
 
     .right-menu { display: flex; align-items: center; gap: 15px; }
     .currency-dropdown-wrapper { position: relative; }

@@ -33,7 +33,7 @@ func (h *AssetHandler) UpdateBalance(c *fiber.Ctx) error {
 func (h *AssetHandler) GetSummary(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency", "TRY")
-	variant := c.Query("variant", "STANDARD") // YENİ: Variant parametresini okuyoruz
+	variant := c.Query("variant", "STANDARD")
 
 	summary, err := h.service.GetPortfolioSummary(userID, currency, variant)
 	if err != nil {
@@ -72,7 +72,9 @@ func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency", "TRY")
-	pdfBytes, err := h.service.GenerateFullPortfolioReceipt(userID, currency)
+	variant := c.Query("variant", "STANDARD") // YENİ: Varyant eklendi
+
+	pdfBytes, err := h.service.GenerateFullPortfolioReceipt(userID, currency, variant)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Portfoy raporu uretilemedi"})
 	}
@@ -84,7 +86,9 @@ func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 func (h *AssetHandler) GetExcel(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency", "TRY")
-	excelBytes, err := h.service.GenerateExcelReport(userID, currency)
+	variant := c.Query("variant", "STANDARD") // YENİ: Varyant eklendi
+
+	excelBytes, err := h.service.GenerateExcelReport(userID, currency, variant)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Excel raporu uretilemedi"})
 	}
