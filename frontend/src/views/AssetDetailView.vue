@@ -60,6 +60,7 @@
             <div class="hero-card">
                 <div class="hero-label">TOPLAM VARLIK DEĞERİ</div>
                 <div class="hero-amount">{{ totalInSelectedUnit }} <span class="hero-curr">{{ displayLabel }}</span></div>
+                <div class="hero-line"></div>
             </div>
         </div>
 
@@ -176,10 +177,16 @@
             ]);
             assets.value = (resSum.data.assets || []).filter(a => a.type === props.type);
 
-            // SIRALAMA: En yeni tarih en üstte
             transactions.value = (resTx.data || [])
                 .filter(t => t.asset_type === props.type)
-                .sort((a, b) => new Date(b.transaction_date) - new Date(a.transaction_date));
+                .sort((a, b) => {
+                    const dateA = new Date(a.transaction_date);
+                    const dateB = new Date(b.transaction_date);
+                    if (dateA.getTime() === dateB.getTime()) {
+                        return new Date(b.created_at) - new Date(a.created_at);
+                    }
+                    return dateB - dateA;
+                });
 
         } catch (err) { console.error(err); }
     };
@@ -220,19 +227,28 @@
     };
 
     const downloadSingleReceipt = async (id) => {
-        const res = await api.get(`/assets/receipt/${id}`, { responseType: 'blob', params: { currency: 'TRY' } });
+        const res = await api.get(`/assets/receipt/${id}`, {
+            responseType: 'blob',
+            params: { currency: selectedCurrency.value }
+        });
         const url = window.URL.createObjectURL(new Blob([res.data]));
         const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Dekont_${id}.pdf`); link.click();
     };
 
     const downloadFullPDF = async () => {
-        const res = await api.get(`/assets/receipt/full`, { responseType: 'blob', params: { currency: 'TRY' } });
+        const res = await api.get(`/assets/receipt/full`, {
+            responseType: 'blob',
+            params: { currency: selectedCurrency.value, variant: selectedVariant.value }
+        });
         const url = window.URL.createObjectURL(new Blob([res.data]));
         const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Portfoy_Raporu.pdf'); link.click();
     };
 
     const downloadExcel = async () => {
-        const res = await api.get(`/assets/export/excel`, { responseType: 'blob', params: { currency: 'TRY' } });
+        const res = await api.get(`/assets/export/excel`, {
+            responseType: 'blob',
+            params: { currency: selectedCurrency.value, variant: selectedVariant.value }
+        });
         const url = window.URL.createObjectURL(new Blob([res.data]));
         const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Export.xlsx'); link.click();
     };
@@ -306,6 +322,7 @@
     .hero-label { font-size: 0.85rem; letter-spacing: 2px; color: rgba(255,255,255,0.6); margin-bottom: 10px; font-weight: 600; }
     .hero-amount { font-size: 3.5rem; font-weight: 800; letter-spacing: -1px; text-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     .hero-curr { font-size: 1.5rem; color: #FFD700; margin-left: 10px; font-weight: 600; opacity: 0.9; }
+    .hero-line { width: 100px; height: 4px; background: #FFD700; margin: 20px auto 0; border-radius: 2px; opacity: 0.7; }
 
     /* GRID VE KARTLAR */
     .detail-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 40px; max-width: 1200px; margin: 0 auto; }

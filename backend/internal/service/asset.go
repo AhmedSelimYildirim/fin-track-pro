@@ -246,7 +246,7 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	pdf.Ln(8)
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Toplam Tutar: %.2f %s", tx.Amount*convertedPrice, baseCurrency)))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Islem Tarihi: %s", tx.TransactionDate.Add(3*time.Hour).Format("02.01.2006 15:04"))))
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Islem Tarihi: %s", tx.TransactionDate.Add(3*time.Hour).Format("02.01.2006"))))
 	pdf.Ln(20)
 
 	pdf.SetFont("Arial", "I", 10)
@@ -257,8 +257,8 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	return buf.Bytes(), nil
 }
 
-func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency string) ([]byte, error) {
-	summary, err := s.GetPortfolioSummary(userID, baseCurrency, "STANDARD")
+func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency string, baseVariant string) ([]byte, error) {
+	summary, err := s.GetPortfolioSummary(userID, baseCurrency, baseVariant)
 	if err != nil {
 		return nil, err
 	}
@@ -275,7 +275,11 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency s
 	pdf.Cell(40, 10, s.tr("Varyant"))
 	pdf.Cell(30, 10, s.tr("Miktar"))
 	pdf.Cell(40, 10, s.tr("Birim Deger"))
-	pdf.Cell(40, 10, s.tr(fmt.Sprintf("Toplam (%s)", baseCurrency)))
+	unitLabel := baseCurrency
+	if baseVariant != "" && baseVariant != "STANDARD" {
+		unitLabel = fmt.Sprintf("%s (%s)", baseCurrency, baseVariant)
+	}
+	pdf.Cell(40, 10, s.tr(fmt.Sprintf("Toplam (%s)", unitLabel)))
 	pdf.Ln(10)
 
 	pdf.SetFont("Arial", "", 10)
@@ -290,7 +294,7 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency s
 
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "B", 14)
-	pdf.Cell(0, 10, s.tr(fmt.Sprintf("TOPLAM PORTFOY DEGERI: %.2f %s", summary.TotalValue, baseCurrency)))
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("TOPLAM DEGER: %.2f %s", summary.TotalValue, unitLabel)))
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "I", 10)
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Kullanici: %s", userName)))
@@ -300,8 +304,8 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency s
 	return buf.Bytes(), nil
 }
 
-func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string) ([]byte, error) {
-	summary, err := s.GetPortfolioSummary(userID, baseCurrency, "STANDARD")
+func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, baseVariant string) ([]byte, error) {
+	summary, err := s.GetPortfolioSummary(userID, baseCurrency, baseVariant)
 	if err != nil {
 		return nil, err
 	}
@@ -312,11 +316,16 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string) ([
 	f.SetActiveSheet(index)
 	f.DeleteSheet("Sheet1")
 
+	unitLabel := baseCurrency
+	if baseVariant != "" && baseVariant != "STANDARD" {
+		unitLabel = fmt.Sprintf("%s (%s)", baseCurrency, baseVariant)
+	}
+
 	f.SetCellValue(sheetName, "A1", "Varlik")
 	f.SetCellValue(sheetName, "B1", "Varyant")
 	f.SetCellValue(sheetName, "C1", "Miktar")
-	f.SetCellValue(sheetName, "D1", fmt.Sprintf("Birim Fiyat (%s)", baseCurrency))
-	f.SetCellValue(sheetName, "E1", fmt.Sprintf("Toplam (%s)", baseCurrency))
+	f.SetCellValue(sheetName, "D1", fmt.Sprintf("Birim Fiyat (%s)", unitLabel))
+	f.SetCellValue(sheetName, "E1", fmt.Sprintf("Toplam (%s)", unitLabel))
 
 	row := 2
 	for _, a := range summary.Assets {
