@@ -31,8 +31,7 @@
       </nav>
 
       <div class="logout-wrapper">
-        <div class="menu-item logout-btn" @click="logout">
-          <span class="nav-icon">🚪</span> Çıkış Yap
+        <div class="menu-item logout-btn" @click="logout"> Çıkış Yap
         </div>
       </div>
     </aside>

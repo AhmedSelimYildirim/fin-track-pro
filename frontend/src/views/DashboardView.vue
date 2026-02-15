@@ -33,7 +33,7 @@
 
                 <div class="dd-group">
                   <div class="dd-item sub-trigger" @click.stop="toggleGramMenu">
-                    <span class="sym">⚖️</span> Gram Altın
+                    <span class="sym"> </span> Gram Altın
                     <span class="arrow-right" :class="{ rotated: gramMenuOpen }">▶</span>
                   </div>
                   <div v-if="gramMenuOpen" class="deep-menu">
@@ -41,11 +41,11 @@
                   </div>
                 </div>
 
-                <div class="dd-item" @click="changeCurrency('GOLD', 'CUMHURIYET', 'Cumhuriyet')"><span class="sym">🔴</span> Cumhuriyet</div>
-                <div class="dd-item" @click="changeCurrency('GOLD', 'TAM', 'Tam')"><span class="sym">🌕</span> Tam</div>
-                <div class="dd-item" @click="changeCurrency('GOLD', 'YARIM', 'Yarım')"><span class="sym">🌓</span> Yarım</div>
-                <div class="dd-item" @click="changeCurrency('GOLD', 'CEYREK', 'Çeyrek')"><span class="sym">🔸</span> Çeyrek</div>
-                <div class="dd-item" @click="changeCurrency('GOLD', 'GREMSE', 'Gremse')"><span class="sym">🔶</span> Gremse</div>
+                <div class="dd-item" @click="changeCurrency('GOLD', 'CUMHURIYET', 'Cumhuriyet')"><span class="sym"> </span> Cumhuriyet</div>
+                <div class="dd-item" @click="changeCurrency('GOLD', 'TAM', 'Tam')"><span class="sym"> </span> Tam</div>
+                <div class="dd-item" @click="changeCurrency('GOLD', 'YARIM', 'Yarım')"><span class="sym"> </span> Yarım</div>
+                <div class="dd-item" @click="changeCurrency('GOLD', 'CEYREK', 'Çeyrek')"><span class="sym"> </span> Çeyrek</div>
+                <div class="dd-item" @click="changeCurrency('GOLD', 'GREMSE', 'Gremse')"><span class="sym"> </span> Gremse</div>
               </div>
             </transition>
           </div>

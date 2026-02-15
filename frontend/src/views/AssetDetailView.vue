@@ -24,18 +24,18 @@
                             <div class="dd-section-title">Altın Birimleri</div>
                             <div class="dd-group">
                                 <div class="dd-item sub-trigger" @click.stop="toggleGramMenu">
-                                    <span class="sym">⚖️</span> Gram Altın
+                                    <span class="sym"> ️</span> Gram Altın
                                     <span class="arrow-right" :class="{ rotated: gramMenuOpen }">▶</span>
                                 </div>
                                 <div v-if="gramMenuOpen" class="deep-menu">
                                     <div class="dd-item deep-item" v-for="k in karats" :key="k" @click="changeViewUnit('GOLD', `GRAM_${k}`, `Gram (${k}K)`)">{{ k }} Ayar</div>
                                 </div>
                             </div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')"><span class="sym">🔴</span> Cumhuriyet</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')"><span class="sym">🌕</span> Tam</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')"><span class="sym">🌓</span> Yarım</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')"><span class="sym">🔸</span> Çeyrek</div>
-                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')"><span class="sym">🔶</span> Gremse</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')"><span class="sym"> </span> Cumhuriyet</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')"><span class="sym"> </span> Tam</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')"><span class="sym"> </span> Yarım</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'CEYREK', 'Çeyrek')"><span class="sym"> </span> Çeyrek</div>
+                            <div class="dd-item" @click="changeViewUnit('GOLD', 'GREMSE', 'Gremse')"><span class="sym"> </span> Gremse</div>
                         </div>
                     </transition>
                 </div>

@@ -246,7 +246,9 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	pdf.Ln(8)
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Toplam Tutar: %.2f %s", tx.Amount*convertedPrice, baseCurrency)))
 	pdf.Ln(8)
-	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Islem Tarihi: %s", tx.TransactionDate.Add(3*time.Hour).Format("02.01.2006"))))
+
+	trDate := tx.TransactionDate.Add(3 * time.Hour)
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Islem Tarihi: %s", trDate.Format("02.01.2006"))))
 	pdf.Ln(20)
 
 	pdf.SetFont("Arial", "I", 10)
@@ -325,23 +327,48 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 	txs, _ := s.repo.GetTransactionsByUserID(userID)
 
 	f := excelize.NewFile()
-	sheetName := "Varliklar"
+	sheetName := "Portfoy"
 	index, _ := f.NewSheet(sheetName)
 	f.SetActiveSheet(index)
 	f.DeleteSheet("Sheet1")
+
+	headerStyle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Color: "#FFFFFF", Size: 12},
+		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#1E293B"}, Pattern: 1},
+		Alignment: &excelize.Alignment{Horizontal: "center", Vertical: "center"},
+		Border:    []excelize.Border{{Type: "left", Color: "000000", Style: 1}, {Type: "top", Color: "000000", Style: 1}, {Type: "bottom", Color: "000000", Style: 1}, {Type: "right", Color: "000000", Style: 1}},
+	})
+
+	dataStyle, _ := f.NewStyle(&excelize.Style{
+		Border:    []excelize.Border{{Type: "left", Color: "000000", Style: 1}, {Type: "top", Color: "000000", Style: 1}, {Type: "bottom", Color: "000000", Style: 1}, {Type: "right", Color: "000000", Style: 1}},
+		Alignment: &excelize.Alignment{Horizontal: "center"},
+	})
+
+	titleStyle, _ := f.NewStyle(&excelize.Style{
+		Font:      &excelize.Font{Bold: true, Size: 14, Color: "#1E293B"},
+		Alignment: &excelize.Alignment{Horizontal: "left"},
+	})
 
 	unitLabel := baseCurrency
 	if baseVariant != "" && baseVariant != "STANDARD" {
 		unitLabel = fmt.Sprintf("%s (%s)", baseCurrency, baseVariant)
 	}
 
-	f.SetCellValue(sheetName, "A1", "Varlik")
-	f.SetCellValue(sheetName, "B1", "Varyant")
-	f.SetCellValue(sheetName, "C1", "Miktar")
-	f.SetCellValue(sheetName, "D1", fmt.Sprintf("Birim Fiyat (%s)", unitLabel))
-	f.SetCellValue(sheetName, "E1", fmt.Sprintf("Toplam (%s)", unitLabel))
+	reportTitle := "FINTRACK PRO - PORTFOY OZETI"
+	if filterType != "" {
+		reportTitle = fmt.Sprintf("FINTRACK PRO - %s PORTFOYU", filterType)
+	}
+	f.SetCellValue(sheetName, "A1", reportTitle)
+	f.SetCellStyle(sheetName, "A1", "A1", titleStyle)
 
-	row := 2
+	headers := []string{"Varlık", "Varyant/Tip", "Miktar", fmt.Sprintf("Birim Fiyat (%s)", unitLabel), fmt.Sprintf("Toplam (%s)", unitLabel)}
+	for i, h := range headers {
+		cell, _ := excelize.CoordinatesToCellName(i+1, 3)
+		f.SetCellValue(sheetName, cell, h)
+	}
+	f.SetCellStyle(sheetName, "A3", "E3", headerStyle)
+
+	row := 4
 	filteredTotal := 0.0
 	for _, a := range summary.Assets {
 		if filterType != "" && a.Type != filterType {
@@ -352,21 +379,27 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), a.Amount)
 		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), a.CurrentPrice)
 		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), a.ValueInBase)
+		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", row), fmt.Sprintf("E%d", row), dataStyle)
 		row++
 		filteredTotal += a.ValueInBase
 	}
-	f.SetCellValue(sheetName, fmt.Sprintf("D%d", row+1), "TOPLAM")
-	f.SetCellValue(sheetName, fmt.Sprintf("E%d", row+1), filteredTotal)
+	f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), "GENEL TOPLAM:")
+	f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), filteredTotal)
+	f.SetCellStyle(sheetName, fmt.Sprintf("D%d", row), fmt.Sprintf("E%d", row), headerStyle)
 
-	histSheet := "Islem Gecmisi"
-	f.NewSheet(histSheet)
-	f.SetCellValue(histSheet, "A1", "Tarih")
-	f.SetCellValue(histSheet, "B1", "Islem")
-	f.SetCellValue(histSheet, "C1", "Varlik")
-	f.SetCellValue(histSheet, "D1", "Miktar")
-	f.SetCellValue(histSheet, "E1", "Birim Fiyat")
+	row += 3
+	f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), "ISLEM GECMISI")
+	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", row), fmt.Sprintf("A%d", row), titleStyle)
+	row++
 
-	hRow := 2
+	histHeaders := []string{"ID", "Tarih", "İşlem", "Varlık", "Miktar", "Birim Fiyat", "Toplam Tutar"}
+	for i, h := range histHeaders {
+		cell, _ := excelize.CoordinatesToCellName(i+1, row)
+		f.SetCellValue(sheetName, cell, h)
+	}
+	f.SetCellStyle(sheetName, fmt.Sprintf("A%d", row), fmt.Sprintf("G%d", row), headerStyle)
+	row++
+
 	for _, tx := range txs {
 		if tx.Asset == nil {
 			continue
@@ -375,13 +408,27 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 			continue
 		}
 
-		f.SetCellValue(histSheet, fmt.Sprintf("A%d", hRow), tx.TransactionDate.Format("02.01.2006"))
-		f.SetCellValue(histSheet, fmt.Sprintf("B%d", hRow), tx.Type)
-		f.SetCellValue(histSheet, fmt.Sprintf("C%d", hRow), fmt.Sprintf("%s - %s", tx.Asset.Type, tx.Asset.Variant))
-		f.SetCellValue(histSheet, fmt.Sprintf("D%d", hRow), tx.Amount)
-		f.SetCellValue(histSheet, fmt.Sprintf("E%d", hRow), tx.Price)
-		hRow++
+		trDate := tx.TransactionDate.Add(3 * time.Hour)
+		opType := "Ekleme"
+		if tx.Type == "subtract" {
+			opType = "Cikarma"
+		}
+
+		f.SetCellValue(sheetName, fmt.Sprintf("A%d", row), tx.ID)
+		f.SetCellValue(sheetName, fmt.Sprintf("B%d", row), trDate.Format("02.01.2006"))
+		f.SetCellValue(sheetName, fmt.Sprintf("C%d", row), opType)
+		f.SetCellValue(sheetName, fmt.Sprintf("D%d", row), fmt.Sprintf("%s (%s)", tx.Asset.Type, tx.Asset.Variant))
+		f.SetCellValue(sheetName, fmt.Sprintf("E%d", row), tx.Amount)
+		f.SetCellValue(sheetName, fmt.Sprintf("F%d", row), tx.Price)
+		f.SetCellValue(sheetName, fmt.Sprintf("G%d", row), tx.Price*tx.Amount)
+		f.SetCellStyle(sheetName, fmt.Sprintf("A%d", row), fmt.Sprintf("G%d", row), dataStyle)
+		row++
 	}
+
+	f.SetColWidth(sheetName, "A", "A", 10)
+	f.SetColWidth(sheetName, "B", "C", 20)
+	f.SetColWidth(sheetName, "D", "D", 25)
+	f.SetColWidth(sheetName, "E", "G", 18)
 
 	buf, _ := f.WriteToBuffer()
 	return buf.Bytes(), nil
