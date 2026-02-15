@@ -281,6 +281,7 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency s
 	pdf.Cell(40, 10, s.tr("Varyant"))
 	pdf.Cell(30, 10, s.tr("Miktar"))
 	pdf.Cell(40, 10, s.tr("Birim Deger"))
+
 	unitLabel := baseCurrency
 	if baseVariant != "" && baseVariant != "STANDARD" {
 		unitLabel = fmt.Sprintf("%s (%s)", baseCurrency, baseVariant)
@@ -357,14 +358,13 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 	f.SetCellValue(sheetName, fmt.Sprintf("D%d", row+1), "TOPLAM")
 	f.SetCellValue(sheetName, fmt.Sprintf("E%d", row+1), filteredTotal)
 
-	// İŞLEM GEÇMİŞİ SAYFASI
 	histSheet := "Islem Gecmisi"
 	f.NewSheet(histSheet)
 	f.SetCellValue(histSheet, "A1", "Tarih")
 	f.SetCellValue(histSheet, "B1", "Islem")
 	f.SetCellValue(histSheet, "C1", "Varlik")
 	f.SetCellValue(histSheet, "D1", "Miktar")
-	f.SetCellValue(histSheet, "E1", "Birim Fiyat (Islem Aninda)")
+	f.SetCellValue(histSheet, "E1", "Birim Fiyat")
 
 	hRow := 2
 	for _, tx := range txs {

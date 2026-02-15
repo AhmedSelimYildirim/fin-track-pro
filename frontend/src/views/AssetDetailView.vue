@@ -38,8 +38,8 @@
                 </div>
 
                 <div class="actions">
-                    <button class="icon-btn" @click="downloadExcel" :title="type + ' Excel İndir'">📊</button>
-                    <button class="icon-btn" @click="downloadFullPDF" :title="type + ' Rapor İndir'">📄</button>
+                    <button class="icon-btn" @click="downloadExcel" :title="type + ' Excel'">📊</button>
+                    <button class="icon-btn" @click="downloadFullPDF" :title="type + ' Rapor'">📄</button>
                 </div>
             </div>
         </header>
@@ -135,7 +135,7 @@
             assets.value = (resSum.data.assets || []).filter(a => a.type === props.type);
             transactions.value = (resTx.data || []).filter(t => t.asset_type === props.type).sort((a, b) => {
                 const d = new Date(b.transaction_date) - new Date(a.transaction_date);
-                return d !== 0 ? d : b.id - a.id; // AYNI GÜNDE SON EKLENEN ÜSTE
+                return d !== 0 ? d : b.id - a.id; // SIRALAMA FIX
             });
         } catch (err) { console.error(err); }
     };
@@ -160,18 +160,32 @@
     };
 
     const downloadFullPDF = async () => {
-        const res = await api.get(`/assets/receipt/full`, { responseType: 'blob', params: { currency: selectedCurrency.value, variant: selectedVariant.value, asset_type: props.type } });
+        const res = await api.get(`/assets/receipt/full`, {
+            responseType: 'blob',
+            params: {
+                currency: selectedCurrency.value,
+                variant: selectedVariant.value,
+                asset_type: props.type // FILTRE EKLEDIK
+            }
+        });
         const url = window.URL.createObjectURL(new Blob([res.data]));
         const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Rapor_${props.type}.pdf`); link.click();
     };
 
     const downloadExcel = async () => {
-        const res = await api.get(`/assets/export/excel`, { responseType: 'blob', params: { currency: selectedCurrency.value, variant: selectedVariant.value, asset_type: props.type } });
+        const res = await api.get(`/assets/export/excel`, {
+            responseType: 'blob',
+            params: {
+                currency: selectedCurrency.value,
+                variant: selectedVariant.value,
+                asset_type: props.type // FILTRE EKLEDIK
+            }
+        });
         const url = window.URL.createObjectURL(new Blob([res.data]));
         const link = document.createElement('a'); link.href = url; link.setAttribute('download', `Rapor_${props.type}.xlsx`); link.click();
     };
 
-    const vClickOutside = { mounted(el, b) { el.clickEvent = (e) => { if (!(el === e.target || el.contains(e.target))) b.value(e); }; document.body.addEventListener('click', el.clickEvent); }, unmounted(el) { document.body.removeEventListener('click', el.clickEvent); } };
+    const vClickOutside = { mounted(el, b) { el.clickEvent = (e) => { if (!(el === event.target || el.contains(event.target))) b.value(e); }; document.body.addEventListener('click', el.clickEvent); }, unmounted(el) { document.body.removeEventListener('click', el.clickEvent); } };
 
     watch(() => props.type, () => { selectedCurrency.value = 'TRY'; selectedVariant.value = 'STANDARD'; displayLabel.value = 'TRY'; fetchData(); });
     onMounted(fetchData);
