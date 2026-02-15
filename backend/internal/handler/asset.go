@@ -72,27 +72,29 @@ func (h *AssetHandler) GetReceipt(c *fiber.Ctx) error {
 func (h *AssetHandler) GetFullPortfolioReceipt(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency", "TRY")
-	variant := c.Query("variant", "STANDARD") // YENİ: Varyant eklendi
+	variant := c.Query("variant", "STANDARD")
+	assetType := c.Query("asset_type", "")
 
-	pdfBytes, err := h.service.GenerateFullPortfolioReceipt(userID, currency, variant)
+	pdfBytes, err := h.service.GenerateFullPortfolioReceipt(userID, currency, variant, assetType)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Portfoy raporu uretilemedi"})
 	}
 	c.Set("Content-Type", "application/pdf")
-	c.Set("Content-Disposition", "attachment; filename=toplam_portfoy.pdf")
+	c.Set("Content-Disposition", "attachment; filename=portfoy_ozeti.pdf")
 	return c.Send(pdfBytes)
 }
 
 func (h *AssetHandler) GetExcel(c *fiber.Ctx) error {
 	userID := c.Locals("user_id").(int64)
 	currency := c.Query("currency", "TRY")
-	variant := c.Query("variant", "STANDARD") // YENİ: Varyant eklendi
+	variant := c.Query("variant", "STANDARD")
+	assetType := c.Query("asset_type", "")
 
-	excelBytes, err := h.service.GenerateExcelReport(userID, currency, variant)
+	excelBytes, err := h.service.GenerateExcelReport(userID, currency, variant, assetType)
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Excel raporu uretilemedi"})
 	}
-	fileName := fmt.Sprintf("FinTrack_Rapor_%s_%s.xlsx", currency, time.Now().Add(3*time.Hour).Format("20060102"))
+	fileName := fmt.Sprintf("FinTrack_%s_%s.xlsx", assetType, time.Now().Add(3*time.Hour).Format("20060102"))
 	c.Set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
 	c.Set("Content-Disposition", fmt.Sprintf("attachment; filename=%s", fileName))
 	return c.Send(excelBytes)
