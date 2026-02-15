@@ -20,23 +20,17 @@
                             <div class="dd-item" @click="changeViewUnit('EUR', 'STANDARD', 'EUR')"><span class="sym">€</span> EUR</div>
                             <div class="dd-item" @click="changeViewUnit('BTC', 'STANDARD', 'BTC')"><span class="sym">₿</span> BTC</div>
                             <div class="dd-item" @click="changeViewUnit('SILVER', 'STANDARD', 'SILVER')"><span class="sym">Ag</span> SILVER</div>
-
                             <div class="dd-divider"></div>
                             <div class="dd-section-title">Altın Birimleri</div>
-
                             <div class="dd-group">
                                 <div class="dd-item sub-trigger" @click.stop="toggleGramMenu">
                                     <span class="sym">⚖️</span> Gram Altın
                                     <span class="arrow-right" :class="{ rotated: gramMenuOpen }">▶</span>
                                 </div>
                                 <div v-if="gramMenuOpen" class="deep-menu">
-                                    <div class="dd-item deep-item" v-for="k in karats" :key="k"
-                                         @click="changeViewUnit('GOLD', `GRAM_${k}`, `Gram (${k}K)`)">
-                                        {{ k }} Ayar
-                                    </div>
+                                    <div class="dd-item deep-item" v-for="k in karats" :key="k" @click="changeViewUnit('GOLD', `GRAM_${k}`, `Gram (${k}K)`)">{{ k }} Ayar</div>
                                 </div>
                             </div>
-
                             <div class="dd-item" @click="changeViewUnit('GOLD', 'CUMHURIYET', 'Cumhuriyet')"><span class="sym">🔴</span> Cumhuriyet</div>
                             <div class="dd-item" @click="changeViewUnit('GOLD', 'TAM', 'Tam')"><span class="sym">🌕</span> Tam</div>
                             <div class="dd-item" @click="changeViewUnit('GOLD', 'YARIM', 'Yarım')"><span class="sym">🌓</span> Yarım</div>
@@ -174,6 +168,7 @@
             ]);
             assets.value = (resSum.data.assets || []).filter(a => a.type === props.type);
 
+            // SIRALAMA: Tarih (Yeni->Eski) + Aynı tarihteyse son eklenen (ID büyük)
             transactions.value = (resTx.data || [])
                 .filter(t => t.asset_type === props.type)
                 .sort((a, b) => {
@@ -277,13 +272,14 @@
     .detail-container { min-height: 100vh; padding: 40px; color: white; font-family: 'Inter', sans-serif; box-sizing: border-box; }
     .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; position: relative; z-index: 50; }
 
-    .right-menu { display: flex; align-items: center; gap: 20px; } /* Buton arası boşluk */
+    .right-menu { display: flex; align-items: center; gap: 15px; } /* BUTON ARASI BOŞLUK */
     .currency-dropdown-wrapper { position: relative; }
 
+    /* DROPDOWN BUTONU (Çubuk) */
     .dd-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 1rem; min-width: 160px; display: flex; justify-content: space-between; align-items: center; }
     .dd-btn:hover { background: rgba(255,255,255,0.15); border-color: #FFD700; }
 
-    /* MENÜNÜN KONUMU DÜZELTİLDİ (TOP: 100%) */
+    /* MENÜ AŞAĞIDAN ÇIKMASIN DİYE TOP AYARLANDI */
     .dd-menu { position: absolute; top: 100%; right: 0; background: #1E293B; border: 1px solid #334155; border-radius: 12px; width: 220px; z-index: 100; max-height: 400px; overflow-y: auto; overflow-x: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); margin-top: 10px; }
     .dd-menu::-webkit-scrollbar { width: 6px; }
     .dd-menu::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
@@ -303,8 +299,8 @@
     .arrow-right { font-size: 0.8rem; transition: 0.3s; margin-left: auto; }
     .arrow-right.rotated { transform: rotate(90deg); }
 
-    .actions { display: flex; gap: 15px; } /* BUTON BOŞLUĞU */
-    .icon-btn { background: rgba(255,255,255,0.1); border: none; width: 45px; height: 45px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s; color: white; }
+    .actions { display: flex; gap: 10px; }
+    .icon-btn { background: rgba(255,255,255,0.1); border: none; width: 45px; height: 45px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s; }
     .icon-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.1); }
 
     /* HERO ALANI */
@@ -342,6 +338,7 @@
     .fade-in { animation: fadeIn 0.3s ease; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* BUTONLAR (Yeşil ve Kırmızı) */
     .action-buttons { display: flex; gap: 20px; margin-top: 10px; }
     .btn-add, .btn-sub { flex: 1; padding: 18px; border-radius: 16px; font-weight: 800; cursor: pointer; border: none; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 10px; transition: 0.3s; color: white; }
     .btn-add { background: linear-gradient(135deg, #10B981, #059669); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
