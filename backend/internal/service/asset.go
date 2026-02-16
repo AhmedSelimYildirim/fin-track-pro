@@ -45,9 +45,8 @@ func (s *AssetService) tr(text string) string {
 func (s *AssetService) ManageBalance(userID int64, req dto.AssetCreateRequest) error {
 	variant := req.Variant
 	if variant == "" || variant == "STANDARD" {
-		if req.Type == "GOLD" {
-			variant = "GRAM_24"
-		} else {
+		variant = "GRAM_24"
+		if req.Type != "GOLD" {
 			variant = "STANDARD"
 		}
 	}

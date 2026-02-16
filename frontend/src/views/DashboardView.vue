@@ -319,8 +319,8 @@
 
   .card-try { background: linear-gradient(135deg, #DC2626, #7F1D1D); }
   .card-usd { background: linear-gradient(135deg, #059669, #064E3B); }
-  .card-eur { background: linear-gradient(135deg, #2563EB, #1E3A8A); }
-  .card-btc { background: linear-gradient(135deg, #F59E0B, #B45309); }
+  .card-eur { background: linear-gradient(135deg, #b15904, #5c3601); }
+  .card-btc { background: linear-gradient(135deg, #252320, #150000); }
   .card-silver { background: linear-gradient(135deg, #64748B, #334155); }
   .card-gold { background: linear-gradient(135deg, #FACC15, #854D0E); }
 
