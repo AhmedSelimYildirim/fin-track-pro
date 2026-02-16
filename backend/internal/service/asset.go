@@ -45,8 +45,9 @@ func (s *AssetService) tr(text string) string {
 func (s *AssetService) ManageBalance(userID int64, req dto.AssetCreateRequest) error {
 	variant := req.Variant
 	if variant == "" || variant == "STANDARD" {
-		variant = "GRAM_24"
-		if req.Type != "GOLD" {
+		if req.Type == "GOLD" {
+			variant = "GRAM_24"
+		} else {
 			variant = "STANDARD"
 		}
 	}
@@ -77,12 +78,7 @@ func (s *AssetService) ManageBalance(userID int64, req dto.AssetCreateRequest) e
 	if req.TransactionDate != nil {
 		tDate = *req.TransactionDate
 	}
-	tx := &model.Transaction{
-		Type:            req.Action,
-		Amount:          req.Amount,
-		Price:           unitPrice,
-		TransactionDate: tDate,
-	}
+	tx := &model.Transaction{Type: req.Action, Amount: req.Amount, Price: unitPrice, TransactionDate: tDate}
 	return s.repo.UpdateWithLog(asset, tx)
 }
 
@@ -123,10 +119,7 @@ func (s *AssetService) GetPortfolioSummary(userID int64, baseCurrency string, ba
 	var details []dto.AssetResponse
 	var totalValue float64
 	for _, a := range assets {
-		rawPriceTRY, err := s.getCurrentPriceInTRY(a.Type)
-		if err != nil {
-			continue
-		}
+		rawPriceTRY, _ := s.getCurrentPriceInTRY(a.Type)
 		multiplier := 1.0
 		if a.Type == "GOLD" {
 			if val, ok := GoldFactors[a.Variant]; ok {
@@ -137,12 +130,8 @@ func (s *AssetService) GetPortfolioSummary(userID int64, baseCurrency string, ba
 		totalAssetValue := a.Amount * currentUnitPrice
 		totalValue += totalAssetValue
 		details = append(details, dto.AssetResponse{
-			ID:           a.ID,
-			Type:         a.Type,
-			Variant:      a.Variant,
-			Amount:       a.Amount,
-			CurrentPrice: currentUnitPrice,
-			ValueInBase:  totalAssetValue,
+			ID: a.ID, Type: a.Type, Variant: a.Variant, Amount: a.Amount,
+			CurrentPrice: currentUnitPrice, ValueInBase: totalAssetValue,
 		})
 	}
 	if totalValue > 0 {
@@ -215,28 +204,21 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency s
 }
 
 func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, baseVariant string, filterType string) ([]byte, error) {
-	summary, err := s.GetPortfolioSummary(userID, baseCurrency, baseVariant)
-	if err != nil {
-		return nil, err
-	}
+	summary, _ := s.GetPortfolioSummary(userID, baseCurrency, baseVariant)
 	txs, _ := s.repo.GetTransactionsByUserID(userID)
 	f := excelize.NewFile()
-	sheet := "Varlik Ekstresi"
+	sheet := "Ekstre"
 	f.SetSheetName("Sheet1", sheet)
-
 	headerStyle, _ := f.NewStyle(&excelize.Style{
 		Font:      &excelize.Font{Bold: true, Color: "#FFFFFF"},
 		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#1E293B"}, Pattern: 1},
 		Alignment: &excelize.Alignment{Horizontal: "center"},
 	})
-
 	f.SetCellValue(sheet, "A1", s.tr(fmt.Sprintf("PORTFOY: %s", filterType)))
-	f.SetCellValue(sheet, "A2", "Varlik Listesi")
 	f.SetCellValue(sheet, "A3", "Varlik")
 	f.SetCellValue(sheet, "B3", "Miktar")
-	f.SetCellValue(sheet, "C3", s.tr(fmt.Sprintf("Toplam Deger (%s)", baseCurrency)))
+	f.SetCellValue(sheet, "C3", s.tr(fmt.Sprintf("Deger (%s)", baseCurrency)))
 	f.SetCellStyle(sheet, "A3", "C3", headerStyle)
-
 	row := 4
 	var total float64
 	for _, a := range summary.Assets {
@@ -251,9 +233,8 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 	}
 	f.SetCellValue(sheet, fmt.Sprintf("B%d", row), "TOPLAM:")
 	f.SetCellValue(sheet, fmt.Sprintf("C%d", row), total)
-
 	row += 3
-	f.SetCellValue(sheet, fmt.Sprintf("A%d", row), "Islem Gecmisi")
+	f.SetCellValue(sheet, fmt.Sprintf("A%d", row), "ISLEM GECMISI")
 	row++
 	f.SetCellValue(sheet, fmt.Sprintf("A%d", row), "Tarih")
 	f.SetCellValue(sheet, fmt.Sprintf("B%d", row), "Islem")
@@ -261,29 +242,25 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 	f.SetCellValue(sheet, fmt.Sprintf("D%d", row), s.tr(fmt.Sprintf("Birim Fiyat (%s)", baseCurrency)))
 	f.SetCellStyle(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("D%d", row), headerStyle)
 	row++
-
 	basePrice, _ := s.getCurrentPriceInTRY(baseCurrency)
 	if basePrice <= 0 {
 		basePrice = 1
 	}
-
 	for i := len(txs) - 1; i >= 0; i-- {
 		t := txs[i]
 		if filterType != "" && t.Asset.Type != filterType {
 			continue
 		}
-		trDate := t.TransactionDate.Add(3 * time.Hour)
-		opType := "Ekleme"
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), t.TransactionDate.Add(3*time.Hour).Format("02.01.2006"))
+		op := "Ekleme"
 		if t.Type == "subtract" {
-			opType = "Cikarma"
+			op = "Cikarma"
 		}
-		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), trDate.Format("02.01.2006"))
-		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), opType)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), op)
 		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), t.Amount)
 		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), t.Price/basePrice)
 		row++
 	}
-
 	f.SetColWidth(sheet, "A", "D", 20)
 	buf, _ := f.WriteToBuffer()
 	return buf.Bytes(), nil
