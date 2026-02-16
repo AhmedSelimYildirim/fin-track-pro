@@ -164,7 +164,7 @@
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
-    const colors = ['#DC2626', '#059669', '#8B4513', '#111827', '#64748B', '#FACC15'];
+    const colors = ['#DC2626', '#059669', '#b15904', '#252320', '#64748B', '#FACC15'];
     const data = labels.map(label => {
       const assets = summaryData.value?.assets || [];
       return assets.filter(a => a.type === label).reduce((sum, curr) => sum + (curr.allocation || 0), 0);
@@ -211,19 +211,19 @@
   const downloadFullPDF = async () => {
     const res = await api.get('/assets/receipt/full', {
       responseType: 'blob',
-      params: { currency: baseCurrency.value, variant: targetVariant.value, asset_type: baseCurrency.value }
+      params: { currency: baseCurrency.value, variant: targetVariant.value, asset_type: '' }
     });
     const url = window.URL.createObjectURL(new Blob([res.data]));
-    const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Ozel_Rapor.pdf'); link.click();
+    const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Genel_Rapor.pdf'); link.click();
   };
 
   const downloadExcel = async () => {
     const res = await api.get('/assets/export/excel', {
       responseType: 'blob',
-      params: { currency: baseCurrency.value, variant: targetVariant.value, asset_type: baseCurrency.value }
+      params: { currency: baseCurrency.value, variant: targetVariant.value, asset_type: '' }
     });
     const url = window.URL.createObjectURL(new Blob([res.data]));
-    const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Ozel_Rapor.xlsx'); link.click();
+    const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Genel_Rapor.xlsx'); link.click();
   };
 
   const navigateToDetail = (type) => {
@@ -340,4 +340,4 @@
     .chart-wrapper { width: 250px; height: 250px; }
     .center-balance h3 { font-size: 1.5rem; }
   }
-</style>
+</style>```

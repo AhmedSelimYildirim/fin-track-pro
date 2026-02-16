@@ -97,6 +97,8 @@ func (s *AssetService) getCurrentPriceInTRY(assetType string) (float64, error) {
 		return s.marketService.GetMetalPrice("SILVER")
 	case "BTC":
 		return s.marketService.GetCryptoPrice("BTC")
+	case "TRY":
+		return 1.0, nil
 	default:
 		return 1.0, nil
 	}
@@ -172,23 +174,33 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency s
 	if err != nil {
 		return nil, err
 	}
+	userName, _ := s.repo.GetUserName(userID)
 	pdf := gofpdf.New("P", "mm", "A4", "")
 	pdf.AddPage()
+
+	title := "GENEL PORTFOY RAPORU"
+	if filterType != "" {
+		title = fmt.Sprintf("%s PORTFOY RAPORU", filterType)
+	}
 	pdf.SetFont("Arial", "B", 16)
-	pdf.Cell(0, 15, s.tr(fmt.Sprintf("%s PORTFOY RAPORU", filterType)))
+	pdf.Cell(0, 15, s.tr(title))
 	pdf.Ln(20)
+
 	pdf.SetFont("Arial", "B", 10)
 	pdf.Cell(40, 10, s.tr("Varlik"))
+	pdf.Cell(40, 10, s.tr("Varyant"))
 	pdf.Cell(30, 10, s.tr("Miktar"))
 	pdf.Cell(40, 10, s.tr(fmt.Sprintf("Deger (%s)", baseCurrency)))
 	pdf.Ln(10)
+
 	pdf.SetFont("Arial", "", 10)
 	var filteredTotal float64
 	for _, a := range summary.Assets {
 		if filterType != "" && a.Type != filterType {
 			continue
 		}
-		pdf.Cell(40, 8, s.tr(fmt.Sprintf("%s-%s", a.Type, a.Variant)))
+		pdf.Cell(40, 8, a.Type)
+		pdf.Cell(40, 8, a.Variant)
 		pdf.Cell(30, 8, fmt.Sprintf("%.2f", a.Amount))
 		pdf.Cell(40, 8, fmt.Sprintf("%.2f", a.ValueInBase))
 		pdf.Ln(8)
@@ -196,7 +208,10 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency s
 	}
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "B", 12)
-	pdf.Cell(0, 10, s.tr(fmt.Sprintf("GENEL TOPLAM: %.2f %s", filteredTotal, baseCurrency)))
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("TOPLAM DEGER: %.2f %s", filteredTotal, baseCurrency)))
+	pdf.Ln(10)
+	pdf.SetFont("Arial", "I", 10)
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Musteri: %s", userName)))
 	var buf bytes.Buffer
 	pdf.Output(&buf)
 	return buf.Bytes(), nil
@@ -206,61 +221,92 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 	summary, _ := s.GetPortfolioSummary(userID, baseCurrency, baseVariant)
 	txs, _ := s.repo.GetTransactionsByUserID(userID)
 	f := excelize.NewFile()
-	sheet := "Ekstre"
+
+	// --- SAYFA 1: PORTFÖY ÖZETİ ---
+	sheet := "Portfoy Ozeti"
 	f.SetSheetName("Sheet1", sheet)
+
 	headerStyle, _ := f.NewStyle(&excelize.Style{
 		Font:      &excelize.Font{Bold: true, Color: "#FFFFFF"},
 		Fill:      excelize.Fill{Type: "pattern", Color: []string{"#1E293B"}, Pattern: 1},
 		Alignment: &excelize.Alignment{Horizontal: "center"},
 	})
-	f.SetCellValue(sheet, "A1", s.tr(fmt.Sprintf("PORTFOY: %s", filterType)))
+
+	reportTitle := "GENEL VARLIK LISTESI"
+	if filterType != "" {
+		reportTitle = fmt.Sprintf("%s VARLIK LISTESI", filterType)
+	}
+	f.SetCellValue(sheet, "A1", s.tr(reportTitle))
 	f.SetCellValue(sheet, "A3", "Varlik")
-	f.SetCellValue(sheet, "B3", "Miktar")
-	f.SetCellValue(sheet, "C3", s.tr(fmt.Sprintf("Deger (%s)", baseCurrency)))
-	f.SetCellStyle(sheet, "A3", "C3", headerStyle)
+	f.SetCellValue(sheet, "B3", "Varyant")
+	f.SetCellValue(sheet, "C3", "Miktar")
+	f.SetCellValue(sheet, "D3", s.tr(fmt.Sprintf("Birim Fiyat (%s)", baseCurrency)))
+	f.SetCellValue(sheet, "E3", s.tr(fmt.Sprintf("Toplam (%s)", baseCurrency)))
+	f.SetCellStyle(sheet, "A3", "E3", headerStyle)
+
 	row := 4
 	var total float64
 	for _, a := range summary.Assets {
 		if filterType != "" && a.Type != filterType {
 			continue
 		}
-		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("%s (%s)", a.Type, a.Variant))
-		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), a.Amount)
-		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), a.ValueInBase)
+		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), a.Type)
+		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), a.Variant)
+		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), a.Amount)
+		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), a.CurrentPrice)
+		f.SetCellValue(sheet, fmt.Sprintf("E%d", row), a.ValueInBase)
 		total += a.ValueInBase
 		row++
 	}
-	f.SetCellValue(sheet, fmt.Sprintf("B%d", row), "TOPLAM:")
-	f.SetCellValue(sheet, fmt.Sprintf("C%d", row), total)
-	row += 3
-	f.SetCellValue(sheet, fmt.Sprintf("A%d", row), "ISLEM GECMISI")
-	row++
-	f.SetCellValue(sheet, fmt.Sprintf("A%d", row), "Tarih")
-	f.SetCellValue(sheet, fmt.Sprintf("B%d", row), "Islem")
-	f.SetCellValue(sheet, fmt.Sprintf("C%d", row), "Miktar")
-	f.SetCellValue(sheet, fmt.Sprintf("D%d", row), s.tr(fmt.Sprintf("Birim Fiyat (%s)", baseCurrency)))
-	f.SetCellStyle(sheet, fmt.Sprintf("A%d", row), fmt.Sprintf("D%d", row), headerStyle)
-	row++
+	f.SetCellValue(sheet, fmt.Sprintf("D%d", row), "GENEL TOPLAM:")
+	f.SetCellValue(sheet, fmt.Sprintf("E%d", row), total)
+	f.SetColWidth(sheet, "A", "E", 18)
+
+	// --- SAYFA 2: İŞLEM GEÇMİŞİ (EKSTRE) ---
+	sheet2 := "Islem Gecmisi"
+	f.NewSheet(sheet2)
+
+	f.SetCellValue(sheet2, "A1", s.tr("TUM ISLEMLER DOKUMU"))
+	f.SetCellValue(sheet2, "A3", "Tarih")
+	f.SetCellValue(sheet2, "B3", "Islem")
+	f.SetCellValue(sheet2, "C3", "Varlik")
+	f.SetCellValue(sheet2, "D3", "Varyant")
+	f.SetCellValue(sheet2, "E3", "Miktar")
+	f.SetCellValue(sheet2, "F3", s.tr(fmt.Sprintf("Islem Degeri (%s)", baseCurrency)))
+	f.SetCellStyle(sheet2, "A3", "F3", headerStyle)
+
 	basePrice, _ := s.getCurrentPriceInTRY(baseCurrency)
 	if basePrice <= 0 {
 		basePrice = 1
 	}
+
+	row = 4
 	for i := len(txs) - 1; i >= 0; i-- {
 		t := txs[i]
+		// EĞER filterType VARSA SADECE ONU, YOKSA HEPSİNİ LİSTELE
 		if filterType != "" && t.Asset.Type != filterType {
 			continue
 		}
-		f.SetCellValue(sheet, fmt.Sprintf("A%d", row), t.TransactionDate.Add(3*time.Hour).Format("02.01.2006"))
+
+		trDate := t.TransactionDate.Add(3 * time.Hour)
 		op := "Ekleme"
 		if t.Type == "subtract" {
 			op = "Cikarma"
 		}
-		f.SetCellValue(sheet, fmt.Sprintf("B%d", row), op)
-		f.SetCellValue(sheet, fmt.Sprintf("C%d", row), t.Amount)
-		f.SetCellValue(sheet, fmt.Sprintf("D%d", row), t.Price/basePrice)
+
+		// O anki işlem fiyatını seçilen para birimine çevir
+		convertedTxPrice := t.Price / basePrice
+
+		f.SetCellValue(sheet2, fmt.Sprintf("A%d", row), trDate.Format("02.01.2006"))
+		f.SetCellValue(sheet2, fmt.Sprintf("B%d", row), op)
+		f.SetCellValue(sheet2, fmt.Sprintf("C%d", row), t.Asset.Type)
+		f.SetCellValue(sheet2, fmt.Sprintf("D%d", row), t.Asset.Variant)
+		f.SetCellValue(sheet2, fmt.Sprintf("E%d", row), t.Amount)
+		f.SetCellValue(sheet2, fmt.Sprintf("F%d", row), t.Amount*convertedTxPrice)
 		row++
 	}
-	f.SetColWidth(sheet, "A", "D", 20)
+	f.SetColWidth(sheet2, "A", "F", 18)
+
 	buf, _ := f.WriteToBuffer()
 	return buf.Bytes(), nil
 }
