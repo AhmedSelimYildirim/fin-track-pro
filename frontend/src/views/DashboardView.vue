@@ -9,7 +9,7 @@
     <div class="dashboard-content">
       <header class="top-bar">
         <div class="page-title">
-          <h2>Portföy Özeti</h2>
+          <h2>{{ t('portfolioSummary') }}</h2>
         </div>
 
         <div class="right-menu">
@@ -33,7 +33,7 @@
 
                 <div class="dd-group">
                   <div class="dd-item sub-trigger" @click.stop="toggleGramMenu">
-                    ⚖️ Gram Altın
+                    <span class="sym"> </span> Gram Altın
                     <span class="arrow-right" :class="{ rotated: gramMenuOpen }">▶</span>
                   </div>
                   <div v-if="gramMenuOpen" class="deep-menu">
@@ -41,18 +41,18 @@
                   </div>
                 </div>
 
-                <div class="dd-item" @click="changeCurrency('GOLD', 'CUMHURIYET', 'Cumhuriyet')">Cumhuriyet</div>
-                <div class="dd-item" @click="changeCurrency('GOLD', 'TAM', 'Tam')">Tam</div>
-                <div class="dd-item" @click="changeCurrency('GOLD', 'YARIM', 'Yarım')">Yarım</div>
-                <div class="dd-item" @click="changeCurrency('GOLD', 'CEYREK', 'Çeyrek')">Çeyrek</div>
-                <div class="dd-item" @click="changeCurrency('GOLD', 'GREMSE', 'Gremse')">Gremse</div>
+                <div class="dd-item" @click="changeCurrency('GOLD', 'CUMHURIYET', 'Cumhuriyet')"><span class="sym"></span> Cumhuriyet</div>
+                <div class="dd-item" @click="changeCurrency('GOLD', 'TAM', 'Tam')"><span class="sym"> </span> Tam</div>
+                <div class="dd-item" @click="changeCurrency('GOLD', 'YARIM', 'Yarım')"><span class="sym"> </span> Yarım</div>
+                <div class="dd-item" @click="changeCurrency('GOLD', 'CEYREK', 'Çeyrek')"><span class="sym"> </span> Çeyrek</div>
+                <div class="dd-item" @click="changeCurrency('GOLD', 'GREMSE', 'Gremse')"><span class="sym"> </span> Gremse</div>
               </div>
             </transition>
           </div>
 
           <div class="actions">
-            <button class="icon-btn" @click="downloadExcel" title="Excel Rapor">📊</button>
-            <button class="icon-btn" @click="downloadFullPDF" title="PDF Rapor">📄</button>
+            <button class="icon-btn" @click="downloadExcel" title="Spesifik Excel">📊</button>
+            <button class="icon-btn" @click="downloadFullPDF" title="Spesifik PDF">📄</button>
           </div>
         </div>
       </header>
@@ -62,16 +62,11 @@
           <template v-if="hasData">
             <Doughnut :data="chartData" :options="chartOptions" />
             <div class="center-balance">
-              <div class="balance-title">TOPLAM</div>
-              <div class="balance-value">{{ totalValue }}</div>
-              <div class="balance-unit">{{ baseCurrencyLabel }}</div>
+              <h3>{{ totalValue }}</h3>
+              <small>{{ baseCurrencyLabel }}</small>
             </div>
           </template>
-          <div v-else class="no-data-circle">
-            <span>Veri Yok</span>
-          </div>
         </div>
-        <div class="chart-line"></div>
       </div>
 
       <div class="assets-grid">
@@ -108,14 +103,7 @@
   const baseCurrencyLabel = ref('TRY');
 
   const karats = [24, 22, 18, 14, 8, 4];
-  const cardConfigs = [
-    { type: 'TRY', label: 'TRY', icon: '₺' },
-    { type: 'USD', label: 'USD', icon: '$' },
-    { type: 'EUR', label: 'EUR', icon: '€' },
-    { type: 'BTC', label: 'BTC', icon: '₿' },
-    { type: 'SILVER', label: 'SILVER', icon: 'Ag' },
-    { type: 'GOLD', label: 'GOLD', icon: 'HAS' }
-  ];
+  const cardConfigs = [{ type: 'TRY', label: 'TRY', icon: '₺' }, { type: 'USD', label: 'USD', icon: '$' }, { type: 'EUR', label: 'EUR', icon: '€' }, { type: 'BTC', label: 'BTC', icon: '₿' }, { type: 'SILVER', label: 'SILVER', icon: 'Ag' }, { type: 'GOLD', label: 'GOLD'}];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
   const toggleGramMenu = () => { gramMenuOpen.value = !gramMenuOpen.value; };
@@ -127,12 +115,12 @@
 
   const chartData = computed(() => {
     const labels = ['TRY', 'USD', 'EUR', 'BTC', 'SILVER', 'GOLD'];
-    const colors = ['#E63946', '#2A9D8F', '#A0522D', '#1B1B1B', '#A9A9A9', '#FFD700'];
+    const colors = ['#DC2626', '#059669', '#2563EB', '#F59E0B', '#64748B', '#FACC15'];
     const data = labels.map(label => summaryData.value?.assets?.filter(a => a.type === label).reduce((sum, curr) => sum + (curr.allocation || 0), 0) || 0);
-    return { labels, datasets: [{ backgroundColor: colors, data, borderWidth: 0, cutout: '85%' }] };
+    return { labels, datasets: [{ backgroundColor: colors, data, borderWidth: 0 }] };
   });
 
-  const chartOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } };
+  const chartOptions = { responsive: true, cutout: '85%', plugins: { legend: { display: false } } };
 
   const fetchData = async () => {
     try {
@@ -156,17 +144,17 @@
   const downloadFullPDF = async () => {
     const res = await api.get('/assets/receipt/full', { responseType: 'blob', params: { currency: baseCurrency.value, variant: targetVariant.value, asset_type: baseCurrency.value } });
     const url = window.URL.createObjectURL(new Blob([res.data]));
-    const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Fintrack_Rapor.pdf'); link.click();
+    const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Rapor.pdf'); link.click();
   };
 
   const downloadExcel = async () => {
     const res = await api.get('/assets/export/excel', { responseType: 'blob', params: { currency: baseCurrency.value, variant: targetVariant.value, asset_type: baseCurrency.value } });
     const url = window.URL.createObjectURL(new Blob([res.data]));
-    const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Fintrack_Rapor.xlsx'); link.click();
+    const link = document.createElement('a'); link.href = url; link.setAttribute('download', 'Rapor.xlsx'); link.click();
   };
 
   const navigateToDetail = (type) => router.push({ name: 'asset-detail', params: { type } });
-  const vClickOutside = { mounted(el, b) { el.clickEvent = (e) => { if (!(el === event.target || el.contains(event.target))) b.value(e); }; document.body.addEventListener('click', el.clickEvent); }, unmounted(el) { document.body.removeEventListener('click', el.clickEvent); } };
+  const vClickOutside = { mounted(el, b) { el.clickEvent = (e) => { if (!(el === e.target || el.contains(e.target))) b.value(e); }; document.body.addEventListener('click', el.clickEvent); }, unmounted(el) { document.body.removeEventListener('click', el.clickEvent); } };
 
   onMounted(() => fetchData());
 </script>
@@ -184,10 +172,15 @@
   .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
 
   .right-menu { display: flex; align-items: center; gap: 20px; }
-  .dd-btn { background: #1e293b; color: white; border: 1px solid #334155; padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 700; min-width: 150px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
-  .dd-btn:hover { border-color: #ffd700; background: #334155; }
+  .currency-dropdown-wrapper { position: relative; }
+
+  /* BUTON ARKA PLANI AYDINLIK MODDA DA GÖRÜNSÜN DİYE KOYULAŞTIRILDI */
+  .dd-btn { background: #1e293b; color: white; border: 1px solid #334155; padding: 10px 20px; border-radius: 12px; cursor: pointer; font-weight: 700; font-size: 1rem; min-width: 160px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+  .dd-btn:hover { background: #334155; border-color: #ffd700; }
 
   .dd-menu { position: absolute; top: 100%; right: 0; background: #1E293B; border: 1px solid #334155; border-radius: 12px; width: 220px; z-index: 100; max-height: 400px; overflow-y: auto; overflow-x: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.5); margin-top: 10px; }
+  .dd-menu::-webkit-scrollbar { width: 6px; }
+  .dd-menu::-webkit-scrollbar-thumb { background: #475569; border-radius: 3px; }
   .dd-section-title { font-size: 0.75rem; color: #94A3B8; padding: 10px 15px 5px; font-weight: bold; letter-spacing: 1px; }
   .dd-divider { height: 1px; background: rgba(255,255,255,0.1); margin: 5px 0; }
   .dd-item { padding: 12px 15px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: 0.2s; display: flex; align-items: center; gap: 10px; font-size: 0.95rem; color: white; }
@@ -201,19 +194,19 @@
   .arrow-right.rotated { transform: rotate(90deg); }
 
   .actions { display: flex; gap: 10px; }
-  .icon-btn { background: #1e293b; color: white; border: 1px solid #334155; width: 45px; height: 45px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+  /* EXCEL VE PDF BUTONLARI KOYULAŞTIRILDI */
+  .icon-btn { background: #1e293b; color: white; border: 1px solid #334155; width: 45px; height: 45px; border-radius: 10px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: 0.3s; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
   .icon-btn:hover { background: #334155; transform: scale(1.1); }
 
   .chart-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 40px; }
-  .chart-wrapper { width: 300px; height: 300px; position: relative; }
-  .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; pointer-events: none; }
-  .balance-title { font-size: 0.75rem; font-weight: 700; color: #94A3B8; letter-spacing: 2px; }
-  .balance-value { font-size: 1.8rem; font-weight: 800; color: var(--text-color); margin: 2px 0; }
-  .balance-unit { font-size: 0.85rem; font-weight: 600; color: #FFD700; }
-  .chart-line { width: 60px; height: 4px; background: #FFD700; border-radius: 2px; margin-top: 25px; opacity: 0.8; }
+  .chart-wrapper { width: 280px; height: 280px; position: relative; }
+  .center-balance { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; }
+  .center-balance h3 { font-size: 1.8rem; margin: 0; color: var(--text-color); }
+  .center-balance small { color: var(--text-muted); }
+  .chart-line { width: 50px; height: 3px; background: var(--border-color); border-radius: 2px; margin-top: 25px; opacity: 0.7; }
 
   .assets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; max-width: 900px; margin: 0 auto; }
-  .asset-card { padding: 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; color: white !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); }
+  .asset-card { padding: 20px; border-radius: 16px; cursor: pointer; transition: 0.3s; display: flex; justify-content: space-between; align-items: center; color: white !important; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
   .asset-card:hover { transform: translateY(-5px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
   .card-try { background: linear-gradient(135deg, #FF4500, #8B0000); }
@@ -222,11 +215,6 @@
   .card-btc { background: linear-gradient(135deg, #4F4F4F, #000000); }
   .card-silver { background: linear-gradient(135deg, #D3D3D3, #708090); }
   .card-gold { background: linear-gradient(135deg, #FFD700, #B8860B); }
-
-  .card-symbol { font-size: 1.6rem; font-weight: 800; }
-  .card-name { font-size: 0.75rem; font-weight: 700; opacity: 0.8; }
-  .card-amount { font-size: 1.2rem; font-weight: 800; }
-  .card-val { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 6px; font-size: 0.75rem; margin-top: 4px; display: inline-block; }
 
   @media (max-width: 768px) { .assets-grid { grid-template-columns: 1fr; } }
 </style>
