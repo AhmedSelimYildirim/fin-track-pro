@@ -35,7 +35,7 @@
                   <span class="symbol">₿</span> BTC
                 </div>
                 <div class="dd-item" @click="changeCurrency('SILVER', 'STANDARD', 'SILVER')">
-                  <span class="symbol text-icon">Ag</span> SILVER
+                  <span class="symbol text-icon"> </span> SILVER
                 </div>
 
                 <div class="dd-divider"></div>
