@@ -43,7 +43,7 @@
 
                 <div class="dd-group">
                   <div class="dd-item sub-trigger" @click.stop="toggleGramMenu">
-                    <span class="symbol text-icon">⚖️</span> Gram Altın
+                    <span class="symbol text-icon"> </span> Gram Altın
                     <span class="arrow-right" :class="{ rotated: gramMenuOpen }">▶</span>
                   </div>
                   <div v-if="gramMenuOpen" class="deep-menu">
@@ -54,19 +54,19 @@
                 </div>
 
                 <div class="dd-item" @click="changeCurrency('GOLD', 'CUMHURIYET', 'Cumhuriyet')">
-                  <span class="symbol text-icon">🔴</span> Cumhuriyet
+                  <span class="symbol text-icon"> </span> Cumhuriyet
                 </div>
                 <div class="dd-item" @click="changeCurrency('GOLD', 'TAM', 'Tam')">
-                  <span class="symbol text-icon">🌕</span> Tam
+                  <span class="symbol text-icon"> </span> Tam
                 </div>
                 <div class="dd-item" @click="changeCurrency('GOLD', 'YARIM', 'Yarım')">
-                  <span class="symbol text-icon">🌓</span> Yarım
+                  <span class="symbol text-icon"> </span> Yarım
                 </div>
                 <div class="dd-item" @click="changeCurrency('GOLD', 'CEYREK', 'Çeyrek')">
-                  <span class="symbol text-icon">🔸</span> Çeyrek
+                  <span class="symbol text-icon"> </span> Çeyrek
                 </div>
                 <div class="dd-item" @click="changeCurrency('GOLD', 'GREMSE', 'Gremse')">
-                  <span class="symbol text-icon">🔶</span> Gremse
+                  <span class="symbol text-icon"> </span> Gremse
                 </div>
               </div>
             </transition>
@@ -143,7 +143,7 @@
     { type: 'EUR', label: 'EUR', icon: '€' },
     { type: 'BTC', label: 'BTC', icon: '₿' },
     { type: 'SILVER', label: 'SILVER', icon: 'Ag' },
-    { type: 'GOLD', label: 'GOLD', icon: '🥇' }
+    { type: 'GOLD', label: 'GOLD'}
   ];
 
   const toggleDropdown = () => { showSelector.value = !showSelector.value; };
