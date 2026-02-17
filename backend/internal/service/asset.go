@@ -150,10 +150,10 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	pdf := gofpdf.New("P", "mm", "A5", "")
 	pdf.AddPage()
 	pdf.SetFont("Arial", "B", 16)
-	pdf.Cell(0, 10, s.tr("ISLEM DEKONTU"))
+	pdf.Cell(0, 10, s.tr("İŞLEM DEKONTU"))
 	pdf.Ln(12)
 	pdf.SetFont("Arial", "", 12)
-	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Varlik: %s (%s)", tx.Asset.Type, tx.Asset.Variant)))
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Varlık: %s (%s)", tx.Asset.Type, tx.Asset.Variant)))
 	pdf.Ln(8)
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Miktar: %.2f", tx.Amount)))
 	pdf.Ln(8)
@@ -163,7 +163,7 @@ func (s *AssetService) GenerateTransactionReceipt(tx *model.Transaction, baseCur
 	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Tarih: %s", trDate.Format("02.01.2006"))))
 	pdf.Ln(15)
 	pdf.SetFont("Arial", "I", 10)
-	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Musteri: %s", userName)))
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Müşteri: %s", userName)))
 	var buf bytes.Buffer
 	pdf.Output(&buf)
 	return buf.Bytes(), nil
@@ -187,10 +187,10 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency s
 	pdf.Ln(20)
 
 	pdf.SetFont("Arial", "B", 10)
-	pdf.Cell(40, 10, s.tr("Varlik"))
+	pdf.Cell(40, 10, s.tr("Varlık"))
 	pdf.Cell(40, 10, s.tr("Varyant"))
 	pdf.Cell(30, 10, s.tr("Miktar"))
-	pdf.Cell(40, 10, s.tr(fmt.Sprintf("Deger (%s)", baseCurrency)))
+	pdf.Cell(40, 10, s.tr(fmt.Sprintf("Değer (%s)", baseCurrency)))
 	pdf.Ln(10)
 
 	pdf.SetFont("Arial", "", 10)
@@ -208,10 +208,10 @@ func (s *AssetService) GenerateFullPortfolioReceipt(userID int64, baseCurrency s
 	}
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "B", 12)
-	pdf.Cell(0, 10, s.tr(fmt.Sprintf("TOPLAM DEGER: %.2f %s", filteredTotal, baseCurrency)))
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("TOPLAM DEĞER: %.2f %s", filteredTotal, baseCurrency)))
 	pdf.Ln(10)
 	pdf.SetFont("Arial", "I", 10)
-	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Musteri: %s", userName)))
+	pdf.Cell(0, 10, s.tr(fmt.Sprintf("Müşteri: %s", userName)))
 	var buf bytes.Buffer
 	pdf.Output(&buf)
 	return buf.Bytes(), nil
@@ -222,8 +222,7 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 	txs, _ := s.repo.GetTransactionsByUserID(userID)
 	f := excelize.NewFile()
 
-	// --- SAYFA 1: PORTFÖY ÖZETİ ---
-	sheet := "Portfoy Ozeti"
+	sheet := "Portfoy Özeti"
 	f.SetSheetName("Sheet1", sheet)
 
 	headerStyle, _ := f.NewStyle(&excelize.Style{
@@ -232,12 +231,12 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 		Alignment: &excelize.Alignment{Horizontal: "center"},
 	})
 
-	reportTitle := "GENEL VARLIK LISTESI"
+	reportTitle := "GENEL VARLIK LİSTESİ"
 	if filterType != "" {
-		reportTitle = fmt.Sprintf("%s VARLIK LISTESI", filterType)
+		reportTitle = fmt.Sprintf("%s VARLIK LİSTESİ", filterType)
 	}
 	f.SetCellValue(sheet, "A1", s.tr(reportTitle))
-	f.SetCellValue(sheet, "A3", "Varlik")
+	f.SetCellValue(sheet, "A3", "Varlık")
 	f.SetCellValue(sheet, "B3", "Varyant")
 	f.SetCellValue(sheet, "C3", "Miktar")
 	f.SetCellValue(sheet, "D3", s.tr(fmt.Sprintf("Birim Fiyat (%s)", baseCurrency)))
@@ -262,17 +261,16 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 	f.SetCellValue(sheet, fmt.Sprintf("E%d", row), total)
 	f.SetColWidth(sheet, "A", "E", 18)
 
-	// --- SAYFA 2: İŞLEM GEÇMİŞİ (EKSTRE) ---
 	sheet2 := "Islem Gecmisi"
 	f.NewSheet(sheet2)
 
-	f.SetCellValue(sheet2, "A1", s.tr("TUM ISLEMLER DOKUMU"))
+	f.SetCellValue(sheet2, "A1", s.tr("TUM İSLEMLER DÖKÜMÜ"))
 	f.SetCellValue(sheet2, "A3", "Tarih")
-	f.SetCellValue(sheet2, "B3", "Islem")
-	f.SetCellValue(sheet2, "C3", "Varlik")
+	f.SetCellValue(sheet2, "B3", "İşlem")
+	f.SetCellValue(sheet2, "C3", "Varlık")
 	f.SetCellValue(sheet2, "D3", "Varyant")
 	f.SetCellValue(sheet2, "E3", "Miktar")
-	f.SetCellValue(sheet2, "F3", s.tr(fmt.Sprintf("Islem Degeri (%s)", baseCurrency)))
+	f.SetCellValue(sheet2, "F3", s.tr(fmt.Sprintf("İşlem Değeri (%s)", baseCurrency)))
 	f.SetCellStyle(sheet2, "A3", "F3", headerStyle)
 
 	basePrice, _ := s.getCurrentPriceInTRY(baseCurrency)
@@ -283,7 +281,7 @@ func (s *AssetService) GenerateExcelReport(userID int64, baseCurrency string, ba
 	row = 4
 	for i := len(txs) - 1; i >= 0; i-- {
 		t := txs[i]
-		// EĞER filterType VARSA SADECE ONU, YOKSA HEPSİNİ LİSTELE
+
 		if filterType != "" && t.Asset.Type != filterType {
 			continue
 		}

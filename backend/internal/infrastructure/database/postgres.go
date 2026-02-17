@@ -42,16 +42,6 @@ func ConnectDB() {
 
 	ctx := context.Background()
 
-	queries := []string{
-		`DROP TABLE IF EXISTS transactions CASCADE;`,
-		`DROP TABLE IF EXISTS assets CASCADE;`,
-		`DROP TABLE IF EXISTS market_histories CASCADE;`,
-	}
-
-	for _, q := range queries {
-		_, _ = DB.ExecContext(ctx, q)
-	}
-
 	modelsToCreate := []interface{}{
 		(*model.User)(nil),
 		(*model.Asset)(nil),
@@ -69,5 +59,5 @@ func ConnectDB() {
 
 	_, _ = DB.ExecContext(ctx, `CREATE UNIQUE INDEX IF NOT EXISTS idx_assets_user_type_variant ON assets (user_id, type, variant);`)
 
-	fmt.Println("✅ Veritabani Altin Donusumune Hazir!")
+	fmt.Println("✅ Veritabani Baglantisi Basarili ve Veriler Korunuyor!")
 }
