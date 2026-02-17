@@ -3,18 +3,21 @@ package router
 import (
 	"fin-track-pro/internal/handler"
 	"fin-track-pro/internal/infrastructure/config"
-	"fin-track-pro/internal/infrastructure/database"
-	"fin-track-pro/internal/infrastructure/redis"
 	"fin-track-pro/internal/middleware"
-	"fin-track-pro/internal/repository"
-	"fin-track-pro/internal/service"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
-func SetupRoutes(app *fiber.App) {
+func SetupRoutes(
+	app *fiber.App,
+	cfg *config.Config,
+	userHandler *handler.UserHandler,
+	marketHandler *handler.MarketHandler,
+	assetHandler *handler.AssetHandler,
+	calendarHandler *handler.CalendarHandler,
+) {
 	app.Use(logger.New())
 
 	app.Use(cors.New(cors.Config{
@@ -27,23 +30,6 @@ func SetupRoutes(app *fiber.App) {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.Status(200).SendString("FinTrack Pro Backend is Running!")
 	})
-
-	cfg := config.LoadConfig()
-
-	userRepo := repository.NewUserRepository(database.DB)
-	assetRepo := repository.NewAssetRepository(database.DB)
-	calendarRepo := repository.NewCalendarRepository(database.DB)
-	marketRepo := repository.NewMarketRepository(database.DB)
-
-	userService := service.NewUserService(userRepo, cfg.JWTSecret)
-	marketService := service.NewMarketService(cfg, redis.Client, marketRepo)
-	assetService := service.NewAssetService(assetRepo, marketService)
-	calendarService := service.NewCalendarService(calendarRepo)
-
-	userHandler := handler.NewUserHandler(userService)
-	marketHandler := handler.NewMarketHandler(marketService)
-	assetHandler := handler.NewAssetHandler(assetService)
-	calendarHandler := handler.NewCalendarHandler(calendarService)
 
 	api := app.Group("/api")
 	v1 := api.Group("/v1")

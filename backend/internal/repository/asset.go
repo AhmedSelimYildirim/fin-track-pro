@@ -37,7 +37,6 @@ func (r *AssetRepository) GetByUserID(userID int64) ([]model.Asset, error) {
 
 func (r *AssetRepository) GetTransactionsByUserID(userID int64) ([]model.Transaction, error) {
 	var txs []model.Transaction
-	// İlişkili Asset tablosunu da çekiyoruz ki tipini ve varyantını bilelim
 	err := r.db.NewSelect().
 		Model(&txs).
 		Relation("Asset").
@@ -58,12 +57,9 @@ func (r *AssetRepository) GetTransactionByID(txID int64, userID int64) (*model.T
 	return tx, err
 }
 
-// Transaction ve Asset güncellemesini tek bir veritabanı Transaction'ı (ACID) içinde yapar.
 func (r *AssetRepository) UpdateWithLog(asset *model.Asset, tx *model.Transaction) error {
 	ctx := context.Background()
 	return r.db.RunInTx(ctx, nil, func(ctx context.Context, bunTx bun.Tx) error {
-		// 1. Asset'i Güncelle veya Oluştur (Upsert)
-		// Unique Index: user_id, type, variant
 		_, err := bunTx.NewInsert().
 			Model(asset).
 			On("CONFLICT (user_id, type, variant) DO UPDATE").
@@ -75,7 +71,6 @@ func (r *AssetRepository) UpdateWithLog(asset *model.Asset, tx *model.Transactio
 			return err
 		}
 
-		// 2. İşlem Kaydını (Log) Ekle
 		tx.AssetID = asset.ID
 		tx.UserID = asset.UserID
 		if _, err := bunTx.NewInsert().Model(tx).Exec(ctx); err != nil {

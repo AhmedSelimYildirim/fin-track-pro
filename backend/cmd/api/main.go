@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	_ "fin-track-pro/docs"
+	"fin-track-pro/internal/handler"
 	"fin-track-pro/internal/infrastructure/config"
 	"fin-track-pro/internal/infrastructure/database"
 	"fin-track-pro/internal/infrastructure/redis"
@@ -10,7 +11,6 @@ import (
 	"fin-track-pro/internal/repository"
 	"fin-track-pro/internal/router"
 	"fin-track-pro/internal/service"
-	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -42,11 +42,23 @@ func main() {
 			log.Fatalf("Tablo olusturma hatasi: %v", err)
 		}
 	}
-	fmt.Println("Veritabani tablolari kontrol edildi.")
 
 	cfg := config.LoadConfig()
+
+	userRepo := repository.NewUserRepository(database.DB)
+	assetRepo := repository.NewAssetRepository(database.DB)
+	calendarRepo := repository.NewCalendarRepository(database.DB)
 	marketRepo := repository.NewMarketRepository(database.DB)
+
+	userService := service.NewUserService(userRepo, cfg.JWTSecret)
 	marketService := service.NewMarketService(cfg, redis.Client, marketRepo)
+	assetService := service.NewAssetService(assetRepo, marketService)
+	calendarService := service.NewCalendarService(calendarRepo)
+
+	userHandler := handler.NewUserHandler(userService)
+	marketHandler := handler.NewMarketHandler(marketService)
+	assetHandler := handler.NewAssetHandler(assetService)
+	calendarHandler := handler.NewCalendarHandler(calendarService)
 
 	c := cron.New()
 	_, err := c.AddFunc("0 17 * * *", func() {
@@ -64,7 +76,14 @@ func main() {
 		ServerHeader: "Fiber",
 	})
 
-	router.SetupRoutes(app)
+	router.SetupRoutes(
+		app,
+		cfg,
+		userHandler,
+		marketHandler,
+		assetHandler,
+		calendarHandler,
+	)
 
 	port := os.Getenv("PORT")
 	if port == "" {
